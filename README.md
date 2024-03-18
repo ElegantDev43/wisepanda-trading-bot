@@ -1,1 +1,3 @@
 # wisepanda-trading-bot
+
+@wisepandatradingbot
