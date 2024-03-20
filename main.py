@@ -21,15 +21,6 @@ def handle_sniper(message):
     )
     bot.send_message(message.chat.id, 'Please choose an option:', reply_markup=keyboard)
 
-@bot.callback_query_handler(func=lambda call: True)
-def callback_query(call):
-    if call.data == 'link':
-        bot.answer_callback_query(call.id, 'Link')
-    elif call.data == 'generate':
-        bot.answer_callback_query(call.id, 'Generate')
 
-@bot.message_handler(commands=['buy'])
-def handle_buy(message):
-    bot.reply_to(message, 'Buy')
 
 bot.polling()

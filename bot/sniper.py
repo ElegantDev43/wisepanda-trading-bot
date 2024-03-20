@@ -4,7 +4,7 @@ from datetime import datetime
 
 web3 = Web3(Web3.HTTPProvider('https://eth-sepolia.g.alchemy.com/v2/demo'))
 
-with open('contract_abi.json', 'r') as f:
+with open('../abi/market_router.json', 'r') as f:
     contract_abi = json.load(f)
 
 contract_address = Web3.to_checksum_address('0xd0730b305b520cece4e5fa779e6f2dcf297b453e')
@@ -34,8 +34,8 @@ txn_dict = contract.functions.marketBid(params).build_transaction({
 
 signed_txn = web3.eth.account.sign_transaction(txn_dict, private_key)
 
-# tx_hash = web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-# print("Transaction sent. Hash:", tx_hash.hex())
+tx_hash = web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+print("Transaction sent. Hash:", tx_hash.hex())
 
-# receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
-# print("Transaction mined. Gas used:", receipt.gasUsed)
+receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
+print("Transaction mined. Gas used:", receipt.gasUsed)

@@ -9,7 +9,7 @@ class MyHandler(FileSystemEventHandler):
         print(f'Restarting due to {event.event_type}')
         # Restart your Python script here
         python_executable = sys.executable
-        python_script = 'demo.py'
+        python_script = 'main.py'
         command = [python_executable, python_script]
         subprocess.run(command)
 
