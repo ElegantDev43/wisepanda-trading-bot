@@ -1,12 +1,33 @@
 import telebot
 from telebot import types
+import json
 
 import config
 
-configure = {
+configure_properties = {
     'max_gas_price': None,
     'max_gas_limit': None,
     'slippage': None
+}
+
+buy_properties = {
+    'buy_price': None,
+    'buy_quantity': None,
+    'min_market_cap': None,
+    'max_market_cap': None,
+    'min_liquidity': None,
+    'max_liquidity': None,
+    'max_buy_tax': None,
+    'gas_delta': None
+}
+
+sell_properties = {
+    'target_price_(%)': None,
+    'sell_quantity_at_target_(%)': None,
+    'stop_loss_(%)': None,
+    'sell_quantity_at_stop_loss_(%)': None,
+    'max_sell_tax': None,
+    'gas_delta': None
 }
 
 bot = telebot.TeleBot(config.TELEGRAM_BOT_TOKEN)
@@ -27,34 +48,35 @@ def handle_connect(message):
 @bot.message_handler(commands=['configure'])
 def handle_configure(message):
     bot.send_message(message.chat.id, 'Please enter your configuration details:')
-    bot.send_message(message.chat.id, 'Enter max gas price:')
-    bot.register_next_step_handler(message, process_max_gas_price)
+    process_inputs(message.chat.id, configure_properties, configure_properties)
 
-def process_max_gas_price(message):
-    try:
-        max_gas_price = int(message.text)
-        configure['max_gas_price'] = max_gas_price
-        bot.send_message(message.chat.id, 'Enter max gas limit:')
-        bot.register_next_step_handler(message, process_max_gas_limit)
-    except Exception as e:
-        bot.send_message(message.chat.id, f'Error: {str(e)}')
+@bot.message_handler(commands=['buy'])
+def handle_buy(message):
+    bot.send_message(message.chat.id, 'Please enter your auto-buy details:')
+    process_inputs(message.chat.id, buy_properties, buy_properties)
 
-def process_max_gas_limit(message):
-    try:
-        max_gas_limit = int(message.text)
-        configure['max_gas_limit'] = max_gas_limit
-        bot.send_message(message.chat.id, 'Enter slippage:')
-        bot.register_next_step_handler(message, process_slippage)
-    except Exception as e:
-        bot.send_message(message.chat.id, f'Error: {str(e)}')
+@bot.message_handler(commands=['sell'])
+def handle_sell(message):
+    bot.send_message(message.chat.id, 'Please enter your auto-sell details:')
+    process_inputs(message.chat.id, sell_properties, sell_properties)
 
-def process_slippage(message):
+def process_inputs(chat_id, properties, target):
+    property_keys = list(properties.keys())
+    if len(property_keys) > 0:
+        current_property = property_keys[0]
+        bot.send_message(chat_id, f'Enter {current_property.replace('_', ' ')}:')
+        bot.register_next_step_handler_by_chat_id(chat_id, lambda message: process_input(chat_id, message, current_property, properties, target))
+    else:
+        bot.send_message(chat_id, 'Saved successfully.')
+        bot.send_message(chat_id, json.dumps(target))
+
+def process_input(chat_id, message, property_key, properties, target):
     try:
-        slippage = message.text
-        configure['slippage'] = slippage
-        bot.send_message(message.chat.id, 'Configuration saved successfully.')
+        target[property_key] = message.text
+        remaining_properties = {key: value for key, value in properties.items() if key != property_key}
+        process_inputs(chat_id, remaining_properties, target)
     except Exception as e:
-        bot.send_message(message.chat.id, f'Error: {str(e)}')
+        bot.send_message(chat_id, f'Error: {str(e)}')
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback_query(call):
