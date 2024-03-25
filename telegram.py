@@ -3,6 +3,7 @@ from telebot import types
 import json
 
 import config
+import db
 
 configuration = {
     'id': 0,
@@ -38,24 +39,77 @@ configuration = {
     }
 }
 
-users = []
-
-
 bot = telebot.TeleBot(config.TELEGRAM_BOT_TOKEN)
 
 @bot.message_handler(commands=['start'])
 def handle_start(message):
-    users.append({id: message.chat.id})
-    print(message.chat.id)
-    bot.reply_to(message, 'Welcome to Wise Panda Trading Bot!')
+    id = message.chat.id
+
+    if db.exist(id) == False:
+        db.create(id)
+
+    keyboard = types.InlineKeyboardMarkup()
+    connect_button = types.InlineKeyboardButton('Connect Wallet', callback_data='connect')
+    sniper_button = types.InlineKeyboardButton('Sniper Bot', callback_data='sniper')
+    keyboard.add(connect_button)
+    keyboard.add(sniper_button)
+
+    bot.send_message(id, 'Welcome to Wise Panda Trading Bot!', reply_markup=keyboard)
+
+@bot.message_handler(commands=['connect'])
+def handle_connect(message):
+    id = message.chat.id
+
+    user = db.get(id)
+
+    keyboard = types.InlineKeyboardMarkup()
+    connect_button = types.InlineKeyboardButton('Link Wallet', callback_data='link')
+    sniper_button = types.InlineKeyboardButton('Generate Wallet', callback_data='generate')
+    keyboard.add(connect_button)
+    keyboard.add(sniper_button)
+
+    bot.send_message(id, json.dumps(user.wallet, indent=4), reply_markup=keyboard)
+
+@bot.message_handler(commands=['link'])
+def handle_link(message):
+    return
+
+@bot.message_handler(commands=['generate'])
+def handle_generate(message):
+    return
+
+@bot.message_handler(commands=['sniper'])
+def handle_sniper(message):
+    bot.send_message(message.chat.id, 'Configuration')
 
 @bot.message_handler(commands=['configure'])
 def handle_configure(message):
-    bot.send_message(message.chat.id, 'Configuration')
+    return
 
 @bot.message_handler(commands=['activate'])
-def handle_configure(message):
-    bot.send_message(message.chat.id, 'Configuration')
+def handle_activate(message):
+    return
+
+@bot.message_handler(commands=['cancel'])
+def handle_cancel(message):
+    return
+
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback_query(call):
+    if call.data == 'connect':
+        handle_connect(call.message)
+    elif call.data == 'link':
+        handle_link(call.message)
+    elif call.data == 'generate':
+        handle_generate(call.message)
+    elif call.data == 'sniper':
+        handle_sniper(call.message)
+    elif call.data == 'configure':
+        handle_configure(call.message)
+    elif call.data == 'activate':
+        handle_activate(call.message)
+    elif call.data == 'cancel':
+        handle_cancel(call.message)
 
 def start():
     bot.polling()

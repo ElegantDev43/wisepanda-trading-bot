@@ -4,6 +4,9 @@ import time
 import telegram
 import sniper
 
+import db
+
+db.init()
 telegram.start()
 
 # for index in range(3):
