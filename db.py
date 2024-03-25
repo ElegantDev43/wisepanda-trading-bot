@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, BigInteger, JSON
+from sqlalchemy import create_engine, Column, BigInteger, JSON, Boolean
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 import config
@@ -12,7 +12,8 @@ class User(Base):
 
     id = Column(BigInteger, primary_key=True)
     wallet = Column(JSON)
-    config = Column(JSON)
+    configuration = Column(JSON)
+    active = Column(Boolean)
 
 def init():
     Base.metadata.create_all(engine)
@@ -24,7 +25,7 @@ def exist(id):
 def create(id):
     Session = sessionmaker(bind=engine)
     session = Session()
-    user = User(id=id, wallet={}, config={'active': False})
+    user = User(id=id, wallet={}, configuration={}, active=False)
     session.add(user)
     session.commit()
     session.close()
@@ -36,12 +37,17 @@ def get(id):
     session.close()
     return user
 
-def update(id, wallet, config):
+def save(id, wallet, configuration, active):
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    user = User(id=id, wallet={}, config={'active': False})
-    session.add(user)
+    user = session.query(User).filter(User.id == id).first()
+    if wallet:
+        user.wallet = wallet
+    elif configuration:
+        user.configuration = configuration
+    else:
+        user.active = active
     session.commit()
 
     session.close()
