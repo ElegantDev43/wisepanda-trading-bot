@@ -7,16 +7,16 @@ import config
 configuration = {
     'id': 0,
     'wallet': {
-        'address': '',
-        'private_key': ''
+        'address': '0xa69876a83E11f778B2c7492f02b606bf2BBe52a8',
+        'private_key': '08b17887d76a90941c0ab920b585a4c7a578235138a8d3e483e494e17cbabc19'
     },
-    'active': False,
+    'active': True,
     'configuration': {
         'max_gas_price': 0,
         'max_gas_limit': 0,
         'slippage': 0,
         'buy': {
-            'active': False,
+            'active': True,
             'buy_price': 0,
             'buy_quantity': 0,
             'min_market_cap': 0,
@@ -27,7 +27,7 @@ configuration = {
             'gas_delta': 0
         },
         'sell': {
-            'active': False,
+            'active': True,
             'target_price': 0,
             'sell_quantity_at_target': 0,
             'stop_loss': 0,
@@ -38,31 +38,24 @@ configuration = {
     }
 }
 
+users = []
+
+
 bot = telebot.TeleBot(config.TELEGRAM_BOT_TOKEN)
 
 @bot.message_handler(commands=['start'])
 def handle_start(message):
+    users.append({id: message.chat.id})
+    print(message.chat.id)
     bot.reply_to(message, 'Welcome to Wise Panda Trading Bot!')
-
-@bot.message_handler(commands=['connect'])
-def handle_connect(message):
-    keyboard = types.InlineKeyboardMarkup()
-    keyboard.row(
-        types.InlineKeyboardButton('Link Wallet', callback_data='link'),
-        types.InlineKeyboardButton('Generate Wallet', callback_data='generate')
-    )
-    bot.send_message(message.chat.id, 'Please choose an option:', reply_markup=keyboard)
 
 @bot.message_handler(commands=['configure'])
 def handle_configure(message):
     bot.send_message(message.chat.id, 'Configuration')
 
-@bot.callback_query_handler(func=lambda call: True)
-def handle_callback_query(call):
-    if call.data == 'link':
-        bot.send_message(call.message.chat.id, 'You selected Link Wallet')
-    elif call.data == 'generate':
-        bot.send_message(call.message.chat.id, 'You selected Generate Wallet')
+@bot.message_handler(commands=['activate'])
+def handle_configure(message):
+    bot.send_message(message.chat.id, 'Configuration')
 
 def start():
     bot.polling()
