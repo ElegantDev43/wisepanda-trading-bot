@@ -18,16 +18,13 @@ class User(Base):
 def init():
     Base.metadata.create_all(engine)
 
-def exist(id):
-    user = get(id)
-    return user != None
-
 def create(id):
     Session = sessionmaker(bind=engine)
     session = Session()
-    user = User(id=id, wallet={}, configuration={}, active=False)
-    session.add(user)
-    session.commit()
+    if get(id) == None:
+        user = User(id=id, wallet={}, configuration={}, active=False)
+        session.add(user)
+        session.commit()
     session.close()
 
 def get(id):
