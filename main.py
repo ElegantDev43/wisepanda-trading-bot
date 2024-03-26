@@ -16,6 +16,7 @@ input_wallet = {
 }
 
 input_configuration = {
+    'symbol': None,
     'max_gas_price': None,
     'max_gas_limit': None,
     'slippage': None
@@ -131,7 +132,8 @@ def handle_configure(message):
 def handle_activate(message):
     db.save(message.chat.id, None, None, True)
     thread_flags[message.chat.id] = True
-    thread = threading.Thread(target=sniper.start, args=(message.chat.id, thread_flags,))
+    user = db.get(message.chat.id)
+    thread = threading.Thread(target=sniper.start, args=(message.chat.id, thread_flags, user.wallet, user.configuration, ))
     thread.start()
     bot.send_message(message.chat.id, 'Bot is running')
 

@@ -18,7 +18,7 @@ def get_liquidity(symbol):
 def get_tax(symbol):
     return 0
 
-def order(symbol, side, amount, gas):
+def order(wallet, symbol, side, quantity, gas):
     web3 = Web3(Web3.HTTPProvider('https://eth-sepolia.g.alchemy.com/v2/demo'))
 
     with open('abi.json', 'r') as f:
