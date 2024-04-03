@@ -4,8 +4,8 @@ from datetime import datetime
 import threading
 import time
 
-import config
-import contract
+import src.config as config
+import src.contract as contract
 
 wallet = None
 configuration = None

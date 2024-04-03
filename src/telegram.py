@@ -3,9 +3,9 @@ from telebot import types
 import json
 import threading
 
-import config
-import db
-import sniper
+import src.config as config
+import src.database as database
+import src.sniper as sniper
 
 thread_flags = {}
 
@@ -50,7 +50,7 @@ def process_inputs(id, current, target):
         bot.register_next_step_handler_by_chat_id(id, lambda message: process_input(id, message, key, current, target))
     else:
         if target == input_wallet:
-            db.save(id, input_wallet, None, None)
+            database.update_user(id, 'wallets', input_wallet)
             bot.send_message(id, 'Saved successfully.')
             bot.send_message(id, json.dumps(input_wallet, indent=4))
         elif target == input_configuration:
@@ -65,7 +65,7 @@ def process_inputs(id, current, target):
                 'buy': input_buy,
                 'sell': input_sell
             }
-            db.save(id, None, configuration, None)
+            database.update_user(id, 'configuration', configuration)
             bot.send_message(id, 'Saved successfully.')
             bot.send_message(id, json.dumps(configuration, indent=4))
 
@@ -78,27 +78,53 @@ bot = telebot.TeleBot(config.TELEGRAM_BOT_TOKEN)
 
 @bot.message_handler(commands=['start'])
 def handle_start(message):
-    db.create(message.chat.id)
+    database.create_user(message.chat.id)
 
+    text = '''
+*Welcome to Wise Panda Trading Bot!*
+
+[Visit our Official Chat](https://t.me/wisepandaofficial)
+
+[Visit our Website](https://www.wisepanda.ai)
+    '''
     keyboard = types.InlineKeyboardMarkup()
     connect_button = types.InlineKeyboardButton('Connect Wallet', callback_data='connect')
     sniper_button = types.InlineKeyboardButton('Sniper Bot', callback_data='sniper')
     keyboard.add(connect_button)
     keyboard.add(sniper_button)
+    bot.send_message(message.chat.id, text, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=keyboard)
 
-    bot.send_message(message.chat.id, 'Welcome to Wise Panda Trading Bot!', reply_markup=keyboard)
+@bot.message_handler(commands=['chains'])
+def handle_chains(message):
+    text = '''
+*Settings > Chains*
+    
+Select the chain you'd like to use. You can only have one chain selected at the same time. Your defaults and presets will be different for each chain.
+    '''
+    keyboard = types.InlineKeyboardMarkup()
+    ethereum_button = types.InlineKeyboardButton(text="ethereum", callback_data="ethereum")
+    bsc_button = types.InlineKeyboardButton(text="bsc", callback_data="bsc")
+    solana_button = types.InlineKeyboardButton(text="solana", callback_data="solana")
+    tron_button = types.InlineKeyboardButton(text="tron", callback_data="tron")
+    cardano_button = types.InlineKeyboardButton(text="cardano", callback_data="cardano")
+    keyboard.row(ethereum_button)
+    keyboard.row(bsc_button)
+    keyboard.row(solana_button)
+    keyboard.row(tron_button)
+    keyboard.row(cardano_button)
+    bot.send_message(message.chat.id, text, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=keyboard)
 
 @bot.message_handler(commands=['connect'])
 def handle_connect(message):
-    user = db.get(message.chat.id)
+    user = database.get_user(message.chat.id)
 
     keyboard = types.InlineKeyboardMarkup()
-    connect_button = types.InlineKeyboardButton('Link Wallet', callback_data='link')
-    sniper_button = types.InlineKeyboardButton('Generate Wallet', callback_data='generate')
-    keyboard.add(connect_button)
-    keyboard.add(sniper_button)
+    link_button = types.InlineKeyboardButton('Link Wallet', callback_data='link')
+    generate_button = types.InlineKeyboardButton('Generate Wallet', callback_data='generate')
+    keyboard.add(link_button)
+    keyboard.add(generate_button)
 
-    bot.send_message(message.chat.id, json.dumps(user.wallet, indent=4), reply_markup=keyboard)
+    bot.send_message(message.chat.id, json.dumps(user.wallets, indent=4), reply_markup=keyboard)
 
 @bot.message_handler(commands=['link'])
 def handle_link(message):
@@ -111,7 +137,7 @@ def handle_generate(message):
 
 @bot.message_handler(commands=['sniper'])
 def handle_sniper(message):
-    user = db.get(message.chat.id)
+    user = database.get_user(message.chat.id)
 
     keyboard = types.InlineKeyboardMarkup()
     configure_button = types.InlineKeyboardButton('Configure', callback_data='configure')
@@ -130,16 +156,16 @@ def handle_configure(message):
 
 @bot.message_handler(commands=['activate'])
 def handle_activate(message):
-    db.save(message.chat.id, None, None, True)
+    database.update_user(message.chat.id, 'active', True)
     thread_flags[message.chat.id] = True
-    user = db.get(message.chat.id)
-    thread = threading.Thread(target=sniper.start, args=(message.chat.id, thread_flags, user.wallet, user.configuration, ))
+    user = database.get_user(message.chat.id)
+    thread = threading.Thread(target=sniper.start, args=(message.chat.id, thread_flags, user.wallets, user.configuration, ))
     thread.start()
     bot.send_message(message.chat.id, 'Bot is running')
 
 @bot.message_handler(commands=['cancel'])
 def handle_cancel(message):
-    db.save(message.chat.id, None, None, False)
+    database.update_user(message.chat.id, 'active', False)
     thread_flags[message.chat.id] = False
     bot.send_message(message.chat.id, 'Bot is stopped')
 
@@ -160,4 +186,6 @@ def handle_callback_query(call):
     elif call.data == 'cancel':
         handle_cancel(call.message)
 
-bot.polling()
+def start():
+    print('Start Telegram Bot')
+    bot.polling()

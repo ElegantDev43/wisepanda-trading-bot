@@ -5,10 +5,20 @@ from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 class MyHandler(FileSystemEventHandler):
+    def __init__(self):
+        super().__init__()
+        self.last_event_time = 0
+
     def on_any_event(self, event):
+        # Ignore events that occur within a short time interval to avoid duplicates
+        current_time = time.time()
+        if current_time - self.last_event_time < 1:
+            return
+        self.last_event_time = current_time
+
         print(f'Restarting due to {event.event_type}')
         python_executable = sys.executable
-        python_script = 'test.py'
+        python_script = 'app.py'
         command = [python_executable, python_script]
         subprocess.run(command)
 
