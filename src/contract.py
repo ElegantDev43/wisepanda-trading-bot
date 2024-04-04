@@ -4,7 +4,7 @@ from datetime import datetime
 import threading
 import time
 
-import src.config as config
+from src import config
 
 def get_price(symbol):
     return 0

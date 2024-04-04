@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, Column, BigInteger, JSON, String, Boolean
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-import src.config as config
+from src import config
 
 engine = create_engine(config.DATABASE_URL)
 
@@ -23,7 +23,7 @@ def create_user(id):
     Session = sessionmaker(bind=engine)
     session = Session()
     if get_user(id) == None:
-        user = User(id=id, chain='', wallets={}, configuration={}, active=False)
+        user = User(id=id, chain='ethereum', wallets={}, configuration={}, active=False)
         session.add(user)
         session.commit()
     session.close()
