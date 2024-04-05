@@ -8,9 +8,11 @@ def handle_start(bot, message):
     text = '''
 *Welcome to Wise Panda Trading Bot!*
 
-[Visit our Official Chat](https://t.me/wisepandaofficial)
+📖 [Visit our Website](https://docs.wisepanda.ai)
 
-[Visit our Website](https://www.wisepanda.ai)
+💬 [Visit our Official Chat](https://t.me/wisepandaofficial)
+
+🌍 [Visit our Website](https://www.wisepanda.ai)
     '''
 
     keyboard = types.InlineKeyboardMarkup()
@@ -27,4 +29,4 @@ def handle_start(bot, message):
     keyboard.row(copy_trading, settings)
     keyboard.row(refer, bots)
 
-    bot.send_message(message.chat.id, text, parse_mode='Markdown', disable_web_page_preview=True, reply_markup=keyboard)
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown', reply_markup=keyboard, disable_web_page_preview=True)
