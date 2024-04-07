@@ -1,22 +1,25 @@
 from telebot import types
 
 import config
-from src import database
-from src.ethereum import wallet as ethereum_wallet
-from src.solana import wallet as solana_wallet
+from src.database import user as user_model
+from src.engine.wallet import main as wallet_engine
 
-def handle_wallet(bot, message):
-    user = database.get_user(message.chat.id)
+def handle_wallets(bot, message):
+    user = user_model.get_user(message.chat.id)
     chain = user.chain
     wallets = user.wallets[chain]
+    for wallet in wallets:
+        wallet['balance'] = wallet_engine.get_balance(chain, wallet['address'])
 
     text = f'''
-*Settings > Wallet (🔗{user.chain})*
+*Settings > Wallets (🔗{chain})*
+
+You can use up to {config.WALLET_COUNT} multiple wallets
 
 Your currently added wallets:
 '''
     for index, wallet in enumerate(wallets, start=1):
-        text += f"{index}. [Balance](https://etherscan.io/address/{wallet['address']}) ({wallet['address']}): 0.000Ξ\n"
+        text += f"{index}. [Balance](https://etherscan.io/address/{wallet['address']}) ({wallet['address']}): {wallet['balance']}Ξ\n"
 
     keyboard = types.InlineKeyboardMarkup()
     create_wallet = types.InlineKeyboardButton(text='Create Wallet', callback_data='create_wallet')
@@ -27,22 +30,16 @@ Your currently added wallets:
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown', reply_markup=keyboard, disable_web_page_preview=True)
 
 def handle_create_wallet(bot, message):
-    user = database.get_user(message.chat.id)
+    user = user_model.get_user(message.chat.id)
     chain = user.chain
 
     if len(user.wallets[chain]) == config.WALLET_COUNT:
-        bot.send_message(chat_id=message.chat.id, text='Exceed wallet count limit of 3')
+        bot.send_message(chat_id=message.chat.id, text='Exceed wallets limit of 3')
         return
 
-    if chain == 'ethereum':
-        wallet = ethereum_wallet
-    elif chain == 'solana':
-        wallet = solana_wallet
-
-    address, private_key = wallet.create_wallet()
-
+    address, private_key = wallet_engine.create_wallet(chain)
     user.wallets[chain].append({'address': address, 'private_key': private_key})
-    database.update_user(user.id, 'wallets', user.wallets)
+    user_model.update_user(user.id, 'wallets', user.wallets)
 
     text = f'''
 ✅ A new wallet has been generated for you. Save the private key below❗:
@@ -54,31 +51,23 @@ Private Key: {private_key}
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
 
 def handle_import_wallet(bot, message):
-    user = database.get_user(message.chat.id)
+    user = user_model.get_user(message.chat.id)
     chain = user.chain
 
     if len(user.wallets[chain]) == config.WALLET_COUNT:
-        bot.send_message(chat_id=message.chat.id, text='Exceed wallet count limit of 3')
+        bot.send_message(chat_id=message.chat.id, text='Exceed wallets limit of 3')
         return
 
     bot.send_message(chat_id=message.chat.id, text='Enter private key:')
-    bot.register_next_step_handler_by_chat_id(chat_id=message.chat.id, callback=lambda msg: handle_input_private_key(bot, msg))
+    bot.register_next_step_handler_by_chat_id(chat_id=message.chat.id, callback=lambda next_message: handle_input_private_key(bot, next_message))
 
 def handle_input_private_key(bot, message):
-    user = database.get_user(message.chat.id)
+    user = user_model.get_user(message.chat.id)
     chain = user.chain
-
-    if chain == 'ethereum':
-        wallet = ethereum_wallet
-    elif chain == 'solana':
-        wallet = solana_wallet
-
     private_key = message.text
-    print(f'message.text: {message.text}')
-    address = wallet.get_address(private_key)
-
+    address = wallet_engine.get_address(chain, private_key)
     user.wallets[chain].append({'address': address, 'private_key': private_key})
-    database.update_user(user.id, 'wallets', user.wallets)
+    user_model.update_user(user.id, 'wallets', user.wallets)
 
     text = f'''
 ✅ A new wallet has been imported for you. Save the private key below❗:

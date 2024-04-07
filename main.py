@@ -1,5 +1,6 @@
-from src import database
-from src.bot import main as bot
+from src.database import main as database
+from src.telegram import main as telegram
 
 database.initialize()
-bot.start_bot()
+
+telegram.start_bot()

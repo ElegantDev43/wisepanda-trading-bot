@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, BigInteger, JSON, String, Boolean
+from sqlalchemy import create_engine, Column, BigInteger, String, JSON
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 import config
@@ -13,8 +13,6 @@ class User(Base):
     id = Column(BigInteger, primary_key=True)
     chain = Column(String)
     wallets = Column(JSON)
-    configuration = Column(JSON)
-    active = Column(Boolean)
 
 def initialize():
     Base.metadata.create_all(engine)
@@ -23,7 +21,11 @@ def create_user(id):
     Session = sessionmaker(bind=engine)
     session = Session()
     if get_user(id) == None:
-        user = User(id=id, chain='ethereum', wallets={'ethereum': [], 'solana': []}, configuration={}, active=False)
+        chains = config.CHAINS
+        wallets = {}
+        for chain in chains:
+            wallets[chain] = []
+        user = User(id=id, chain=chains[0], wallets=wallets)
         session.add(user)
         session.commit()
     session.close()
@@ -43,9 +45,5 @@ def update_user(id, key, value):
         user.chain = value
     elif key == 'wallets':
         user.wallets = value
-    elif key == 'configuration':
-        user.configuration = value
-    elif key == 'active':
-        user.active = value
     session.commit()
     session.close()

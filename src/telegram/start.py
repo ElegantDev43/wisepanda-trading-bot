@@ -1,9 +1,9 @@
 from telebot import types
 
-from src import database
+from src.database import user as user_model
 
 def handle_start(bot, message):
-    database.create_user(message.chat.id)
+    user_model.create_user(message.chat.id)
 
     text = '''
 *Welcome to Wise Panda Trading Bot!*
