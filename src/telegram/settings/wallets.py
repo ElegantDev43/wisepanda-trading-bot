@@ -8,24 +8,24 @@ def handle_wallets(bot, message):
     user = user_model.get_user(message.chat.id)
     chain = user.chain
     wallets = user.wallets[chain]
-    for wallet in wallets:
-        wallet['balance'] = wallet_engine.get_balance(chain, wallet['address'])
 
     text = f'''
-*Settings > Wallets (🔗{chain})*
+*Settings > Wallets (🔗 {chain})*
 
 You can use up to {config.WALLET_COUNT} multiple wallets
 
 Your currently added wallets:
 '''
     for index, wallet in enumerate(wallets, start=1):
-        text += f"{index}. [Balance](https://etherscan.io/address/{wallet['address']}) ({wallet['address']}): {wallet['balance']}Ξ\n"
+        text += f"{index}. [Balance](https://etherscan.io/address/{wallet['address']}) ({wallet['address']}): {'{:.3f}'.format(wallet['balance'])}Ξ\n"
 
     keyboard = types.InlineKeyboardMarkup()
     create_wallet = types.InlineKeyboardButton(text='Create Wallet', callback_data='create_wallet')
     import_wallet = types.InlineKeyboardButton(text='Import Wallet', callback_data='import_wallet')
+    back = types.InlineKeyboardButton('🔙 Back', callback_data='settings')
     keyboard.row(create_wallet)
     keyboard.row(import_wallet)
+    keyboard.row(back)
 
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown', reply_markup=keyboard, disable_web_page_preview=True)
 
@@ -38,7 +38,7 @@ def handle_create_wallet(bot, message):
         return
 
     address, private_key = wallet_engine.create_wallet(chain)
-    user.wallets[chain].append({'address': address, 'private_key': private_key})
+    user.wallets[chain].append({'address': address, 'private_key': private_key, 'balance': 0})
     user_model.update_user(user.id, 'wallets', user.wallets)
 
     text = f'''
@@ -65,8 +65,8 @@ def handle_input_private_key(bot, message):
     user = user_model.get_user(message.chat.id)
     chain = user.chain
     private_key = message.text
-    address = wallet_engine.get_address(chain, private_key)
-    user.wallets[chain].append({'address': address, 'private_key': private_key})
+    address, balance = wallet_engine.import_wallet(chain, private_key)
+    user.wallets[chain].append({'address': address, 'private_key': private_key, 'balance': balance})
     user_model.update_user(user.id, 'wallets', user.wallets)
 
     text = f'''

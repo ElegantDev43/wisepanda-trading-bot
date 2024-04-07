@@ -1,6 +1,6 @@
 # wisepanda-trading-bot
 
-Telegram Bot: [@wisepandatradingbot](https://t.me/wisepandatradingbot)
+Telegram: [@wisepandatradingbot](https://t.me/wisepandatradingbot)
 
 ### Create a Virtual Environment
 

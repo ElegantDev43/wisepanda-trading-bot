@@ -4,7 +4,7 @@ from datetime import datetime
 
 import config
 
-def market_bid():
+def market_bid(wallet):
     web3 = Web3(Web3.HTTPProvider(config.SEPOLIA_PROVIDER_URL))
 
     with open('market_router.json', 'r') as f:
@@ -12,11 +12,11 @@ def market_bid():
     contract_address = Web3.to_checksum_address('0xd0730b305b520cece4e5fa779e6f2dcf297b453e')
     contract = web3.eth.contract(address=contract_address, abi=contract_abi)
 
-    nonce = web3.eth.get_transaction_count(config.WALLET_ADDRESS)
+    nonce = web3.eth.get_transaction_count(wallet['address'])
     params = {
-        'market': config.WALLET_ADDRESS,
+        'market': wallet['address'],
         'deadline': int(datetime(year=2024, month=4, day=1).timestamp()),
-        'user': config.WALLET_ADDRESS,
+        'user': wallet['address'],
         'limitPriceIndex': 1,
         'rawAmount': 100,
         'expendInput': False,
@@ -30,7 +30,7 @@ def market_bid():
         'nonce': nonce,
     })
 
-    signed_txn = web3.eth.account.sign_transaction(txn_dict, config.PRIVATE_KEY)
+    signed_txn = web3.eth.account.sign_transaction(txn_dict, wallet['private_key'])
 
     try:
         tx_hash = web3.eth.send_raw_transaction(signed_txn.rawTransaction)
