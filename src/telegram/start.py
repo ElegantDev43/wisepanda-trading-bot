@@ -6,13 +6,14 @@ def handle_start(bot, message):
     user_model.create_user(message.chat.id)
 
     text = '''
-*Welcome to Wise Panda Trading Bot!*
+*Wise Panda 1.0*
+The fastest and sleekest trading bot
 
 📖 [Visit our Website](https://docs.wisepanda.ai)
-
 💬 [Visit our Official Chat](https://t.me/wisepandaofficial)
-
 🌍 [Visit our Website](https://www.wisepanda.ai)
+
+*Paste a contract address or pick an option to get started.*
     '''
 
     keyboard = types.InlineKeyboardMarkup()

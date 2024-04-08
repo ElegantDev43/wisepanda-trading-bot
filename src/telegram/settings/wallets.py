@@ -17,7 +17,10 @@ You can use up to {config.WALLET_COUNT} multiple wallets
 Your currently added wallets:
 '''
     for index, wallet in enumerate(wallets, start=1):
-        text += f"{index}. [Balance](https://etherscan.io/address/{wallet['address']}) ({wallet['address']}): {'{:.3f}'.format(wallet['balance'])}Ξ\n"
+        text += f'''
+{index}. Balance: {wallet['balance']:.3f}Ξ
+[{wallet['address']}](https://etherscan.io/address/{wallet['address']})
+'''
 
     keyboard = types.InlineKeyboardMarkup()
     create_wallet = types.InlineKeyboardButton(text='Create Wallet', callback_data='create_wallet')
