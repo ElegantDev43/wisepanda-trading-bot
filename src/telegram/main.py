@@ -1,3 +1,4 @@
+import os
 import telebot
 from telebot import types
 
@@ -5,7 +6,7 @@ import config
 from src.telegram import start, auto_sniper
 from src.telegram.settings import chains, wallets, main as settings
 
-bot = telebot.TeleBot(config.TELEGRAM_BOT_TOKEN)
+bot = telebot.TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
 
 commands = [
     types.BotCommand("start", "Main menu"),

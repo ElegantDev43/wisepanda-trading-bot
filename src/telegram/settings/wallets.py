@@ -19,7 +19,7 @@ Your currently added wallets:
     for index, wallet in enumerate(wallets, start=1):
         text += f'''
 {index}. Balance: {wallet['balance']:.3f}Ξ
-[{wallet['address']}](https://etherscan.io/address/{wallet['address']})
+[{wallet['address']}]({config.EXPLORER_URLS[chain] + wallet['address']})
 '''
 
     keyboard = types.InlineKeyboardMarkup()
