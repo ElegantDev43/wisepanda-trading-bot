@@ -7,7 +7,7 @@ import config
 def market_bid(wallet):
     web3 = Web3(Web3.HTTPProvider(config.SEPOLIA_PROVIDER_URL))
 
-    with open('market_router.json', 'r') as f:
+    with open('market_router_abi.json', 'r') as f:
         contract_abi = json.load(f)
     contract_address = Web3.to_checksum_address('0xd0730b305b520cece4e5fa779e6f2dcf297b453e')
     contract = web3.eth.contract(address=contract_address, abi=contract_abi)

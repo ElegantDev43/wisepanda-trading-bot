@@ -4,6 +4,11 @@ import config
 from src.database import user as user_model
 from src.engine.wallet import main as wallet_engine
 
+explorers = {
+    'ethereum': 'https://etherscan.io/address/',
+    'solana': 'https://solscan.io/account/',
+}
+
 def handle_wallets(bot, message):
     user = user_model.get_user(message.chat.id)
     chain = user.chain
@@ -19,7 +24,7 @@ Your currently added wallets:
     for index, wallet in enumerate(wallets, start=1):
         text += f'''
 {index}. Balance: {wallet['balance']:.3f}Ξ
-[{wallet['address']}]({config.EXPLORER_URLS[chain] + wallet['address']})
+[{wallet['address']}]({explorers[chain] + wallet['address']})
 '''
 
     keyboard = types.InlineKeyboardMarkup()
