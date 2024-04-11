@@ -2,18 +2,19 @@ from web3 import Web3
 import requests
 from web3.middleware import geth_poa_middleware
 import json
-import threading
 import time
-import os
 
 import config
 
-def check_token(token_address):
+def get_token(token_address):
     query = """
     {
         tokens(where: {id: "%s"}) {
             id
+            name
             symbol
+            derivedETH
+            totalLiquidity
         }
     }
     """ % token_address.lower()
@@ -22,9 +23,9 @@ def check_token(token_address):
         response = requests.post('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2', json={'query': query})
         data = response.json()
         if data.get('data', {}).get('tokens'):
-            return True
+            return data.get('data', {}).get('tokens', [])[0]
         else:
-            return False
+            return None
     except Exception as e:
         print("Error occurred:", e)
         return False
@@ -38,14 +39,17 @@ def create_order(wallet, token, type, amount):
     uniswap_router_address = '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD'
     router_contract = web3.eth.contract(address=uniswap_router_address, abi=uniswap_router_abi)
 
-    if type == 'buy':
-        commands = bytes.fromhex('0b00')
-        input1 = bytes.fromhex('000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000038D7EA4C68000')
-        input2 = bytes.fromhex('000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000038D7EA4C68000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002bfff9976782d46cc05630d1f6ebab18b2324d6b14002710' + token[2:] + '000000000000000000000000000000000000000000')
-        inputs = [input1, input2]
+    gas_price = web3.eth.gas_price
+    nonce = web3.eth.get_transaction_count(wallet['address'])
 
-        gas_price = web3.eth.gas_price
+    if type == 'buy':
         amount_eth = int(web3.to_wei(amount, 'ether'))
+        amount_hex = hex(amount_eth)[2:].zfill(64)
+
+        commands = bytes.fromhex('0b00')
+        input1 = bytes.fromhex(f'0000000000000000000000000000000000000000000000000000000000000002{amount_hex}')
+        input2 = bytes.fromhex(f'0000000000000000000000000000000000000000000000000000000000000001{amount_hex}000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002bfff9976782d46cc05630d1f6ebab18b2324d6b14002710{token[2:]}000000000000000000000000000000000000000000')
+        inputs = [input1, input2]
 
         tx = router_contract.functions.execute(
             commands,
@@ -53,10 +57,29 @@ def create_order(wallet, token, type, amount):
             int(time.time()) + 1000
         ).build_transaction({
             'from': wallet['address'],
-            'gas': 2000000,
-            'gasPrice': gas_price,
-            'nonce': web3.eth.get_transaction_count(wallet['address']),
             'value': amount_eth,
+            'gas': 1000000,
+            'gasPrice': gas_price,
+            'nonce': nonce,
+        })
+    else:
+        amount_usd = int(amount * 10**6)
+        amount_hex = hex(amount_usd)[2:].zfill(64)
+
+        commands = bytes.fromhex('000c')
+        input1 = bytes.fromhex(f'0000000000000000000000000000000000000000000000000000000000000002{amount_hex}000000000000000000000000000000000000000000000000000c1e1cceec764500000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002b{token[2:]}002710fff9976782d46cc05630d1f6ebab18b2324d6b14000000000000000000000000000000000000000000')
+        input2 = bytes.fromhex(f'0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000c1e1cceec7645')
+        inputs = [input1, input2]
+
+        tx = router_contract.functions.execute(
+            commands,
+            inputs,
+            int(time.time()) + 1000
+        ).build_transaction({
+            'from': wallet['address'],
+            'gas': 1000000,
+            'gasPrice': gas_price,
+            'nonce': nonce,
         })
 
     signed_tx = web3.eth.account.sign_transaction(tx, private_key=wallet['private_key'])
@@ -65,14 +88,12 @@ def create_order(wallet, token, type, amount):
 
     print(f'Transaction sent: {tx_hash.hex()}')
 
-wallet = {
-    'address': os.getenv('WALLET_ADDRESS'),
-    'private_key': os.getenv('WALLET_PRIVATE_KEY')
-}
-token = '0x7169D38820dfd117C3FA1f22a697dBA58d90BA06'
-type = 'buy'
-amount = 0.01
-create_order(wallet, token, type, amount)
-
-# thread = threading.Thread(target=create_order)
-# thread.start()
+    try:
+        receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
+        status = receipt['status']
+        if status == 1:
+            print("Transaction successful!")
+        elif status == 0:
+            print("Transaction failed!")
+    except Exception as e:
+        print("Error occurred while waiting for transaction confirmation:", e)

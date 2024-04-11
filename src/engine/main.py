@@ -6,14 +6,14 @@ import globals
 from src.engine.dex import uniswap
 from src.database import sniper as sniper_model
 
-def check_token(token):
-    return uniswap.check_token(token)
+def get_token(token):
+    return uniswap.get_token(token)
 
 def update():
     while True:
         new_tokens = []
         for token in globals.auto_sniper_tokens:
-            if check_token(token):
+            if get_token(token) != None:
                 new_tokens.append(token)
 
         for token in new_tokens:
