@@ -46,20 +46,20 @@ def initialize():
     thread = threading.Thread(target=update)
     thread.start()
 
-    token = {
-        'chain': 'ethereum',
-        'address': '0x7169D38820dfd117C3FA1f22a697dBA58d90BA06'
-    }
-    token_name = get_token_name(token)
-    is_token_live = check_token_liveness(token)
-    token_exchange_data = get_token_exchange_data(token)
-    print({
-        'token_name': token_name,
-        'is_token_live': is_token_live,
-        'token_exchange_data': token_exchange_data
-    })
+    # token = {
+    #     'chain': 'ethereum',
+    #     'address': '0x7169D38820dfd117C3FA1f22a697dBA58d90BA06'
+    # }
+    # token_name = get_token_name(token)
+    # is_token_live = check_token_liveness(token)
+    # token_exchange_data = get_token_exchange_data(token)
+    # print({
+    #     'token_name': token_name,
+    #     'is_token_live': is_token_live,
+    #     'token_exchange_data': token_exchange_data
+    # })
 
-    create_order(token['chain'], token['address'], 'market', 'buy', 0.001, [{
-        'address': os.getenv('WALLET_ADDRESS'),
-        'private_key': os.getenv('WALLET_PRIVATE_KEY')
-    }])
+    # create_order(token['chain'], token['address'], 'market', 'buy', 0.001, [{
+    #     'address': os.getenv('WALLET_ADDRESS'),
+    #     'private_key': os.getenv('WALLET_PRIVATE_KEY')
+    # }])
