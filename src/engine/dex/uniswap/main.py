@@ -6,7 +6,28 @@ import time
 
 import config
 
-def get_token(token_address):
+def get_token_name(token):
+    web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
+    token_address = token
+    token_abi = [
+        {
+            "constant": True,
+            "inputs": [],
+            "name": "name",
+            "outputs": [{"name": "", "type": "string"}],
+            "payable": False,
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ]
+    token_contract = web3.eth.contract(address=token_address, abi=token_abi)
+    token_name = token_contract.functions.name().call()
+    return token_name
+
+def check_token_liveness(token):
+    return get_token_exchange_data(token) != None
+
+def get_token_exchange_data(token):
     query = """
     {
         tokens(where: {id: "%s"}) {
@@ -17,7 +38,7 @@ def get_token(token_address):
             totalLiquidity
         }
     }
-    """ % token_address.lower()
+    """ % token.lower()
 
     try:
         response = requests.post('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2', json={'query': query})
@@ -30,14 +51,16 @@ def get_token(token_address):
         print("Error occurred:", e)
         return False
 
-def create_order(wallet, token, type, amount):
+def create_order(token, type, amount, wallets):
     web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
     web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-    with open('./src/engine/dex/uniswap_router_abi.json', 'r') as f:
+    with open('./src/engine/dex/uniswap/abi.json', 'r') as f:
         uniswap_router_abi = json.load(f)
     uniswap_router_address = '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD'
     router_contract = web3.eth.contract(address=uniswap_router_address, abi=uniswap_router_abi)
+
+    wallet = wallets[0]
 
     gas_price = web3.eth.gas_price
     nonce = web3.eth.get_transaction_count(wallet['address'])

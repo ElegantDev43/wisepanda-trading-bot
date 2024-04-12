@@ -3,7 +3,7 @@ import telebot
 from telebot import types
 
 import config
-from src.telegram import start, auto_sniper
+from src.telegram import start, common, auto_sniper
 from src.telegram.settings import chains, wallets, main as settings
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
@@ -39,14 +39,14 @@ def handle_settings(message):
 def handle_callback_query(call):
     if call.data == 'start':
         start.handle_start(bot, call.message)
-    elif call.data == 'auto_sniper':
-        auto_sniper.handle_auto_sniper(bot, call.message)
+
+    if call.data == 'auto_sniper' or call.data == 'manual_buyer':
+        common.handle_auto_sniper_or_manual_buyer(bot, call.message)
     elif call.data == 'settings':
         settings.handle_settings(bot, call.message)
 
     if call.data in config.CHAINS:
         chains.handle_select_chain(bot, call.message, call.data)
-        return
 
     if call.data == 'create_wallet':
         wallets.handle_create_wallet(bot, call.message)
@@ -61,6 +61,6 @@ def handle_callback_query(call):
     if call.data == 'close':
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
 
-def start_bot():
+def initialize():
     print('\nStarting the bot...')
     bot.infinity_polling(restart_on_change=True)
