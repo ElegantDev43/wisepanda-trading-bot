@@ -12,7 +12,10 @@ explorers = {
 def handle_wallets(bot, message):
     user = user_model.get_user(message.chat.id)
     chain = user.chain
+
     wallets = user.wallets[chain]
+    for index in range(len(wallets)):
+        wallets[index]['balance'] = wallet_engine.get_balance(wallets[index]['address'])
 
     text = f'''
 *Settings > Wallets (🔗 {chain})*
@@ -46,7 +49,7 @@ def handle_create_wallet(bot, message):
         return
 
     address, private_key = wallet_engine.create_wallet(chain)
-    user.wallets[chain].append({'address': address, 'private_key': private_key, 'balance': 0})
+    user.wallets[chain].append({'address': address, 'private_key': private_key})
     user_model.update_user(user.id, 'wallets', user.wallets)
 
     text = f'''
@@ -73,8 +76,8 @@ def handle_input_private_key(bot, message):
     user = user_model.get_user(message.chat.id)
     chain = user.chain
     private_key = message.text
-    address, balance = wallet_engine.import_wallet(chain, private_key)
-    user.wallets[chain].append({'address': address, 'private_key': private_key, 'balance': balance})
+    address = wallet_engine.import_wallet(chain, private_key)
+    user.wallets[chain].append({'address': address, 'private_key': private_key})
     user_model.update_user(user.id, 'wallets', user.wallets)
 
     text = f'''

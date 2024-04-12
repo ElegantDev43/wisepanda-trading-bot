@@ -51,7 +51,7 @@ def get_token_exchange_data(token):
         print("Error occurred:", e)
         return False
 
-def create_order(token, type, amount, wallets):
+def create_order(token, type, side, amount, wallets):
     web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
     web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
@@ -65,7 +65,7 @@ def create_order(token, type, amount, wallets):
     gas_price = web3.eth.gas_price
     nonce = web3.eth.get_transaction_count(wallet['address'])
 
-    if type == 'buy':
+    if side == 'buy':
         amount_eth = int(web3.to_wei(amount, 'ether'))
         amount_hex = hex(amount_eth)[2:].zfill(64)
 

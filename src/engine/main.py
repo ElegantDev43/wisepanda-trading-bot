@@ -1,7 +1,6 @@
-import threading
 import time
-import requests
 import threading
+import os
 
 import config
 from src.database import sniper as sniper_model
@@ -33,10 +32,10 @@ def update():
                 new_tokens.append(token)
 
         for token in new_tokens:
-            users = sniper_model.get_users_by_token(token['address'])
+            users = sniper_model.get_sniper_users_by_token(token['address'])
             for user in users:
                 create_order(token['chain'], token['address'], 'market', 'buy', user['amount'], user['wallets'])
-            sniper_model.remove_token(token['address'])
+            sniper_model.remove_sniper_by_token(token['address'])
 
         time.sleep(config.AUTO_SNIPER_UPDATE_DELAY)
 
@@ -47,8 +46,20 @@ def initialize():
     thread = threading.Thread(target=update)
     thread.start()
 
-    # token_name = get_token_name({
-    #     'chain': 'ethereum',
-    #     'address': '0x7169D38820dfd117C3FA1f22a697dBA58d90BA06'
-    # })
-    # print('token_name', token_name)
+    token = {
+        'chain': 'ethereum',
+        'address': '0x7169D38820dfd117C3FA1f22a697dBA58d90BA06'
+    }
+    token_name = get_token_name(token)
+    is_token_live = check_token_liveness(token)
+    token_exchange_data = get_token_exchange_data(token)
+    print({
+        'token_name': token_name,
+        'is_token_live': is_token_live,
+        'token_exchange_data': token_exchange_data
+    })
+
+    create_order(token['chain'], token['address'], 'market', 'buy', 0.001, [{
+        'address': os.getenv('WALLET_ADDRESS'),
+        'private_key': os.getenv('WALLET_PRIVATE_KEY')
+    }])

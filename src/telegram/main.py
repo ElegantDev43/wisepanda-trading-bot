@@ -4,7 +4,7 @@ from telebot import types
 
 import config
 from src.telegram import start, common, auto_sniper
-from src.telegram.settings import chains, wallets, main as settings
+from src.telegram.settings import main as settings, chains, wallets
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
 
@@ -62,5 +62,5 @@ def handle_callback_query(call):
         bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
 
 def initialize():
-    print('\nStarting the bot...')
+    print('Starting the bot...')
     bot.infinity_polling(restart_on_change=True)

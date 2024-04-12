@@ -10,3 +10,6 @@ def create_wallet(chain):
 
 def import_wallet(chain, private_key):
     return wallet_engines[chain].import_wallet(private_key)
+
+def get_balance(chain, address):
+    return wallet_engines[chain].get_balance(address)

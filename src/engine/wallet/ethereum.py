@@ -13,8 +13,7 @@ def create_wallet():
 def import_wallet(private_key):
     eth_key = keys.PrivateKey(bytes.fromhex(private_key))
     address = eth_key.public_key.to_checksum_address()
-    balance = get_balance(balance)
-    return address, balance
+    return address
 
 def get_balance(address):
     web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
