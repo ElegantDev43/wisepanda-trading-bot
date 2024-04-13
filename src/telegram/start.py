@@ -15,14 +15,14 @@ The fastest and sleekest trading bot the cryptosphere has seen
     '''
 
     keyboard = types.InlineKeyboardMarkup()
-    auto_sniper = types.InlineKeyboardButton('🎯 Auto Sniper', callback_data='auto_sniper')
-    manual_buyer = types.InlineKeyboardButton('🤏 Manual Buyer', callback_data='manual_buyer')
+    sniper = types.InlineKeyboardButton('🎯 Auto Sniper', callback_data='sniper')
+    buyer = types.InlineKeyboardButton('🤏 Manual Buyer', callback_data='buyer')
     orders = types.InlineKeyboardButton('🕐 Pending Orders', callback_data='orders')
     positions = types.InlineKeyboardButton('📊 Open Positions', callback_data='positions')
     settings = types.InlineKeyboardButton('🔧 Settings', callback_data='settings')
     bots = types.InlineKeyboardButton('🤖 Backup Bots', callback_data='bots')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
-    keyboard.row(auto_sniper, manual_buyer)
+    keyboard.row(sniper,  buyer)
     keyboard.row(orders, positions)
     keyboard.row(settings, bots)
     keyboard.row(close)
