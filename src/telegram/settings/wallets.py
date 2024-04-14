@@ -10,12 +10,9 @@ explorers = {
 }
 
 def handle_wallets(bot, message):
-    user = user_model.get_user(message.chat.id)
+    user = user_model.get_user_by_telegram(message.chat.id)
     chain = user.chain
-
     wallets = user.wallets[chain]
-    for index in range(len(wallets)):
-        wallets[index]['balance'] = wallet_engine.get_balance(wallets[index]['address'])
 
     text = f'''
 *Settings > Wallets (🔗 {chain})*
@@ -41,7 +38,7 @@ Your currently added wallets:
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown', reply_markup=keyboard, disable_web_page_preview=True)
 
 def handle_create_wallet(bot, message):
-    user = user_model.get_user(message.chat.id)
+    user = user_model.get_user_by_telegram(message.chat.id)
     chain = user.chain
 
     if len(user.wallets[chain]) == config.WALLET_COUNT:
@@ -49,7 +46,7 @@ def handle_create_wallet(bot, message):
         return
 
     address, private_key = wallet_engine.create_wallet(chain)
-    user.wallets[chain].append({'address': address, 'private_key': private_key})
+    user.wallets[chain].append({'address': address, 'private_key': private_key, 'balance': 0, 'active': False})
     user_model.update_user(user.id, 'wallets', user.wallets)
 
     text = f'''
@@ -61,8 +58,10 @@ Private Key: {private_key}
 
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
 
+    handle_wallets(bot, message)
+
 def handle_import_wallet(bot, message):
-    user = user_model.get_user(message.chat.id)
+    user = user_model.get_user_by_telegram(message.chat.id)
     chain = user.chain
 
     if len(user.wallets[chain]) == config.WALLET_COUNT:
@@ -73,11 +72,12 @@ def handle_import_wallet(bot, message):
     bot.register_next_step_handler_by_chat_id(chat_id=message.chat.id, callback=lambda next_message: handle_input_private_key(bot, next_message))
 
 def handle_input_private_key(bot, message):
-    user = user_model.get_user(message.chat.id)
+    user = user_model.get_user_by_telegram(message.chat.id)
     chain = user.chain
     private_key = message.text
     address = wallet_engine.import_wallet(chain, private_key)
-    user.wallets[chain].append({'address': address, 'private_key': private_key})
+    balance = wallet_engine.get_balance(chain, address)
+    user.wallets[chain].append({'address': address, 'private_key': private_key, 'balance': balance, 'active': False})
     user_model.update_user(user.id, 'wallets', user.wallets)
 
     text = f'''
@@ -88,3 +88,5 @@ Private Key: {private_key}
     '''
 
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
+
+    handle_wallets(bot, message)

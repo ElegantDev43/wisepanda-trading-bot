@@ -75,6 +75,8 @@ def handle_callback_query(call):
         wallets.handle_create_wallet(bot, call.message)
     elif call.data == 'import_wallet':
         wallets.handle_import_wallet(bot, call.message)
+    elif call.data.startswith('auto wallet '):
+        sniper.handle_toggle_wallet(bot, call.message, call.data[12:])
 
 def initialize():
     print('Starting the bot...')

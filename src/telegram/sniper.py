@@ -20,6 +20,30 @@ e.g. 0x7169D38820dfd117C3FA1f22a697dBA58d90BA06
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
     bot.register_next_step_handler_by_chat_id(chat_id=message.chat.id, callback=lambda next_message: handle_input_token(bot, next_message))
 
+def get_keyboard(user_wallets):
+    wallet_count = len(user_wallets)
+    buy_amounts = [0.01, 0.02, 0.05, 0.1]
+    buy_count = len(buy_amounts)
+
+    keyboard = types.InlineKeyboardMarkup()
+    wallets = []
+    for index in range(wallet_count):
+        wallets.append(types.InlineKeyboardButton(f'W{index + 1}{" 🟢" if user_wallets[index]['active'] == True else ""}', callback_data=f'auto wallet {index}'))
+    wallet_all = types.InlineKeyboardButton('All Wallets', callback_data=f'auto wallet all')
+    buys = []
+    for buy_amount in buy_amounts:
+        buys.append(types.InlineKeyboardButton(f'💰 {buy_amount}Ξ', callback_data=f'auto buy {buy_amount}'))
+    buy_x = types.InlineKeyboardButton('💰 XΞ', callback_data='auto buy x')
+    back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
+    close = types.InlineKeyboardButton('❌ Close', callback_data='close')
+    keyboard.row(*wallets[0:(wallet_count // 2)])
+    keyboard.row(*wallets[(wallet_count // 2):wallet_count])
+    keyboard.row(wallet_all)
+    keyboard.row(*buys[0:(buy_count // 2)])
+    keyboard.row(*buys[(buy_count // 2):buy_count])
+    keyboard.row(buy_x)
+    keyboard.row(back, close)
+
 def handle_input_token(bot, message):
     user = user_model.get_user_by_telegram(message.chat.id)
     chain = user.chain
@@ -40,24 +64,48 @@ def handle_input_token(bot, message):
 [Scan](https://etherscan.io/address/{address}) | [Dexscreener](https://dexscreener.com/ethereum/{address}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{address}) | [Defined](https://www.defined.fi/eth/{address})
     '''
 
-    buy_amounts = [0.01, 0.02, 0.05, 0.1]
-
-    keyboard = types.InlineKeyboardMarkup()
-    buys = []
-    for buy_amount in buy_amounts:
-        buys.append(types.InlineKeyboardButton(f'💰 {buy_amount}Ξ', callback_data=f'auto buy {buy_amount}'))
-    buy_x = types.InlineKeyboardButton('💰 XΞ', callback_data='auto buy x')
-    wallets = []
-    for index in range(config.WALLET_COUNT):
-        wallets.append(types.InlineKeyboardButton(f'W{index + 1}{" 🟢" if index == 0 else ""}', callback_data=f'auto wallet {index}'))
-    wallet_all = types.InlineKeyboardButton('All', callback_data=f'auto wallet all')
-    back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
-    close = types.InlineKeyboardButton('❌ Close', callback_data='close')
-    keyboard.row(buys[0], buys[1])
-    keyboard.row(buys[2], buys[3])
-    keyboard.row(buy_x)
-    keyboard.row(wallets[0], wallets[1], wallets[2], wallets[3], wallets[4])
-    keyboard.row(wallets[5], wallets[6], wallets[7], wallets[8], wallets[9], wallet_all)
-    keyboard.row(back, close)
+    keyboard = get_keyboard(user.wallets[chain])
 
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown', reply_markup=keyboard, disable_web_page_preview=True)
+
+def handle_toggle_wallet(bot, message, index):
+    user = user_model.get_user_by_telegram(message.chat.id)
+    chain = user.chain
+    wallets = user.wallets[chain]
+
+    if index == 'all':
+        active_all = True
+        for wallet in wallets:
+            if wallet['active'] == False:
+                active_all = False
+                break
+
+        active = not active_all
+        for index in range(len(wallets)):
+            wallets[index]['active'] = active
+    else:
+        index = int(index)
+        wallets[index]['active'] = not wallets[index]['active']
+
+    user_model.update_user(user.id, 'wallets', user.wallets)
+
+    keyboard = get_keyboard(wallets)
+
+    bot.edit_message_reply_markup(chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+
+def handle_buy_x(bot, message):
+    text = '''
+*Auto Sniper > 💰 XΞ*
+Enter the amount to buy:
+'''
+
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
+    bot.register_next_step_handler_by_chat_id(chat_id=message.chat.id, callback=lambda next_message: handle_input_x(bot, next_message))
+
+def handle_input_buy_x(bot, message):
+    amount = float(message.text)
+    handle_buy(bot, message, amount)
+
+def handle_buy(bot, message, amount):
+    user = user_model.get_user_by_telegram(message.chat.id)
+    
