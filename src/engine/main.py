@@ -24,6 +24,10 @@ def check_token_liveness(token):
 def get_token_exchange_data(token):
     return engines[token['chain']].get_token_exchange_data(token['address'])
 
+def add_sniper_user(token, user):
+    sniper_model.add_sniper_user_by_token(token, user)
+    auto_sniper_tokens.append(token)
+
 def update():
     while True:
         new_tokens = []
@@ -32,10 +36,10 @@ def update():
                 new_tokens.append(token)
 
         for token in new_tokens:
-            users = sniper_model.get_sniper_users_by_token(token['address'])
+            users = sniper_model.get_sniper_users_by_token(token)
             for user in users:
                 create_order(token['chain'], token['address'], 'market', 'buy', user['amount'], user['wallets'])
-            sniper_model.remove_sniper_by_token(token['address'])
+            sniper_model.remove_sniper_by_token(token)
 
         time.sleep(config.AUTO_SNIPER_UPDATE_DELAY)
 

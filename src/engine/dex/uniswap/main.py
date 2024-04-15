@@ -56,54 +56,55 @@ def create_order(token, type, side, amount, wallets):
     web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
     with open('./src/engine/dex/uniswap/abi.json', 'r') as f:
-        uniswap_router_abi = json.load(f)
-    uniswap_router_address = '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD'
-    router_contract = web3.eth.contract(address=uniswap_router_address, abi=uniswap_router_abi)
+        router_abi = json.load(f)
+    router_address = '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD'
+    router_contract = web3.eth.contract(address=router_address, abi=router_abi)
 
     wallet = wallets[0]
 
     gas_price = web3.eth.gas_price
     nonce = web3.eth.get_transaction_count(wallet['address'])
 
-    if side == 'buy':
-        amount_eth = int(web3.to_wei(amount, 'ether'))
-        amount_hex = hex(amount_eth)[2:].zfill(64)
+    if type == 'market':
+        if side == 'buy':
+            amount_eth = int(web3.to_wei(amount, 'ether'))
+            amount_hex = hex(amount_eth)[2:].zfill(64)
 
-        commands = bytes.fromhex('0b00')
-        input1 = bytes.fromhex(f'0000000000000000000000000000000000000000000000000000000000000002{amount_hex}')
-        input2 = bytes.fromhex(f'0000000000000000000000000000000000000000000000000000000000000001{amount_hex}000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002bfff9976782d46cc05630d1f6ebab18b2324d6b14002710{token[2:]}000000000000000000000000000000000000000000')
-        inputs = [input1, input2]
+            commands = bytes.fromhex('0b00')
+            input1 = bytes.fromhex(f'0000000000000000000000000000000000000000000000000000000000000002{amount_hex}')
+            input2 = bytes.fromhex(f'0000000000000000000000000000000000000000000000000000000000000001{amount_hex}000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002bfff9976782d46cc05630d1f6ebab18b2324d6b14002710{token[2:]}000000000000000000000000000000000000000000')
+            inputs = [input1, input2]
 
-        tx = router_contract.functions.execute(
-            commands,
-            inputs,
-            int(time.time()) + 1000
-        ).build_transaction({
-            'from': wallet['address'],
-            'value': amount_eth,
-            'gas': 1000000,
-            'gasPrice': gas_price,
-            'nonce': nonce,
-        })
-    else:
-        amount_usd = int(amount * 10**6)
-        amount_hex = hex(amount_usd)[2:].zfill(64)
+            tx = router_contract.functions.execute(
+                commands,
+                inputs,
+                int(time.time()) + 1000
+            ).build_transaction({
+                'from': wallet['address'],
+                'value': amount_eth,
+                'gas': 1000000,
+                'gasPrice': gas_price,
+                'nonce': nonce,
+            })
+        else:
+            amount_usd = int(amount * 10**6)
+            amount_hex = hex(amount_usd)[2:].zfill(64)
 
-        commands = bytes.fromhex('000c')
-        input1 = bytes.fromhex(f'0000000000000000000000000000000000000000000000000000000000000002{amount_hex}000000000000000000000000000000000000000000000000000c1e1cceec764500000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002b{token[2:]}002710fff9976782d46cc05630d1f6ebab18b2324d6b14000000000000000000000000000000000000000000')
-        input2 = bytes.fromhex(f'0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000c1e1cceec7645')
-        inputs = [input1, input2]
+            commands = bytes.fromhex('000c')
+            input1 = bytes.fromhex(f'0000000000000000000000000000000000000000000000000000000000000002{amount_hex}000000000000000000000000000000000000000000000000000c1e1cceec764500000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002b{token[2:]}002710fff9976782d46cc05630d1f6ebab18b2324d6b14000000000000000000000000000000000000000000')
+            input2 = bytes.fromhex(f'0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000c1e1cceec7645')
+            inputs = [input1, input2]
 
-        tx = router_contract.functions.execute(
-            commands,
-            inputs,
-            int(time.time()) + 1000
-        ).build_transaction({
-            'from': wallet['address'],
-            'gas': 1000000,
-            'gasPrice': gas_price,
-            'nonce': nonce,
-        })
+            tx = router_contract.functions.execute(
+                commands,
+                inputs,
+                int(time.time()) + 1000
+            ).build_transaction({
+                'from': wallet['address'],
+                'gas': 1000000,
+                'gasPrice': gas_price,
+                'nonce': nonce,
+            })
 
     signed_tx = web3.eth.account.sign_transaction(tx, private_key=wallet['private_key'])
 

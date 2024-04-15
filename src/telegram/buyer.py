@@ -9,7 +9,7 @@ from src.database import user as user_model
 from src.engine import main as engine
 
 def handle_buyer(bot, message):
-    user_model.create_user_with_telegram(message.chat.id)
+    user_model.create_user_by_telegram(message.chat.id)
 
     text = '''
 *Manual Buyer*

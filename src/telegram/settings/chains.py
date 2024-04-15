@@ -33,7 +33,7 @@ def handle_select_chain(bot, message, next_chain):
     user = user_model.get_user_by_telegram(message.chat.id)
     if user.chain == next_chain:
         return
-    user_model.update_user(user.id, 'chain', next_chain)
+    user_model.update_user_by_id(user.id, 'chain', next_chain)
 
     text = f'''
 *Settings > Chains*

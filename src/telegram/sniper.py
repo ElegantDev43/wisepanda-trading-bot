@@ -9,7 +9,7 @@ from src.database import user as user_model
 from src.engine import main as engine
 
 def handle_sniper(bot, message):
-    user_model.create_user_with_telegram(message.chat.id)
+    user_model.create_user_by_telegram(message.chat.id)
 
     text = '''
 *Auto Sniper*
@@ -54,6 +54,8 @@ def handle_input_token(bot, message):
         bot.send_message(chat_id=message.chat.id, text='Error: This is a live token')
         return
 
+    user_model.update_user_by_id(user.id, 'session', {'address': address})
+
     name = engine.get_token_name(token)
 
     text = f'''
@@ -87,7 +89,7 @@ def handle_toggle_wallet(bot, message, index):
         index = int(index)
         wallets[index]['active'] = not wallets[index]['active']
 
-    user_model.update_user(user.id, 'wallets', user.wallets)
+    user_model.update_user_by_id(user.id, 'wallets', user.wallets)
 
     keyboard = get_keyboard(wallets)
 
@@ -100,7 +102,7 @@ Enter the amount to buy:
 '''
 
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
-    bot.register_next_step_handler_by_chat_id(chat_id=message.chat.id, callback=lambda next_message: handle_input_x(bot, next_message))
+    bot.register_next_step_handler_by_chat_id(chat_id=message.chat.id, callback=lambda next_message: handle_input_buy_x(bot, next_message))
 
 def handle_input_buy_x(bot, message):
     amount = float(message.text)
@@ -108,4 +110,21 @@ def handle_input_buy_x(bot, message):
 
 def handle_buy(bot, message, amount):
     user = user_model.get_user_by_telegram(message.chat.id)
-    
+    chain = user.chain
+    wallets = []
+    for wallet in user.wallets[chain]:
+        if wallet['active'] == True:
+            wallets.append(wallet)
+    engine.add_sniper_user(
+        {
+            'chain': chain,
+            'address': user['session']['address']
+        },
+        {
+            'id': user.id,
+            'amount': amount,
+            'wallets': wallets
+        }
+    )
+
+    bot.send_message(chat_id=message.chat.id, text='Success')

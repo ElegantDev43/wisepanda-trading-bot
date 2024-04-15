@@ -47,7 +47,7 @@ def handle_create_wallet(bot, message):
 
     address, private_key = wallet_engine.create_wallet(chain)
     user.wallets[chain].append({'address': address, 'private_key': private_key, 'balance': 0, 'active': False})
-    user_model.update_user(user.id, 'wallets', user.wallets)
+    user_model.update_user_by_id(user.id, 'wallets', user.wallets)
 
     text = f'''
 ✅ A new wallet has been generated for you. Save the private key below❗:
@@ -78,7 +78,7 @@ def handle_input_private_key(bot, message):
     address = wallet_engine.import_wallet(chain, private_key)
     balance = wallet_engine.get_balance(chain, address)
     user.wallets[chain].append({'address': address, 'private_key': private_key, 'balance': balance, 'active': False})
-    user_model.update_user(user.id, 'wallets', user.wallets)
+    user_model.update_user_by_id(user.id, 'wallets', user.wallets)
 
     text = f'''
 ✅ A new wallet has been imported for you. Save the private key below❗:

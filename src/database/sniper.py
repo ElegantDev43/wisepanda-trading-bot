@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String, JSON
+from sqlalchemy import create_engine, Column, Integer, JSON
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 engine = create_engine(os.getenv('DATABASE_URL'))
@@ -10,15 +10,21 @@ class Sniper(Base):
     __tablename__ = 'snipers'
 
     id = Column(Integer, primary_key=True)
-    token = Column(String)
+    token = Column(JSON)
     users = Column(JSON)
 
 def initialize():
     Base.metadata.create_all(engine)
 
+def get_sniper_by_token(token):
+    session = Session()
+    sniper = session.query(Sniper).filter(Sniper.token['chain'] == token['chain'] and Sniper.token['address'] == token['address']).first()
+    session.close()
+    return sniper
+
 def add_sniper_user_by_token(token, user):
     session = Session()
-    sniper = session.query(Sniper).filter(Sniper.token == token).first()
+    sniper = get_sniper_by_token(token)
     if sniper != None:
         sniper.users.append(user)
     else:
@@ -29,7 +35,7 @@ def add_sniper_user_by_token(token, user):
 
 def update_sniper_user_by_token(token, user):
     session = Session()
-    sniper = session.query(Sniper).filter(Sniper.token == token).first()
+    sniper = get_sniper_by_token(token)
     for index in range(len(sniper.users)):
         if sniper.users[index]['id'] == user['id']:
             sniper.users[index] = user
@@ -39,7 +45,7 @@ def update_sniper_user_by_token(token, user):
 
 def cancel_sniper_user_by_token(token, user):
     session = Session()
-    sniper = session.query(Sniper).filter(Sniper.token == token).first()
+    sniper = get_sniper_by_token(token)
     for index in range(len(sniper.users)):
         if sniper.users[index]['id'] == user['id']:
             del sniper.users[index]
@@ -51,13 +57,13 @@ def cancel_sniper_user_by_token(token, user):
 
 def remove_sniper_by_token(token):
     session = Session()
-    sniper = session.query(Sniper).filter(Sniper.token == token).first()
+    sniper = get_sniper_by_token(token)
     session.delete(sniper)
     session.commit()
     session.close()
 
 def get_sniper_users_by_token(token):
     session = Session()
-    sniper = session.query(Sniper).filter(Sniper.token == token).first()
+    sniper = get_sniper_by_token(token)
     session.close()
     return sniper.users

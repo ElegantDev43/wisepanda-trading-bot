@@ -3,7 +3,7 @@ from telebot import types
 from src.database import user as user_model
 
 def handle_start(bot, message):
-    user_model.create_user_with_telegram(message.chat.id)
+    user_model.create_user_by_telegram(message.chat.id)
 
     text = '''
 *Panda 1.0*
