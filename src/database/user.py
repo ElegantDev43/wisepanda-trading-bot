@@ -29,7 +29,7 @@ def create_user_by_telegram(telegram):
         wallets = {}
         for chain in chains:
             wallets[chain] = []
-        user = User(telegram=telegram, chain=chains[0], wallets=wallets, orders=[], positions=[], session=[])
+        user = User(telegram=telegram, chain=chains[0], wallets=wallets, orders=[], positions=[], session={})
         session.add(user)
         session.commit()
     session.close()
@@ -48,7 +48,7 @@ def get_user_by_id(id):
 
 def update_user_by_id(id, key, value):
     session = Session()
-    user = get_user_by_id(id)
+    user = session.query(User).filter(User.id == id).first()
     if key == 'chain':
         user.chain = value
     elif key == 'wallets':

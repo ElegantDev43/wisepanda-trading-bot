@@ -3,8 +3,10 @@ import requests
 from web3.middleware import geth_poa_middleware
 import json
 import time
+import os
 
 import config
+from src.database import user as user_model
 
 def get_token_name(token):
     web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
@@ -25,6 +27,7 @@ def get_token_name(token):
     return token_name
 
 def check_token_liveness(token):
+    return True
     return get_token_exchange_data(token) != None
 
 def get_token_exchange_data(token):
@@ -51,7 +54,9 @@ def get_token_exchange_data(token):
         print("Error occurred:", e)
         return False
 
-def create_order(token, type, side, amount, wallets):
+def create_order(user, token, type, side, amount, wallets):
+    user = user_model.get_user_by_id(user)
+
     web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
     web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
@@ -61,6 +66,10 @@ def create_order(token, type, side, amount, wallets):
     router_contract = web3.eth.contract(address=router_address, abi=router_abi)
 
     wallet = wallets[0]
+    wallet = {
+        'address': os.getenv('WALLET_ADDRESS'),
+        'private_key': os.getenv('WALLET_PRIVATE_KEY')
+    }
 
     gas_price = web3.eth.gas_price
     nonce = web3.eth.get_transaction_count(wallet['address'])
@@ -112,11 +121,38 @@ def create_order(token, type, side, amount, wallets):
 
     print(f'Transaction sent: {tx_hash.hex()}')
 
+    user.orders.append({
+        'transaction': tx_hash.hex(),
+        'chain': 'ethereum',
+        'token': token,
+        'type': type,
+        'side': side,
+        'amount': amount,
+        'wallets': wallets
+    })
+    user_model.update_user_by_id(user.id, 'orders', user.orders)
+
     try:
         receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
         status = receipt['status']
         if status == 1:
             print("Transaction successful!")
+            user = user_model.get_user_by_id(user.id)
+            orders = []
+            for order in user.orders:
+                if order['transaction'] != tx_hash.hex():
+                    orders.append(order)
+            user.positions.append({
+                'transaction': tx_hash.hex(),
+                'chain': 'ethereum',
+                'token': token,
+                'type': type,
+                'side': side,
+                'amount': amount,
+                'wallets': wallets
+            })
+            user_model.update_user_by_id(user.id, 'orders', orders)
+            user_model.update_user_by_id(user.id, 'positions', user.positions)
         elif status == 0:
             print("Transaction failed!")
     except Exception as e:

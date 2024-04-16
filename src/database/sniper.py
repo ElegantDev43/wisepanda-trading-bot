@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, JSON
+from sqlalchemy import String, and_, create_engine, Column, Integer, JSON, func
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 engine = create_engine(os.getenv('DATABASE_URL'))
@@ -18,7 +18,12 @@ def initialize():
 
 def get_sniper_by_token(token):
     session = Session()
-    sniper = session.query(Sniper).filter(Sniper.token['chain'] == token['chain'] and Sniper.token['address'] == token['address']).first()
+    sniper = session.query(Sniper).filter(
+        and_(
+            func.cast(Sniper.token['chain'], String) == token['chain'],
+            func.cast(Sniper.token['address'], String) == token['address']
+        )
+    ).first()
     session.close()
     return sniper
 

@@ -26,6 +26,7 @@ def get_keyboard(user_wallets):
     buy_count = len(buy_amounts)
 
     keyboard = types.InlineKeyboardMarkup()
+
     wallets = []
     for index in range(wallet_count):
         wallets.append(types.InlineKeyboardButton(f'W{index + 1}{" 🟢" if user_wallets[index]['active'] == True else ""}', callback_data=f'auto wallet {index}'))
@@ -43,6 +44,8 @@ def get_keyboard(user_wallets):
     keyboard.row(*buys[(buy_count // 2):buy_count])
     keyboard.row(buy_x)
     keyboard.row(back, close)
+
+    return keyboard
 
 def handle_input_token(bot, message):
     user = user_model.get_user_by_telegram(message.chat.id)
@@ -118,7 +121,7 @@ def handle_buy(bot, message, amount):
     engine.add_sniper_user(
         {
             'chain': chain,
-            'address': user['session']['address']
+            'address': user.session['address']
         },
         {
             'id': user.id,
@@ -127,4 +130,4 @@ def handle_buy(bot, message, amount):
         }
     )
 
-    bot.send_message(chat_id=message.chat.id, text='Success')
+    bot.send_message(chat_id=message.chat.id, text='Successfully registered auto sniper')

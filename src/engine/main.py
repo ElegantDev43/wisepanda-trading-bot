@@ -38,13 +38,13 @@ def update():
         for token in new_tokens:
             users = sniper_model.get_sniper_users_by_token(token)
             for user in users:
-                create_order(token['chain'], token['address'], 'market', 'buy', user['amount'], user['wallets'])
+                create_order(user['id'], token['chain'], token['address'], 'market', 'buy', user['amount'], user['wallets'])
             sniper_model.remove_sniper_by_token(token)
 
         time.sleep(config.AUTO_SNIPER_UPDATE_DELAY)
 
-def create_order(chain, token, type, side, amount, wallets):
-    engines[chain].create_order(token, type, side, amount, wallets)
+def create_order(user, chain, token, type, side, amount, wallets):
+    engines[chain].create_order(user, token, type, side, amount, wallets)
 
 def initialize():
     thread = threading.Thread(target=update)

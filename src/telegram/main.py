@@ -84,6 +84,15 @@ def handle_callback_query(call):
         else:
             amount = float(amount)
             sniper.handle_buy(bot, call.message, amount)
+    elif call.data.startswith('manual wallet '):
+        buyer.handle_toggle_wallet(bot, call.message, call.data[14:])
+    elif call.data.startswith('manual buy '):
+        amount = call.data[11:]
+        if amount == 'x':
+            buyer.handle_buy_x(bot, call.message)
+        else:
+            amount = float(amount)
+            buyer.handle_buy(bot, call.message, amount)
 
 def initialize():
     print('Starting the bot...')
