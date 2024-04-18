@@ -1,3 +1,4 @@
+from hexbytes import HexBytes
 from web3 import Web3
 import requests
 from web3.middleware import geth_poa_middleware
@@ -7,6 +8,7 @@ import os
 
 import config
 from src.database import user as user_model
+from src.engine.wallet import main as wallet_engine
 
 def get_token_name(token):
     web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
@@ -142,14 +144,11 @@ def create_order(user, token, type, side, amount, wallets):
             for order in user.orders:
                 if order['transaction'] != tx_hash.hex():
                     orders.append(order)
+            balance = wallet_engine.get_balance(user.chain, wallet['address'], token)
             user.positions.append({
-                'transaction': tx_hash.hex(),
                 'chain': 'ethereum',
                 'token': token,
-                'type': type,
-                'side': side,
-                'amount': amount,
-                'wallets': wallets
+                'balance': balance,
             })
             user_model.update_user_by_id(user.id, 'orders', orders)
             user_model.update_user_by_id(user.id, 'positions', user.positions)

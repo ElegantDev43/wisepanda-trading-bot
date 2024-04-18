@@ -4,9 +4,11 @@ import os
 
 import config
 from src.database import sniper as sniper_model
+from src.engine.wallet import main as wallet
 
 from src.engine.dex.uniswap import main as ethereum
 from src.engine.solana import main as solana
+
 
 engines = {
     'ethereum': ethereum,
@@ -67,3 +69,6 @@ def initialize():
     #     'address': os.getenv('WALLET_ADDRESS'),
     #     'private_key': os.getenv('WALLET_PRIVATE_KEY')
     # }])
+
+    # balance = wallet.get_balance('ethereum', '0xa69876a83E11f778B2c7492f02b606bf2BBe52a8', '0x7169D38820dfd117C3FA1f22a697dBA58d90BA06')
+    # print(balance)

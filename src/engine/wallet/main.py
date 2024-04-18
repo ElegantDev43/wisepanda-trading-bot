@@ -13,3 +13,6 @@ def import_wallet(chain, private_key):
 
 def get_balance(chain, address):
     return wallet_engines[chain].get_balance(address)
+
+def get_balance(chain, wallet, token):
+    return wallet_engines[chain].get_balance(wallet, token)

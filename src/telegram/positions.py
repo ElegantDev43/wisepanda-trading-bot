@@ -13,9 +13,11 @@ You currently have {len(user.positions)} open positions
 Your positions are:
     '''
 
-    for index, position in enumerate(user.positions, start=1):
+    for position in user.positions:
             text += f'''
-{index}. Transaction: {position['transaction']} ({position['type']}-{position['side']} {position['amount']}Ξ of token({position['token']}) on {position['chain']})
+Chain: {position['chain']}
+Token: {position['token']}
+Balance: {position['balance']}
             '''
 
     keyboard = types.InlineKeyboardMarkup()

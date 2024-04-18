@@ -1,5 +1,6 @@
 from telebot import types
 
+import config
 from src.database import user as user_model
 
 def handle_orders(bot, message):
@@ -13,9 +14,13 @@ You currently have {len(user.orders)} pending orders
 Your orders are:
     '''
 
-    for index, order in enumerate(user.orders, start=1):
+    for order in user.orders:
             text += f'''
-{index}. Transaction: {order['transaction']} ({order['type']}-{order['side']} {order['amount']}Ξ of token({order['token']}) on {order['chain']})
+Chain: {order['chain']}
+Token: {order['token']}
+Order: {order['type']}-{order['side']}
+Amount: {order['amount']}
+Transaction: [{order['transaction']}](https://sepolia.etherscan.io/tx/{order['transaction']})
             '''
 
     keyboard = types.InlineKeyboardMarkup()
