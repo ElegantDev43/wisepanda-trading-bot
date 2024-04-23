@@ -1,6 +1,9 @@
 import time
 import threading
 import os
+import http.client
+import json
+import requests
 
 import config
 from src.database import sniper as sniper_model
@@ -46,29 +49,34 @@ def update():
         time.sleep(config.AUTO_SNIPER_UPDATE_DELAY)
 
 def create_order(user, chain, token, type, side, amount, wallets):
-    engines[chain].create_order(user, token, type, side, amount, wallets)
+    thread = threading.Thread(target=engines[chain].create_order, args=(user, token, type, side, amount, wallets))
+    thread.start()
+
+def get_hot_tokens():
+
+    url = 'https://www.dextools.io/shared/hotpairs/hot?chain=ether'
+    headers = {
+        'accept': 'application/json',
+        'content-type': 'application/json',
+        'sec-ch-ua': '"Google Chrome";v="123", "Not:A-Brand";v="8", "Chromium";v="123"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'Referer': 'https://www.dextools.io/app/en/ether/pool-explorer',
+        'Referrer-Policy': 'strict-origin-when-cross-origin'
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Raises an HTTPError if the response code is an error code
+        data = response.json()
+        print(data)
+    except requests.exceptions.RequestException as e:
+        print('There was a problem with the fetch operation:', e)
+
+
 
 def initialize():
     thread = threading.Thread(target=update)
     thread.start()
 
-    # token = {
-    #     'chain': 'ethereum',
-    #     'address': '0x7169D38820dfd117C3FA1f22a697dBA58d90BA06'
-    # }
-    # token_name = get_token_name(token)
-    # is_token_live = check_token_liveness(token)
-    # token_exchange_data = get_token_exchange_data(token)
-    # print({
-    #     'token_name': token_name,
-    #     'is_token_live': is_token_live,
-    #     'token_exchange_data': token_exchange_data
-    # })
-
-    # create_order(token['chain'], token['address'], 'market', 'buy', 0.001, [{
-    #     'address': os.getenv('WALLET_ADDRESS'),
-    #     'private_key': os.getenv('WALLET_PRIVATE_KEY')
-    # }])
-
-    # balance = wallet.get_balance('ethereum', '0xa69876a83E11f778B2c7492f02b606bf2BBe52a8', '0x7169D38820dfd117C3FA1f22a697dBA58d90BA06')
-    # print(balance)
+    get_hot_tokens()
