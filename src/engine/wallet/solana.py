@@ -38,3 +38,6 @@ def get_balance(address):
 
     balance = response_json['result']['value']
     return balance
+
+def get_token_balance(address, token):
+    return address, token

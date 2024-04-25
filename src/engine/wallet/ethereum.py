@@ -22,7 +22,7 @@ def get_balance(address):
     balance = web3.from_wei(balance_wei, 'ether')
     return balance
 
-def get_balance(wallet, token):
+def get_token_balance(address, token):
     web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
     token_abi = [
         {
@@ -34,5 +34,5 @@ def get_balance(wallet, token):
         }
     ]
     contract = web3.eth.contract(address=token, abi=token_abi)
-    balance = contract.functions.balanceOf(wallet).call()
+    balance = contract.functions.balanceOf(address).call()
     return balance
