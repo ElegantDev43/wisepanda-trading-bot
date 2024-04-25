@@ -5,4 +5,4 @@ CHAINS = ['ethereum', 'solana']
 WALLET_COUNT = 10
 AUTO_SNIPER_UPDATE_DELAY = 3
 BOT_USERNAME = 'wisepandatradingbot'
-BOT_COUNT = 10
+BOT_COUNT = 3

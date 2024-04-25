@@ -12,7 +12,7 @@ Whenever we experience higher loads, you can use these backup bots. All your set
     keyboard = types.InlineKeyboardMarkup()
     for index in range(config.BOT_COUNT):
         url = f'https://t.me/{config.BOT_USERNAME}{"" if index == 0 else index}'
-        keyboard.row(types.InlineKeyboardButton(f'Bot{"" if index == 0 else index}', url=url))
+        keyboard.row(types.InlineKeyboardButton(f'Bot {index + 1}', url=url))
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
     keyboard.row(back, close)

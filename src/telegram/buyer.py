@@ -4,7 +4,6 @@ from src.database import user as user_model
 
 from telebot import types
 
-import config
 from src.database import user as user_model
 from src.engine import main as engine
 
@@ -50,25 +49,23 @@ def get_keyboard(user_wallets):
 def handle_input_token(bot, message):
     user = user_model.get_user_by_telegram(message.chat.id)
     chain = user.chain
-    address = message.text
-    token = {'chain': chain, 'address': address}
+    token = message.text
 
-    if engine.check_token_liveness(token) == False:
+    if engine.check_token_liveness(chain, token) == False:
         bot.send_message(chat_id=message.chat.id, text='Error: This is not a live token')
         return
 
-    user_model.update_user_by_id(user.id, 'session', {'address': address})
+    user_model.update_user_by_id(user.id, 'session', {'token': token})
 
-    name = engine.get_token_name(token)
-    # exchange_data = engine.get_token_exchange_data(token)
-    exchange_data = 'Exchange Data :)'
+    name = engine.get_token_name(chain, token)
+    exchange_data = engine.get_token_exchange_data(chain, token)
 
     text = f'''
 *{name}  (🔗{chain})*
-{address}
+{token}
 {exchange_data}
 
-[Scan](https://etherscan.io/address/{address}) | [Dexscreener](https://dexscreener.com/ethereum/{address}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{address}) | [Defined](https://www.defined.fi/eth/{address})
+[Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
     '''
 
     keyboard = get_keyboard(user.wallets[chain])
@@ -121,6 +118,6 @@ def handle_buy(bot, message, amount):
         if wallet['active'] == True:
             wallets.append(wallet)
 
-    engine.create_order(user.id, chain, user.session['address'], 'market', 'buy', amount, wallets)
+    engine.create_order(chain, user.id, user.session['token'], 'market', 'buy', amount, wallets)
 
-    bot.send_message(chat_id=message.chat.id, text='Successfully bought manually')
+    bot.send_message(chat_id=message.chat.id, text='Executed manual buy transaction')

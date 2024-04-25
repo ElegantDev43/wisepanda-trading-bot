@@ -31,7 +31,14 @@ def update():
 
 def add_sniper_user(chain, token, user):
     sniper_model.add_sniper_user_by_token(chain, token, user)
-    auto_sniper_tokens.append({'chain': chain, 'address': token})
+
+    exist = False
+    for token in auto_sniper_tokens:
+        if token['chain'] == chain and token['address'] == token:
+            exist = True
+            break
+    if not exist:
+        auto_sniper_tokens.append({'chain': chain, 'address': token})
 
 def get_hot_tokens(chain):
     return [chain]

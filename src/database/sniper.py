@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import String, and_, create_engine, Column, Integer, JSON, func
+from sqlalchemy import String, and_, create_engine, Column, Integer, String, JSON
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 engine = create_engine(os.getenv('DATABASE_URL'))
@@ -10,37 +10,38 @@ class Sniper(Base):
     __tablename__ = 'snipers'
 
     id = Column(Integer, primary_key=True)
-    token = Column(JSON)
+    chain = Column(String)
+    token = Column(String)
     users = Column(JSON)
 
 def initialize():
     Base.metadata.create_all(engine)
 
-def get_sniper_by_token(token):
+def add_sniper_user_by_token(chain, token, user):
     session = Session()
     sniper = session.query(Sniper).filter(
         and_(
-            func.cast(Sniper.token['chain'], String) == token['chain'],
-            func.cast(Sniper.token['address'], String) == token['address']
+            Sniper.chain == chain,
+            Sniper.token == token
         )
     ).first()
-    session.close()
-    return sniper
-
-def add_sniper_user_by_token(token, user):
-    session = Session()
-    sniper = get_sniper_by_token(token)
-    if sniper != None:
+    if sniper is not None:
         sniper.users.append(user)
+        session.add(sniper)
     else:
-        sniper = Sniper(token=token, users=[user])
+        sniper = Sniper(chain=chain, token=token, users=[user])
         session.add(sniper)
     session.commit()
     session.close()
 
-def update_sniper_user_by_token(token, user):
+def update_sniper_user_by_token(chain, token, user):
     session = Session()
-    sniper = get_sniper_by_token(token)
+    sniper = session.query(Sniper).filter(
+        and_(
+            Sniper.chain == chain,
+            Sniper.token == token
+        )
+    ).first()
     for index in range(len(sniper.users)):
         if sniper.users[index]['id'] == user['id']:
             sniper.users[index] = user
@@ -48,27 +49,42 @@ def update_sniper_user_by_token(token, user):
     session.commit()
     session.close()
 
-def cancel_sniper_user_by_token(token, user):
+def cancel_sniper_user_by_token(chain, token, user):
     session = Session()
-    sniper = get_sniper_by_token(token)
+    sniper = session.query(Sniper).filter(
+        and_(
+            Sniper.chain == chain,
+            Sniper.token == token
+        )
+    ).first()
     for index in range(len(sniper.users)):
         if sniper.users[index]['id'] == user['id']:
             del sniper.users[index]
             if len(sniper.users) == 0:
-                remove_sniper_by_token(token)
+                remove_sniper_by_token(chain, token)
             break
     session.commit()
     session.close()
 
-def remove_sniper_by_token(token):
+def remove_sniper_by_token(chain, token):
     session = Session()
-    sniper = get_sniper_by_token(token)
+    sniper = session.query(Sniper).filter(
+        and_(
+            Sniper.chain == chain,
+            Sniper.token == token
+        )
+    ).first()
     session.delete(sniper)
     session.commit()
     session.close()
 
-def get_sniper_users_by_token(token):
+def get_sniper_users_by_token(chain, token):
     session = Session()
-    sniper = get_sniper_by_token(token)
+    sniper = session.query(Sniper).filter(
+        and_(
+            Sniper.chain == chain,
+            Sniper.token == token
+        )
+    ).first()
     session.close()
     return sniper.users

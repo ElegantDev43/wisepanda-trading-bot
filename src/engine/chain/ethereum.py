@@ -1,7 +1,7 @@
 from web3 import Web3
 
 import config
-from engine.amm import uniswap
+from src.engine.amm import uniswap
 
 def get_token_name(token):
     web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))

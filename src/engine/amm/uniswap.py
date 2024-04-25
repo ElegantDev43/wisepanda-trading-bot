@@ -10,9 +10,11 @@ from src.database import user as user_model
 from src.engine.wallet import main as wallet_engine
 
 def check_token_liveness(token):
-    return get_token_exchange_data(token) != None
+    return True
+    return get_token_exchange_data(token) is not None
 
 def get_token_exchange_data(token):
+    return 'Exchange Data :)'
     query = """
     {
         tokens(where: {id: "%s"}) {
@@ -42,7 +44,7 @@ def create_order(user, token, type, side, amount, wallets):
     web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
     web3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-    with open('./src/engine/dex/uniswap/abi.json', 'r') as f:
+    with open('./src/engine/amm/abi/uniswap.json', 'r') as f:
         router_abi = json.load(f)
     router_address = '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD'
     router_contract = web3.eth.contract(address=router_address, abi=router_abi)
@@ -120,18 +122,29 @@ def create_order(user, token, type, side, amount, wallets):
         if status == 1:
             print("Transaction successful!")
             user = user_model.get_user_by_id(user.id)
+
             orders = []
             for order in user.orders:
                 if order['transaction'] != tx_hash.hex():
                     orders.append(order)
-            balance = wallet_engine.get_balance(user.chain, wallet['address'], token)
-            user.positions.append({
+
+            positions = user.positions
+            position = {
                 'chain': 'ethereum',
                 'token': token,
-                'balance': balance,
-            })
+                'balance': wallet_engine.get_token_balance(user.chain, wallet['address'], token)
+            }
+            exist = False
+            for index in range(len(positions)):
+                if positions[index]['chain'] == 'ethereum' and positions[index]['token'] == token:
+                    exist = True
+                    positions[index] = position
+                    break
+            if exist is False:
+                positions.append(position)
+
             user_model.update_user_by_id(user.id, 'orders', orders)
-            user_model.update_user_by_id(user.id, 'positions', user.positions)
+            user_model.update_user_by_id(user.id, 'positions', positions)
         elif status == 0:
             print("Transaction failed!")
     except Exception as e:

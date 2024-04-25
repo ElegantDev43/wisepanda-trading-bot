@@ -7,7 +7,7 @@ def handle_start(bot, message):
 
     text = '''
 *Panda 1.0*
-The fastest and sleekest trading bot the cryptosphere has seen
+The fastest and sleekest trading bot the cryptosphere has ever seen
 
 💬 [Visit our Official Chat](https://t.me/wisepandaofficial)
 
