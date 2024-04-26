@@ -11,9 +11,9 @@ from src.engine.wallet import main as wallet_engine
 
 def check_token_liveness(token):
     return True
-    return get_token_exchange_data(token) is not None
+    return get_token_information(token) is not None
 
-def get_token_exchange_data(token):
+def get_token_information(token):
     return 'Exchange Data :)'
     query = """
     {

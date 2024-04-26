@@ -1,7 +1,30 @@
 from web3 import Web3
+import subprocess
+import json
 
 import config
 from src.engine.amm import uniswap
+
+def get_hot_tokens():
+    node_script_path = "./src/engine/chain/hots.js"
+
+    command = ["node", node_script_path]
+
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+
+    if stdout:
+        data = json.loads(stdout.decode("utf-8"))
+        data = data[0]['data'][:10]
+        return data
+
+    else:
+        print("No receiving data.")
+
+    if stderr:
+        print("Error:")
+        print(stderr.decode("utf-8"))
+
 
 def get_token_name(token):
     web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
@@ -24,8 +47,8 @@ def get_token_name(token):
 def check_token_liveness(token):
     return uniswap.check_token_liveness(token)
 
-def get_token_exchange_data(token):
-    return uniswap.get_token_exchange_data(token)
+def get_token_information(token):
+    return uniswap.get_token_information(token)
 
 def create_order(user, token, type, side, amount, wallets):
     uniswap.create_order(user, token, type, side, amount, wallets)

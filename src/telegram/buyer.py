@@ -58,7 +58,7 @@ def handle_input_token(bot, message):
     user_model.update_user_by_id(user.id, 'session', {'token': token})
 
     name = engine.get_token_name(chain, token)
-    exchange_data = engine.get_token_exchange_data(chain, token)
+    exchange_data = engine.get_token_information(chain, token)
 
     text = f'''
 *{name}  (🔗{chain})*
