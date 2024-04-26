@@ -3,13 +3,14 @@ import telebot
 from telebot import types
 
 import config
-from src.telegram import start, sniper, buyer, orders, positions, bots
+from src.telegram import start, sniper, buyer, orders, positions, bots, hots
 from src.telegram.settings import main as settings, chains, wallets
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
 
 commands = [
     types.BotCommand("start", "Main menu"),
+    types.BotCommand("hots", "List the 10 hot tokens"),
     types.BotCommand("orders", "List all pending orders"),
     types.BotCommand("positions", "Overview of all your holdings"),
     types.BotCommand("chains", "List all supported chains"),
@@ -22,6 +23,10 @@ bot.set_my_commands(commands)
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     start.handle_start(bot, message)
+
+@bot.message_handler(commands=['hots'])
+def handle_hots(message):
+    hots.handle_hots(bot, message)
 
 @bot.message_handler(commands=['orders'])
 def handle_orders(message):
@@ -51,6 +56,8 @@ def handle_bots(message):
 def handle_callback_query(call):
     if call.data == 'start':
         start.handle_start(bot, call.message)
+    elif call.data == 'hots':
+        hots.handle_hots(bot, call.message)
     elif call.data == 'sniper':
         sniper.handle_sniper(bot, call.message)
     elif call.data == 'buyer':
