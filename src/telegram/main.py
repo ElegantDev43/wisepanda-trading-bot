@@ -58,6 +58,10 @@ def handle_callback_query(call):
         start.handle_start(bot, call.message)
     elif call.data == 'hots':
         hots.handle_hots(bot, call.message)
+    elif call.data.startswith('hot '):
+        token = call.data[4:]
+        call.message.text = token
+        buyer.handle_input_token(bot, call.message)
     elif call.data == 'sniper':
         sniper.handle_sniper(bot, call.message)
     elif call.data == 'buyer':

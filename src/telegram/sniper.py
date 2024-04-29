@@ -8,7 +8,7 @@ def handle_sniper(bot, message):
 
     text = '''
 *Auto Sniper*
-Paste in a token address below to setup auto sniper for new launching token
+Paste in a token address below to setup auto sniper for new launching token.
 e.g. 0x7169D38820dfd117C3FA1f22a697dBA58d90BA06
     '''
 

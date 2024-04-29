@@ -21,7 +21,7 @@ def get_hot_tokens():
 
 def get_token_name(token):
     web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
-    token_address = token
+    token_address = Web3.to_checksum_address(token)
     token_abi = [
         {
             "constant": True,

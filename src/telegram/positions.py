@@ -8,7 +8,7 @@ def handle_positions(bot, message):
     text = f'''
 *Open Positions*
 
-You currently have {len(user.positions)} open positions
+You currently have {len(user.positions)} open positions.
 
 Your positions are:
     '''

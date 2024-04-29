@@ -8,7 +8,7 @@ def handle_buyer(bot, message):
 
     text = '''
 *Manual Buyer*
-Paste in a token address below to buy manually
+Paste in a token address below to buy manually.
 e.g. 0x7169D38820dfd117C3FA1f22a697dBA58d90BA06
     '''
 
@@ -87,7 +87,7 @@ def handle_toggle_wallet(bot, message, index):
         index = int(index)
         wallets[index]['active'] = not wallets[index]['active']
 
-    user_model.update_user_by_id(user.id, 'wallets', user.wallets)
+    user_model.update_user_by_id(user.id, 'wallets', wallets)
 
     keyboard = get_keyboard(wallets)
 

@@ -9,14 +9,15 @@ def handle_hots(bot, message):
 
     text = f'''
 *Hot Tokens*
+
+The following tokens are the hotest ones on {user.chain} recently.
+Click one of them to start to buy manually.
     '''
 
-    for token in hot_tokens:
-        text += f'''
-{token['token0']['symbol']}/{token['token1']['symbol']}
-'''
-
     keyboard = types.InlineKeyboardMarkup()
+    for token in hot_tokens:
+        button = types.InlineKeyboardButton(token['token0']['symbol'], callback_data=f'hot {token['token0']['id']}')
+        keyboard.row(button)
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
     keyboard.row(back)

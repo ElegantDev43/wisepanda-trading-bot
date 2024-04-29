@@ -17,7 +17,7 @@ def handle_wallets(bot, message):
     text = f'''
 *Settings > Wallets (🔗 {chain})*
 
-You can use up to {config.WALLET_COUNT} multiple wallets
+You can use up to {config.WALLET_COUNT} multiple wallets.
 
 Your currently added wallets:
 '''

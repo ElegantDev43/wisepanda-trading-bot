@@ -9,7 +9,7 @@ def handle_orders(bot, message):
     text = f'''
 *Pending Orders*
 
-You currently have {len(user.orders)} pending orders
+You currently have {len(user.orders)} pending orders.
 
 Your orders are:
     '''
