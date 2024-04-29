@@ -6,25 +6,18 @@ import config
 from src.engine.amm import uniswap
 
 def get_hot_tokens():
-    node_script_path = "./src/engine/chain/hots.js"
+    batch_file_path = './src/engine/chain/hots.sh'
 
-    command = ["node", node_script_path]
+    try:
+        result = subprocess.run(batch_file_path, capture_output=True, text=True, check=True)
+        stdout = result.stdout
+        outputs = stdout.split('\n')
+        result = json.loads(outputs[-1])
+        data = result['data']
+        return data[0]['data'][:10]
 
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
-
-    if stdout:
-        data = json.loads(stdout.decode("utf-8"))
-        data = data[0]['data'][:10]
-        return data
-
-    else:
-        print("No receiving data.")
-
-    if stderr:
-        print("Error:")
-        print(stderr.decode("utf-8"))
-
+    except subprocess.CalledProcessError as e:
+        print(f"Error executing batch file: {e}")
 
 def get_token_name(token):
     web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
