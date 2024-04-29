@@ -3,10 +3,10 @@ import subprocess
 import json
 
 import config
-from src.engine.amm import uniswap
+from src.engine.ethereum import wallet, dex
 
 def get_hot_tokens():
-    batch_file_path = './src/engine/chain/hots.sh'
+    batch_file_path = './src/engine/ethereum/hots.sh'
 
     try:
         result = subprocess.run(batch_file_path, capture_output=True, text=True, check=True)
@@ -37,11 +37,23 @@ def get_token_name(token):
     token_name = token_contract.functions.name().call()
     return token_name
 
+def create_wallet():
+    return wallet.create_wallet()
+
+def import_wallet(private_key):
+    return wallet.import_wallet(private_key)
+
+def get_balance(address):
+    return wallet.get_balance(address)
+
+def get_token_balance(address, token):
+    return wallet.get_token_balance(address, token)
+
 def check_token_liveness(token):
-    return uniswap.check_token_liveness(token)
+    return dex.check_token_liveness(token)
 
 def get_token_information(token):
-    return uniswap.get_token_information(token)
+    return dex.get_token_information(token)
 
 def create_order(user, token, type, side, amount, wallets):
-    uniswap.create_order(user, token, type, side, amount, wallets)
+    dex.create_order(user, token, type, side, amount, wallets)

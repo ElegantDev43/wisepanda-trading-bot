@@ -7,7 +7,6 @@ import os
 
 import config
 from src.database import user as user_model
-from src.engine.wallet import main as wallet_engine
 
 def check_token_liveness(token):
     return True
@@ -39,6 +38,8 @@ def get_token_information(token):
         return False
 
 def create_order(user, token, type, side, amount, wallets):
+    from src.engine import main as engine
+
     user = user_model.get_user_by_id(user)
 
     web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
@@ -49,7 +50,6 @@ def create_order(user, token, type, side, amount, wallets):
     router_address = '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD'
     router_contract = web3.eth.contract(address=router_address, abi=router_abi)
 
-    wallet = wallets[0]
     wallet = {
         'address': os.getenv('WALLET_ADDRESS'),
         'private_key': os.getenv('WALLET_PRIVATE_KEY')
@@ -132,7 +132,7 @@ def create_order(user, token, type, side, amount, wallets):
             position = {
                 'chain': 'ethereum',
                 'token': token,
-                'balance': wallet_engine.get_token_balance(user.chain, wallet['address'], token)
+                'balance': engine.get_token_balance(user.chain, wallet['address'], token)
             }
             exist = False
             for index in range(len(positions)):

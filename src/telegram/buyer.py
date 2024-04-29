@@ -1,10 +1,6 @@
 from telebot import types
 
 from src.database import user as user_model
-
-from telebot import types
-
-from src.database import user as user_model
 from src.engine import main as engine
 
 def handle_buyer(bot, message):

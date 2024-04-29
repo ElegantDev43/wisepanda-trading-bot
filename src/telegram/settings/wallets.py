@@ -2,7 +2,7 @@ from telebot import types
 
 import config
 from src.database import user as user_model
-from src.engine.wallet import main as wallet_engine
+from src.engine import main as engine
 
 explorers = {
     'ethereum': 'https://etherscan.io/address/',
@@ -45,7 +45,7 @@ def handle_create_wallet(bot, message):
         bot.send_message(chat_id=message.chat.id, text='Exceed wallets limit of 3')
         return
 
-    address, private_key = wallet_engine.create_wallet(chain)
+    address, private_key = engine.create_wallet(chain)
     user.wallets[chain].append({'address': address, 'private_key': private_key, 'balance': 0, 'active': False})
     user_model.update_user_by_id(user.id, 'wallets', user.wallets)
 
@@ -75,8 +75,8 @@ def handle_input_private_key(bot, message):
     user = user_model.get_user_by_telegram(message.chat.id)
     chain = user.chain
     private_key = message.text
-    address = wallet_engine.import_wallet(chain, private_key)
-    balance = wallet_engine.get_balance(chain, address)
+    address = engine.import_wallet(chain, private_key)
+    balance = engine.get_balance(chain, address)
     user.wallets[chain].append({'address': address, 'private_key': private_key, 'balance': balance, 'active': False})
     user_model.update_user_by_id(user.id, 'wallets', user.wallets)
 

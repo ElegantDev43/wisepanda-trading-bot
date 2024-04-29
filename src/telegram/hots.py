@@ -1,6 +1,5 @@
 from telebot import types
 
-import config
 from src.database import user as user_model
 from src.engine import main as engine
 
