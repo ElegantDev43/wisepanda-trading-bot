@@ -9,7 +9,7 @@ def handle_buyer(bot, message):
     text = '''
 *Manual Buyer*
 Paste in a token address below to buy manually.
-e.g. 0x7169D38820dfd117C3FA1f22a697dBA58d90BA06
+e.g. 0xdac17f958d2ee523a2206206994597c13d831ec7
     '''
 
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')

@@ -9,28 +9,59 @@ import config
 from src.database import user as user_model
 
 def check_token_liveness(token):
-    return True
-    return get_token_information(token) is not None
-
-def get_token_information(token):
-    return 'Exchange Data :)'
     query = """
     {
         tokens(where: {id: "%s"}) {
             id
-            name
-            symbol
-            derivedETH
-            totalLiquidity
         }
     }
     """ % token.lower()
 
     try:
-        response = requests.post('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2', json={'query': query})
+        response = requests.post('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3', json={'query': query})
         data = response.json()
-        if data.get('data', {}).get('tokens'):
-            return data.get('data', {}).get('tokens', [])[0]
+        token_exists = bool(data.get('data', {}).get('tokens'))
+
+        return token_exists
+    except Exception as e:
+        print("Error occurred:", e)
+        return False
+
+def get_token_information(token):
+    query = """
+    {
+        pools(
+            where: {
+                token0: "%s"
+                token1: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+            }
+        ) {
+            id
+            liquidity
+            txCount
+            volumeUSD
+            totalValueLockedUSD
+            token0 {
+                id
+                symbol
+                totalSupply
+                volumeUSD
+                txCount
+                totalValueLockedUSD
+            }
+            token1 {
+                id
+                symbol
+            }
+        }
+    }
+    """ % token.lower()
+
+    try:
+        response = requests.post('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3', json={'query': query})
+        data = response.json()
+        if data.get('data', {}).get('pools'):
+            return data.get('data', {}).get('pools', [])[0]
         else:
             return None
     except Exception as e:

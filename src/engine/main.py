@@ -43,4 +43,4 @@ def create_order(chain, user, token, type, side, amount, wallets):
 
 def initialize():
     sniper.initialize()
-    # test.initialize()
+    test.initialize()

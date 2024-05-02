@@ -9,7 +9,7 @@ def handle_sniper(bot, message):
     text = '''
 *Auto Sniper*
 Paste in a token address below to setup auto sniper for new launching token.
-e.g. 0x7169D38820dfd117C3FA1f22a697dBA58d90BA06
+e.g. 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
     '''
 
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
