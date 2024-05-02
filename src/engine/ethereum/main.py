@@ -44,16 +44,22 @@ def import_wallet(private_key):
     return wallet.import_wallet(private_key)
 
 def get_balance(address):
+    address = Web3.to_checksum_address(address)
     return wallet.get_balance(address)
 
 def get_token_balance(address, token):
+    address = Web3.to_checksum_address(address)
+    token = Web3.to_checksum_address(token)
     return wallet.get_token_balance(address, token)
 
 def check_token_liveness(token):
+    token = Web3.to_checksum_address(token)
     return dex.check_token_liveness(token)
 
 def get_token_information(token):
+    token = Web3.to_checksum_address(token)
     return dex.get_token_information(token)
 
 def trade(user, token, type, amount, wallets):
+    token = Web3.to_checksum_address(token)
     dex.trade(user, token, type, amount, wallets)

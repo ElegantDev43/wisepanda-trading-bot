@@ -59,6 +59,8 @@ def handle_input_token(bot, message):
     text = f'''
 *{name}  (🔗{chain})*
 
+{token}
+
 *Pool Information:*
 Liquidity: {information['liquidity']}
 Tx Count: {information['txCount']}

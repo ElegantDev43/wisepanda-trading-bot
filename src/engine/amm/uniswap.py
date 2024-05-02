@@ -74,43 +74,44 @@ def get_token_information(token):
         return False
 
 def trade(user, token, type, amount, wallets):
-    from src.engine import main as engine
-
-    user = user_model.get_user_by_id(user)
-    chat_id = user.telegram
-
-    wallet = {
-        'address': os.getenv('WALLET_ADDRESS'),
-        'private_key': os.getenv('WALLET_PRIVATE_KEY')
-    }
-
-    uniswap = Uniswap(
-        address=wallet['address'],
-        private_key=wallet['private_key'],
-        version=3,
-        provider=config.ETHEREUM_RPC_URL
-    )
-
-    eth = '0x0000000000000000000000000000000000000000'
-
-    if type == 'buy':
-        tx_hash = uniswap.make_trade(eth, token, amount)
-    else:
-        tx_hash = uniswap.make_trade(token, eth, amount)
-
-    telegram.bot.send_message(chat_id=chat_id, text=f'Sent transaction: {tx_hash.hex()}')
-
-    user.orders.append({
-        'transaction': tx_hash.hex(),
-        'chain': 'ethereum',
-        'token': token,
-        'type': type,
-        'amount': amount,
-        'wallets': wallets
-    })
-    user_model.update_user_by_id(user.id, 'orders', user.orders)
-
+    return print('trade', user, token, type, amount, wallets)
     try:
+        from src.engine import main as engine
+
+        user = user_model.get_user_by_id(user)
+        chat_id = user.telegram
+
+        wallet = {
+            'address': os.getenv('WALLET_ADDRESS'),
+            'private_key': os.getenv('WALLET_PRIVATE_KEY')
+        }
+
+        uniswap = Uniswap(
+            address=wallet['address'],
+            private_key=wallet['private_key'],
+            version=3,
+            provider=config.ETHEREUM_RPC_URL
+        )
+
+        eth = '0x0000000000000000000000000000000000000000'
+
+        if type == 'buy':
+            tx_hash = uniswap.make_trade(eth, token, amount)
+        else:
+            tx_hash = uniswap.make_trade(token, eth, amount)
+
+        telegram.bot.send_message(chat_id=chat_id, text=f'Sent transaction: {tx_hash.hex()}')
+
+        user.orders.append({
+            'transaction': tx_hash.hex(),
+            'chain': 'ethereum',
+            'token': token,
+            'type': type,
+            'amount': amount,
+            'wallets': wallets
+        })
+        user_model.update_user_by_id(user.id, 'orders', user.orders)
+
         web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
         receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
         status = receipt['status']
@@ -142,6 +143,6 @@ def trade(user, token, type, amount, wallets):
             user_model.update_user_by_id(user.id, 'orders', orders)
             user_model.update_user_by_id(user.id, 'positions', positions)
         elif status == 0:
-            print("Transaction failed!")
+            telegram.bot.send_message(chat_id=chat_id, text=f'Transaction confirmation failed: {tx_hash.hex()}')
     except Exception as e:
-        print("Error occurred while waiting for transaction confirmation:", e)
+        telegram.bot.send_message(chat_id=chat_id, text=f'Error: {e}')

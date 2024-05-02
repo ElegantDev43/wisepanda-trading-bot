@@ -12,7 +12,7 @@ def initialize():
         'elon': '0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7',
         'usdc': '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
         'weth': '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-        'eth': '0x0000000000000000000000000000000000000000'
+        'eth': '0x0000000000000000000000000000000000000000',
     }
 
     chain = 'ethereum'
@@ -23,18 +23,18 @@ def initialize():
         'private_key': os.getenv('WALLET_PRIVATE_KEY')
     }
 
-    uniswap = Uniswap(
-        address=wallet['address'],
-        private_key=wallet['private_key'],
-        version=3,
-        provider=config.ETHEREUM_RPC_URL
-    )
+    # uniswap = Uniswap(
+    #     address=wallet['address'],
+    #     private_key=wallet['private_key'],
+    #     version=3,
+    #     provider=config.ETHEREUM_RPC_URL
+    # )
 
     # price = uniswap.get_price_input(tokens['eth'], tokens['usdt'], 10**18)
     # print('price', price)
 
-    # tx_hash = uniswap.make_trade(tokens['usdc'], tokens['eth'], 10**6).decode('utf-8')
-    # print('tx_hash', tx_hash)
+    # tx_hash = uniswap.make_trade(tokens['usdc'], tokens['eth'], 10**6)
+    # print('tx_hash', tx_hash.hex())
 
     # hot_tokens = engine.get_hot_tokens(chain)
     # print('get_hot_tokens', len(hot_tokens))
