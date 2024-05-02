@@ -9,7 +9,7 @@ def handle_buyer(bot, message):
     text = '''
 *Manual Buyer*
 Paste in a token address below to buy manually.
-e.g. 0xdac17f958d2ee523a2206206994597c13d831ec7
+e.g. 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48
     '''
 
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
@@ -17,7 +17,7 @@ e.g. 0xdac17f958d2ee523a2206206994597c13d831ec7
 
 def get_keyboard(user_wallets):
     wallet_count = len(user_wallets)
-    buy_amounts = [0.01, 0.02, 0.05, 0.1]
+    buy_amounts = [0.00001, 0.00002, 0.00005, 0.0001]
     buy_count = len(buy_amounts)
 
     keyboard = types.InlineKeyboardMarkup()
@@ -54,12 +54,22 @@ def handle_input_token(bot, message):
     user_model.update_user_by_id(user.id, 'session', {'token': token})
 
     name = engine.get_token_name(chain, token)
-    exchange_data = engine.get_token_information(chain, token)
+    information = engine.get_token_information(chain, token)
 
     text = f'''
 *{name}  (🔗{chain})*
-{token}
-{exchange_data}
+
+*Pool Information:*
+Liquidity: {information['liquidity']}
+Tx Count: {information['txCount']}
+Volume: {information['volumeUSD']}
+Locked: {information['totalValueLockedUSD']}
+
+*Token Information:*
+Total Supply: {information['token0']['totalSupply']}
+Volume: {information['token0']['volumeUSD']}
+Tx Count: {information['token0']['txCount']}
+Locked: {information['token0']['totalValueLockedUSD']}
 
 [Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
     '''
@@ -114,6 +124,4 @@ def handle_buy(bot, message, amount):
         if wallet['active'] == True:
             wallets.append(wallet)
 
-    engine.create_order(chain, user.id, user.session['token'], 'market', 'buy', amount, wallets)
-
-    bot.send_message(chat_id=message.chat.id, text='Executed manual buy transaction')
+    engine.trade(chain, user.id, user.session['token'], 'buy', int(amount * 10**18), wallets)

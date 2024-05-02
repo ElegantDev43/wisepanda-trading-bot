@@ -17,8 +17,7 @@ def import_wallet(private_key):
 
 def get_balance(address):
     web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
-    checksum_address = Web3.to_checksum_address(address)
-    balance_wei = web3.eth.get_balance(checksum_address)
+    balance_wei = web3.eth.get_balance(address)
     balance = web3.from_wei(balance_wei, 'ether')
     return balance
 

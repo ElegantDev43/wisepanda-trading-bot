@@ -18,7 +18,7 @@ Your orders are:
             text += f'''
 Chain: {order['chain']}
 Token: {order['token']}
-Order: {order['type']}-{order['side']}
+Order: {order['type']}
 Amount: {order['amount']}
 Transaction: [{order['transaction']}](https://sepolia.etherscan.io/tx/{order['transaction']})
             '''

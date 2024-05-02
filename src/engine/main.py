@@ -37,8 +37,8 @@ def check_token_liveness(chain, token):
 def get_token_information(chain, token):
     return engines[chain].get_token_information(token)
 
-def create_order(chain, user, token, type, side, amount, wallets):
-    thread = threading.Thread(target=engines[chain].create_order, args=(user, token, type, side, amount, wallets))
+def trade(chain, user, token, type, amount, wallets):
+    thread = threading.Thread(target=engines[chain].trade, args=(user, token, type, amount, wallets))
     thread.start()
 
 def initialize():

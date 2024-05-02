@@ -1,17 +1,22 @@
 from web3 import Web3
 import requests
-from web3.middleware import geth_poa_middleware
 import json
-import time
 import os
+from uniswap import Uniswap
 
 import config
 from src.database import user as user_model
+from src.telegram import main as telegram
 
 def check_token_liveness(token):
     query = """
     {
-        tokens(where: {id: "%s"}) {
+        pools(
+            where: {
+                token0: "%s"
+                token1: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
+            }
+        ) {
             id
         }
     }
@@ -20,7 +25,7 @@ def check_token_liveness(token):
     try:
         response = requests.post('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3', json={'query': query})
         data = response.json()
-        token_exists = bool(data.get('data', {}).get('tokens'))
+        token_exists = bool(data.get('data', {}).get('pools'))
 
         return token_exists
     except Exception as e:
@@ -68,90 +73,50 @@ def get_token_information(token):
         print("Error occurred:", e)
         return False
 
-def create_order(user, token, type, side, amount, wallets):
+def trade(user, token, type, amount, wallets):
     from src.engine import main as engine
 
     user = user_model.get_user_by_id(user)
-
-    web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
-    web3.middleware_onion.inject(geth_poa_middleware, layer=0)
-
-    with open('./src/engine/amm/abi/uniswap.json', 'r') as f:
-        router_abi = json.load(f)
-    router_address = '0x3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD'
-    router_contract = web3.eth.contract(address=router_address, abi=router_abi)
+    chat_id = user.telegram
 
     wallet = {
         'address': os.getenv('WALLET_ADDRESS'),
         'private_key': os.getenv('WALLET_PRIVATE_KEY')
     }
 
-    gas_price = web3.eth.gas_price
-    nonce = web3.eth.get_transaction_count(wallet['address'])
+    uniswap = Uniswap(
+        address=wallet['address'],
+        private_key=wallet['private_key'],
+        version=3,
+        provider=config.ETHEREUM_RPC_URL
+    )
 
-    if type == 'market':
-        if side == 'buy':
-            amount_eth = int(web3.to_wei(amount, 'ether'))
-            amount_hex = hex(amount_eth)[2:].zfill(64)
+    eth = '0x0000000000000000000000000000000000000000'
 
-            commands = bytes.fromhex('0b00')
-            input1 = bytes.fromhex(f'0000000000000000000000000000000000000000000000000000000000000002{amount_hex}')
-            input2 = bytes.fromhex(f'0000000000000000000000000000000000000000000000000000000000000001{amount_hex}000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002bfff9976782d46cc05630d1f6ebab18b2324d6b14002710{token[2:]}000000000000000000000000000000000000000000')
-            inputs = [input1, input2]
+    if type == 'buy':
+        tx_hash = uniswap.make_trade(eth, token, amount)
+    else:
+        tx_hash = uniswap.make_trade(token, eth, amount)
 
-            tx = router_contract.functions.execute(
-                commands,
-                inputs,
-                int(time.time()) + 1000
-            ).build_transaction({
-                'from': wallet['address'],
-                'value': amount_eth,
-                'gas': 1000000,
-                'gasPrice': gas_price,
-                'nonce': nonce,
-            })
-        else:
-            amount_usd = int(amount * 10**6)
-            amount_hex = hex(amount_usd)[2:].zfill(64)
-
-            commands = bytes.fromhex('000c')
-            input1 = bytes.fromhex(f'0000000000000000000000000000000000000000000000000000000000000002{amount_hex}000000000000000000000000000000000000000000000000000c1e1cceec764500000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002b{token[2:]}002710fff9976782d46cc05630d1f6ebab18b2324d6b14000000000000000000000000000000000000000000')
-            input2 = bytes.fromhex(f'0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000c1e1cceec7645')
-            inputs = [input1, input2]
-
-            tx = router_contract.functions.execute(
-                commands,
-                inputs,
-                int(time.time()) + 1000
-            ).build_transaction({
-                'from': wallet['address'],
-                'gas': 1000000,
-                'gasPrice': gas_price,
-                'nonce': nonce,
-            })
-
-    signed_tx = web3.eth.account.sign_transaction(tx, private_key=wallet['private_key'])
-
-    tx_hash = web3.eth.send_raw_transaction(signed_tx.rawTransaction)
-
-    print(f'Transaction sent: {tx_hash.hex()}')
+    telegram.bot.send_message(chat_id=chat_id, text=f'Sent transaction: {tx_hash.hex()}')
 
     user.orders.append({
         'transaction': tx_hash.hex(),
         'chain': 'ethereum',
         'token': token,
         'type': type,
-        'side': side,
         'amount': amount,
         'wallets': wallets
     })
     user_model.update_user_by_id(user.id, 'orders', user.orders)
 
     try:
+        web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
         receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
         status = receipt['status']
         if status == 1:
-            print("Transaction successful!")
+            telegram.bot.send_message(chat_id=chat_id, text=f'Transaction success: {tx_hash.hex()}')
+
             user = user_model.get_user_by_id(user.id)
 
             orders = []

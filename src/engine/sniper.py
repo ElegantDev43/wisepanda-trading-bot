@@ -18,7 +18,7 @@ def update():
         for token in new_tokens:
             users = sniper_model.get_sniper_users_by_token(token['chain'], token['address'])
             for user in users:
-                engine.create_order(token['chain'], user['id'], token['address'], 'market', 'buy', user['amount'], user['wallets'])
+                engine.trade(token['chain'], user['id'], token['address'], 'market', 'buy', user['amount'], user['wallets'])
             sniper_model.remove_sniper_by_token(token['chain'], token['address'])
 
         time.sleep(config.AUTO_SNIPER_UPDATE_DELAY)

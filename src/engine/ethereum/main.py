@@ -55,5 +55,5 @@ def check_token_liveness(token):
 def get_token_information(token):
     return dex.get_token_information(token)
 
-def create_order(user, token, type, side, amount, wallets):
-    dex.create_order(user, token, type, side, amount, wallets)
+def trade(user, token, type, amount, wallets):
+    dex.trade(user, token, type, amount, wallets)

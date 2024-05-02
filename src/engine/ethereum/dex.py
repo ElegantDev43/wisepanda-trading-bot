@@ -6,5 +6,5 @@ def check_token_liveness(token):
 def get_token_information(token):
     return uniswap.get_token_information(token)
 
-def create_order(user, token, type, side, amount, wallets):
-    uniswap.create_order(user, token, type, side, amount, wallets)
+def trade(user, token, type, amount, wallets):
+    uniswap.trade(user, token, type, amount, wallets)
