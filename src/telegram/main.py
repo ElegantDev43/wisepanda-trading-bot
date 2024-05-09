@@ -9,7 +9,7 @@ from src.telegram.settings import main as settings, chains, wallets
 bot = telebot.TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
 
 commands = [
-    types.BotCommand("start", "Main menu"),
+    types.BotCommand("start", "Home"),
     types.BotCommand("hots", "List the 10 hot tokens"),
     types.BotCommand("orders", "List all pending orders"),
     types.BotCommand("positions", "Overview of all your holdings"),
