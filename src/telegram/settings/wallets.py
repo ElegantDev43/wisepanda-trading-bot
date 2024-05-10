@@ -9,6 +9,7 @@ explorers = {
     'solana': 'https://solscan.io/account/',
 }
 
+
 def handle_wallets(bot, message):
     user = user_model.get_user_by_telegram(message.chat.id)
     chain = user.chain
@@ -28,25 +29,31 @@ Your currently added wallets:
 '''
 
     keyboard = types.InlineKeyboardMarkup()
-    create_wallet = types.InlineKeyboardButton(text='Create Wallet', callback_data='create_wallet')
-    import_wallet = types.InlineKeyboardButton(text='Import Wallet', callback_data='import_wallet')
+    create_wallet = types.InlineKeyboardButton(
+        text='Create Wallet', callback_data='create_wallet')
+    import_wallet = types.InlineKeyboardButton(
+        text='Import Wallet', callback_data='import_wallet')
     back = types.InlineKeyboardButton('🔙 Back', callback_data='settings')
     keyboard.row(create_wallet)
     keyboard.row(import_wallet)
     keyboard.row(back)
 
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown', reply_markup=keyboard, disable_web_page_preview=True)
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                     reply_markup=keyboard, disable_web_page_preview=True)
+
 
 def handle_create_wallet(bot, message):
     user = user_model.get_user_by_telegram(message.chat.id)
     chain = user.chain
 
     if len(user.wallets[chain]) == config.WALLET_COUNT:
-        bot.send_message(chat_id=message.chat.id, text='Exceed wallets limit of 3')
+        bot.send_message(chat_id=message.chat.id,
+                         text='Exceed wallets limit of 3')
         return
 
     address, private_key = engine.create_wallet(chain)
-    user.wallets[chain].append({'address': address, 'private_key': private_key, 'balance': 0, 'active': False})
+    user.wallets[chain].append(
+        {'address': address, 'private_key': private_key, 'balance': 0, 'active': False})
     user_model.update_user_by_id(user.id, 'wallets', user.wallets)
 
     text = f'''
@@ -60,16 +67,40 @@ Private Key: {private_key}
 
     handle_wallets(bot, message)
 
+
 def handle_import_wallet(bot, message):
     user = user_model.get_user_by_telegram(message.chat.id)
     chain = user.chain
 
     if len(user.wallets[chain]) == config.WALLET_COUNT:
-        bot.send_message(chat_id=message.chat.id, text='Exceed wallets limit of 3')
+        bot.send_message(chat_id=message.chat.id,
+                         text='Exceed wallets limit of 3')
         return
 
     bot.send_message(chat_id=message.chat.id, text='Enter private key:')
-    bot.register_next_step_handler_by_chat_id(chat_id=message.chat.id, callback=lambda next_message: handle_input_private_key(bot, next_message))
+    bot.register_next_step_handler_by_chat_id(
+        chat_id=message.chat.id, callback=lambda next_message: handle_input_private_key(bot, next_message))
+
+
+def get_keyboard(user_wallets):
+    wallet_count = len(user_wallets)
+
+    keyboard = types.InlineKeyboardMarkup()
+
+    wallets = []
+
+  #  for index in range(wallet_count):
+   #     wallets.append(types.InlineKeyboardButton(
+  #          f'W{index + 1}{" 🟢" if user_wallets[index]['active'] == True else ""}', callback_data=f'manual wallet {index}'))
+    back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
+    close = types.InlineKeyboardButton('❌ Close', callback_data='close')
+
+    for index in range(wallet_count):
+        keyboard.row(wallets[index])
+    keyboard.row(back, close)
+
+    return keyboard
+
 
 def handle_input_private_key(bot, message):
     user = user_model.get_user_by_telegram(message.chat.id)
@@ -77,7 +108,8 @@ def handle_input_private_key(bot, message):
     private_key = message.text
     address = engine.import_wallet(chain, private_key)
     balance = engine.get_balance(chain, address)
-    user.wallets[chain].append({'address': address, 'private_key': private_key, 'balance': balance, 'active': False})
+    user.wallets[chain].append(
+        {'address': address, 'private_key': private_key, 'balance': balance, 'active': False})
     user_model.update_user_by_id(user.id, 'wallets', user.wallets)
 
     text = f'''

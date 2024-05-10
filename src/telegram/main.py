@@ -20,37 +20,46 @@ commands = [
 ]
 bot.set_my_commands(commands)
 
+
 @bot.message_handler(commands=['start'])
 def handle_start(message):
     start.handle_start(bot, message)
+
 
 @bot.message_handler(commands=['hots'])
 def handle_hots(message):
     hots.handle_hots(bot, message)
 
+
 @bot.message_handler(commands=['orders'])
 def handle_orders(message):
     orders.handle_orders(bot, message)
+
 
 @bot.message_handler(commands=['positions'])
 def handle_positions(message):
     positions.handle_positions(bot, message)
 
+
 @bot.message_handler(commands=['chains'])
 def handle_chain(message):
     chains.handle_chains(bot, message)
+
 
 @bot.message_handler(commands=['wallets'])
 def handle_wallets(message):
     wallets.handle_wallets(bot, message)
 
+
 @bot.message_handler(commands=['settings'])
 def handle_settings(message):
     settings.handle_settings(bot, message)
 
+
 @bot.message_handler(commands=['bots'])
 def handle_bots(message):
     bots.handle_bots(bot, message)
+
 
 @bot.callback_query_handler(func=lambda _: True)
 def handle_callback_query(call):
@@ -75,7 +84,8 @@ def handle_callback_query(call):
     elif call.data == 'bots':
         bots.handle_bots(bot, call.message)
     elif call.data == 'close':
-        bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
+        bot.delete_message(chat_id=call.message.chat.id,
+                           message_id=call.message.message_id)
     elif call.data == 'chains':
         chains.handle_chains(bot, call.message)
     elif call.data == 'wallets':
@@ -104,6 +114,7 @@ def handle_callback_query(call):
         else:
             amount = float(amount)
             buyer.handle_buy(bot, call.message, amount)
+
 
 def initialize():
     print('Starting the bot...')
