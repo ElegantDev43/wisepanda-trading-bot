@@ -21,7 +21,7 @@ def update():
                 engine.trade(token['chain'], user['id'], token['address'], 'market', 'buy', user['amount'], user['wallets'])
             sniper_model.remove_sniper_by_token(token['chain'], token['address'])
 
-        time.sleep(config.AUTO_SNIPER_UPDATE_DELAY)
+        time.sleep(config.AUTO_SNIPER_TIMEOUT)
 
 def add_sniper_user(chain, token, user):
     sniper_model.add_sniper_user_by_token(chain, token, user)
