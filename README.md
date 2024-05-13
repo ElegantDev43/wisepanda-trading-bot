@@ -1,7 +1,5 @@
 # wisepanda-trading-bot
 
-Telegram: [@wisepandatradingbot](https://t.me/wisepandatradingbot)
-
 ### Create a Virtual Environment
 
 ```shell script
@@ -31,5 +29,5 @@ pip install -r requirements.txt
 ### Start Application
 
 ```shell script
-python app.py
+python main.py
 ```
