@@ -33,9 +33,12 @@ Your currently added wallets:
         text='Create Wallet', callback_data='create_wallet')
     import_wallet = types.InlineKeyboardButton(
         text='Import Wallet', callback_data='import_wallet')
+    remove_wallet = types.InlineKeyboardButton(
+        text='Remove Wallet', callback_data='remove_wallet')
     back = types.InlineKeyboardButton('🔙 Back', callback_data='settings')
     keyboard.row(create_wallet)
     keyboard.row(import_wallet)
+    keyboard.row(remove_wallet)
     keyboard.row(back)
 
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
@@ -82,24 +85,32 @@ def handle_import_wallet(bot, message):
         chat_id=message.chat.id, callback=lambda next_message: handle_input_private_key(bot, next_message))
 
 
-def get_keyboard(user_wallets):
-    wallet_count = len(user_wallets)
+def handle_remove_wallet(bot, message):
+    user = user_model.get_user_by_telegram(message.chat.id)
+    chain = user.chain
+    wallets = ['1', '2', '3', '4', '5']
+    wallet_count = len(wallets)
+
+    text = f'''
+*Settings > Wallets (🔗 {chain})*
+
+You can remove wallets here.
+
+Your currently added {wallet_count} wallets:
+'''
 
     keyboard = types.InlineKeyboardMarkup()
-
-    wallets = []
-
   #  for index in range(wallet_count):
    #     wallets.append(types.InlineKeyboardButton(
   #          f'W{index + 1}{" 🟢" if user_wallets[index]['active'] == True else ""}', callback_data=f'manual wallet {index}'))
-    back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
-    close = types.InlineKeyboardButton('❌ Close', callback_data='close')
+    back = types.InlineKeyboardButton('🔙 Back', callback_data='wallets')
 
     for index in range(wallet_count):
         keyboard.row(wallets[index])
-    keyboard.row(back, close)
+    keyboard.row(back)
 
-    return keyboard
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                     reply_markup=keyboard, disable_web_page_preview=True)
 
 
 def handle_input_private_key(bot, message):

@@ -3,9 +3,9 @@ from telebot import types
 
 def handle_settings(bot, message):
     text = f'''
-*Settings*
+*Buy*
 
-Select an option below to configure:
+Select an option below to buy:
     '''
 
     keyboard = types.InlineKeyboardMarkup()

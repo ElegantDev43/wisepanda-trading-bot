@@ -7,9 +7,11 @@ def handle_start(bot, message):
     user_model.create_user_by_telegram(message.chat.id)
 
     text = '''
-*Panda 1.0*
-The fastest and sleekest trading bot the cryptosphere has ever seen.
+*Welcome to the Panda Bot!*
 
+We’re excited to present a revolutionary trading bot designed specifically for the growing popoularity.
+With Panda Bot, you can trade any token instantly, taking advantage of market opportunities the moment they appear.
+    
 💬 [Visit our Official Chat](https://t.me/wisepandaofficial)
 
 🌍 [Visit our Website](https://www.wisepanda.ai)
@@ -29,17 +31,17 @@ The fastest and sleekest trading bot the cryptosphere has ever seen.
     orders = types.InlineKeyboardButton(
         '⏳ Pending Orders', callback_data='orders')
     limit_order = types.InlineKeyboardButton(
-        '🚀 Limist Orders', callback_data='limit-orders')
+        '🚀 Limit Orders', callback_data='limit-orders')
     dca_order = types.InlineKeyboardButton(
         '🕒 DCA Orders', callback_data='dca-orders')
     settings = types.InlineKeyboardButton(
         '🔧 Settings', callback_data='settings')
     bridge = types.InlineKeyboardButton(
-        'Bridge', callback_data='bridges')
+        '🌉 Bridge', callback_data='bridges')
     referral = types.InlineKeyboardButton(
         '💰 Referral', callback_data='referrals')
     weekly = types.InlineKeyboardButton(
-        'Weekly Claim', callback_data='weekly-claim')
+        '🤚 Weekly Claim', callback_data='weekly-claim')
     copy_trading = types.InlineKeyboardButton(
         '📋 Copy Trading', callback_data='copytrades')
     bots = types.InlineKeyboardButton('🤖 Backup Bots', callback_data='bots')

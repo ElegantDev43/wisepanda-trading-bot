@@ -4,7 +4,7 @@ from telebot import types
 
 import config
 from src.telegram import start, sniper, buyer, orders, positions, bots, hots
-from src.telegram.settings import main as settings, chains, wallets
+from src.telegram.settings import main as settings, chains, wallets, keyboards
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
 
@@ -16,6 +16,8 @@ commands = [
     types.BotCommand("chains", "List all supported chains"),
     types.BotCommand("wallets", "List your wallets"),
     types.BotCommand("settings", "Bring up the settings tab"),
+    types.BotCommand("criterias", "Customize your ceriterias"),
+    types.BotCommand("keyboards", "Select your trading keys"),
     types.BotCommand("bots", "List all available backup bots")
 ]
 bot.set_my_commands(commands)
@@ -61,6 +63,16 @@ def handle_bots(message):
     bots.handle_bots(bot, message)
 
 
+@bot.message_handler(commands=['keyboards'])
+def handle_keyboards(message):
+    keyboards.handle_keyboards(bot, message)
+
+
+@bot.message_handler(commands=['criterias'])
+def handle_bots(message):
+    bots.handle_bots(bot, message)
+
+
 @bot.callback_query_handler(func=lambda _: True)
 def handle_callback_query(call):
     if call.data == 'start':
@@ -88,14 +100,36 @@ def handle_callback_query(call):
                            message_id=call.message.message_id)
     elif call.data == 'chains':
         chains.handle_chains(bot, call.message)
-    elif call.data == 'wallets':
-        wallets.handle_wallets(bot, call.message)
     elif call.data in config.CHAINS:
         chains.handle_select_chain(bot, call.message, call.data)
+        # New api
+    elif call.data == 'keyboards':
+        keyboards.handle_keyboards(bot, call.message)
+    elif call.data == 'wallets':
+        wallets.handle_wallets(bot, call.message)
+    elif call.data in config.ORDERS:
+        buyer.handle_select_order(bot, call.message, call.data)
+    elif call.data in config.BUY_AMOUNT:
+        keyboards.handle_select_buy_amount(bot, call.message, call.data)
+    elif call.data in config.GAS_AMOUNT:
+        keyboards.handle_select_gas_amount(bot, call.message, call.data)
+    elif call.data in config.SELL_AMOUNT:
+        keyboards.handle_select_sell_amount(bot, call.message, call.data)
+    elif call.data == 'remove_wallet':
+        wallets.handle_remove_wallet(bot, call.message)
+    # Market Order
+    elif call.data == 'do-limit-orders':
+        buyer.handle_limit_order(bot, call.message)
+    elif call.data == 'do-market-orders':
+        buyer.handle_market_order(bot, call.message)
+    elif call.data == 'do-dca-orders':
+        buyer.handle_dca_order(bot, call.message)
+
     elif call.data == 'create_wallet':
         wallets.handle_create_wallet(bot, call.message)
     elif call.data == 'import_wallet':
         wallets.handle_import_wallet(bot, call.message)
+
     elif call.data.startswith('auto wallet '):
         sniper.handle_toggle_wallet(bot, call.message, call.data[12:])
     elif call.data.startswith('auto buy '):
