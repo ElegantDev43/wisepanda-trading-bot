@@ -10,9 +10,9 @@ def get_current_chain_index(chat_id):
     user = user_model.get_by_chat_id(chat_id)
     return user.current_chain_index
 
-def update_current_chain_index(chat_id, chain_index):
+def update_current_chain_index(chat_id, index):
     user = user_model.get_by_chat_id(chat_id)
-    user_model.update_by_id(user.id, 'current_chain_index', chain_index)
+    user_model.update_by_id(user.id, 'current_chain_index', index)
 
 def get_wallets(chat_id):
     user = user_model.get_by_chat_id(chat_id)
