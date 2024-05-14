@@ -151,17 +151,26 @@ def handle_callback_query(call):
         else:
             amount = float(amount)
             sniper.handle_buy(bot, call.message, amount)
-    elif call.data.startswith('manual wallet '):
-        buyer.handle_toggle_wallet(bot, call.message, call.data[14:])
+
+    elif call.data.startswith('select buy wallet '):
+        buyer.select_buy_wallet(bot, call.message, call.data[18:])
     elif call.data == 'make order':
         buyer.handle_buy(bot, call.message)
-    elif call.data.startswith('buy amount'):
-        amount = call.data[11:]
-        if amount == 'x':
-            buyer.handle_buy_x(bot, call.message)
+    elif call.data.startswith('select buy amount '):
+        amount = call.data[18:]
+        if (amount == 'x'):
+            buyer.handle_buy_amount_x(bot, call.message)
         else:
-            amount = float(amount)
-            buyer.handle_buy_amount(bot, call.message, amount)
+            buyer.select_buy_amount(bot, call.message, call.data[18:])
+
+    elif call.data.startswith('select gas amount '):
+        buyer.select_gas_amount(bot, call.message, call.data[18:])
+    elif call.data.startswith('select gas price '):
+        buyer.select_gas_price(bot, call.message, call.data[17:])
+    elif call.data.startswith('select slippage '):
+        buyer.select_slip_page(bot, call.message, call.data[16:])
+    elif call.data.startswith('select buy amount x'):
+        buyer.handle_buy_amount_x(bot, call.message, call.data[18:])
 
 
 def initialize():
