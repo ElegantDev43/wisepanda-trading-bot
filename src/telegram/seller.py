@@ -7,21 +7,7 @@ import config
 order_index = "Market Order"
 
 
-def handle_buyer(bot, message):
-    user_model.create_user_by_telegram(message.chat.id)
-
-    text = '''
-*Token Buy*
-Paste in a token address below to setup auto sniper for new launching token.
-e.g. 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
-    '''
-
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
-    bot.register_next_step_handler_by_chat_id(
-        chat_id=message.chat.id, callback=lambda next_message: handle_input_token(bot, next_message))
-
-
-def get_keyboard(user_wallets):
+def handle_seller(bot, message):
     wallet_count = 4
     buy_amounts = [0.01, 0.02, 0.05, 0.1]
     buy_count = len(buy_amounts)
@@ -29,97 +15,17 @@ def get_keyboard(user_wallets):
     keyboard = types.InlineKeyboardMarkup()
 
     market_order = types.InlineKeyboardButton(
-        '✅ Market', callback_data='buy-market-orders')
+        '✅ ① Market Order', callback_data='sell-market-orders')
     limit_order = types.InlineKeyboardButton(
-        'Limit', callback_data='buy-limit-orders')
+        '② Limit Order', callback_data='sell-limit-orders')
     dca_order = types.InlineKeyboardButton(
-        'DCA', callback_data='buy-dca-orders')
+        '③ DCA Order', callback_data='sell-dca-orders')
 
     keyboard.row(market_order, limit_order, dca_order)
 
     wallets = []
     for index in range(wallet_count):
-        wallets.append(types.InlineKeyboardButton(
-            f'W{index + 1}{" 🟢" if user_wallets[index]['active'] == True else ""}', callback_data=f'auto wallet {index}'))
-    wallet_all = types.InlineKeyboardButton(
-        'All Wallets', callback_data=f'auto wallet all')
-# Market Order
-    gas_max_price = types.InlineKeyboardButton(
-        'Gas Max Price', callback_data=f'gas max price')
-    gas_max_amount = types.InlineKeyboardButton(
-        'Gas Max Amount', callback_data=f'gas max amount')
-    anti_mev = types.InlineKeyboardButton(
-        'Anti-Mev', callback_data=f'anti mev')
-    anti_rug = types.InlineKeyboardButton(
-        'Anti-Rug', callback_data=f'anti Rug')
-
-    buys = []
-    for buy_amount in buy_amounts:
-        buys.append(types.InlineKeyboardButton(
-            f'💰 {buy_amount}Ξ', callback_data=f'auto buy {buy_amount}'))
-
-    slippages = []
-    for slippage_amount in config.SLIP_PAGE:
-        slippages.append(types.InlineKeyboardButton(
-            f'{slippage_amount}% Slippage', callback_data=f'select slippage'))
-
-    create_order = types.InlineKeyboardButton(
-        '✔️ Buy', callback_data='make buy order')
-    buy_x = types.InlineKeyboardButton('💰 XΞ', callback_data='auto buy x')
-    back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
-    close = types.InlineKeyboardButton('❌ Close', callback_data='close')
-    keyboard.row(*wallets[0:(wallet_count // 2)])
-    keyboard.row(*wallets[(wallet_count // 2):wallet_count])
-    keyboard.row(wallet_all)
-
-    keyboard.row(gas_max_price, gas_max_amount)
-
-    keyboard.row(*slippages[(len(slippages) // 4):len(slippages)])
-
-    keyboard.row(anti_mev, anti_rug)
-    keyboard.row(*buys[0:(buy_count // 2)])
-    keyboard.row(*buys[(buy_count // 2):buy_count])
-    keyboard.row(buy_x)
-    keyboard.row()
-    keyboard.row(back, close)
-
-    return keyboard
-
-
-def handle_input_token(bot, message):
-    user = user_model.get_user_by_telegram(message.chat.id)
-    token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
-
-    chain = 'ethereum'
-
-    name = "elo"
-
-    text = f'''
-*{name}  (🔗{chain})*
-{token}
-❌ Snipe not set
-
-[Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
-    '''
-
-    wallet_count = 4
-    buy_amounts = [0.01, 0.02, 0.05, 0.1]
-    buy_count = len(buy_amounts)
-
-    keyboard = types.InlineKeyboardMarkup()
-
-    market_order = types.InlineKeyboardButton(
-        '✅ Market Order', callback_data='buy-market-orders')
-    limit_order = types.InlineKeyboardButton(
-        'Limit Order', callback_data='buy-limit-orders')
-    dca_order = types.InlineKeyboardButton(
-        'DCA Order', callback_data='buy-dca-orders')
-
-    keyboard.row(market_order, limit_order, dca_order)
-
-    wallets = []
-    for index in range(wallet_count):
-        caption = f'''W{index + 1}'''
+        caption = f'''W{index}'''
         button = types.InlineKeyboardButton(
             text=caption, callback_data="auto all")
         wallets.append(button)
@@ -156,14 +62,17 @@ def handle_input_token(bot, message):
 
     keyboard.row(*slippages[(len(slippages) // 4):len(slippages)])
 
-    keyboard.row(anti_mev, anti_rug)
+    # keyboard.row(anti_mev, anti_rug)
     keyboard.row(*buys[0:(buy_count // 2)])
     keyboard.row(*buys[(buy_count // 2):buy_count])
     keyboard.row(buy_x)
     keyboard.row(back, close)
 
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
+    text = f'''Token Sell {order_index}'''
+    bot.edit_message_text(chat_id=message.chat.id,
+                          message_id=message.message_id, text=text, parse_mode='Markdown')
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 
 def handle_toggle_wallet(bot, message, index):
@@ -226,21 +135,14 @@ def handle_limit_order(bot, message):
 
     keyboard = types.InlineKeyboardMarkup()
 
-    token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
-    text = f'''
-*elon  (🔗ethereum)*
-0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
-❌ Snipe not set
-
-[Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
-    '''
+    text = f'''Token Sell {order_index}'''
 
     market_order = types.InlineKeyboardButton(
-        'Market Order', callback_data='buy-market-orders')
+        '① Market Order', callback_data='sell-market-orders')
     limit_order = types.InlineKeyboardButton(
-        '✅ Limit Order', callback_data='buy-limit-orders')
+        '✅ ② Limit Order', callback_data='sell-limit-orders')
     dca_order = types.InlineKeyboardButton(
-        'DCA Order', callback_data='buy-dca-orders')
+        '③ DCA Order', callback_data='sell-dca-orders')
 
     keyboard.row(market_order, limit_order, dca_order)
 
@@ -277,7 +179,7 @@ def handle_limit_order(bot, message):
     keyboard.row(*wallets[(wallet_count // 2):wallet_count])
     keyboard.row(wallet_all)
 
-    keyboard.row(maximum_market_capital, minimum_liquidity)
+   # keyboard.row(maximum_market_capital, minimum_liquidity)
     keyboard.row(buy_sell_tax, limit_token_price, stop_loss)
 
     keyboard.row(*buys[0:(buy_count // 2)])
@@ -301,20 +203,14 @@ def handle_market_order(bot, message):
     keyboard = types.InlineKeyboardMarkup()
 
     token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
-    text = f'''
-*elon  (🔗ethereum)*
-0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
-❌ Snipe not set
-
-[Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
-    '''
+    text = f'''Token Sell {order_index}'''
 
     market_order = types.InlineKeyboardButton(
-        '✅ Market Order', callback_data='buy-market-orders')
+        '✅ ① Market Order', callback_data='sell-market-orders')
     limit_order = types.InlineKeyboardButton(
-        'Limit Order', callback_data='buy-limit-orders')
+        '② Limit Order', callback_data='sell-limit-orders')
     dca_order = types.InlineKeyboardButton(
-        'DCA Order', callback_data='buy-dca-orders')
+        '③ DCA Order', callback_data='sell-dca-orders')
 
     keyboard.row(market_order, limit_order, dca_order)
 
@@ -356,7 +252,7 @@ def handle_market_order(bot, message):
 
     keyboard.row(gas_max_price, gas_max_amount)
 
-    keyboard.row(anti_mev, anti_rug)
+   # keyboard.row(anti_mev, anti_rug)
 
     keyboard.row(*buys[0:(buy_count // 2)])
     keyboard.row(*buys[(buy_count // 2):buy_count])
@@ -381,20 +277,14 @@ def handle_dca_order(bot, message):
     keyboard = types.InlineKeyboardMarkup()
 
     token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
-    text = f'''
-*elon  (🔗ethereum)*
-0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
-❌ Snipe not set
-
-[Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
-    '''
+    text = f'''Token Sell {order_index}'''
 
     market_order = types.InlineKeyboardButton(
-        'Market Order', callback_data='buy-market-orders')
+        '① Market Order', callback_data='sell-market-orders')
     limit_order = types.InlineKeyboardButton(
-        'Limit Order', callback_data='buy-limit-orders')
+        '② Limit Order', callback_data='sell-limit-orders')
     dca_order = types.InlineKeyboardButton(
-        '✅ DCA Order', callback_data='buy-dca-orders')
+        '✅ ③ DCA Order', callback_data='sell-dca-orders')
 
     keyboard.row(market_order, limit_order, dca_order)
 

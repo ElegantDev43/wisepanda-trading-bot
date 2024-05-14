@@ -29,11 +29,11 @@ With Panda Bot, you can trade any token instantly, taking advantage of market op
     positions = types.InlineKeyboardButton(
         '📊 Open Positions', callback_data='positions')
     orders = types.InlineKeyboardButton(
-        '⏳ Pending Orders', callback_data='orders')
+        '⏳ Pending Orders', callback_data='manage-pending-orders')
     limit_order = types.InlineKeyboardButton(
-        '🚀 Limit Orders', callback_data='limit-orders')
+        '🚀 Limit Orders', callback_data='manage-limit-orders')
     dca_order = types.InlineKeyboardButton(
-        '🕒 DCA Orders', callback_data='dca-orders')
+        '🕒 DCA Orders', callback_data='manage-dca-orders')
     settings = types.InlineKeyboardButton(
         '🔧 Settings', callback_data='settings')
     bridge = types.InlineKeyboardButton(

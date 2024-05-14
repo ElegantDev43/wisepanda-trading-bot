@@ -31,6 +31,18 @@ def get_keyboard(user_wallets):
             f'W{index + 1}{" 🟢" if user_wallets[index]['active'] == True else ""}', callback_data=f'auto wallet {index}'))
     wallet_all = types.InlineKeyboardButton(
         'All Wallets', callback_data=f'auto wallet all')
+
+    limit_token_price = types.InlineKeyboardButton(
+        'Token Price', callback_data=f'sniper token price')
+    maximum_market_capital = types.InlineKeyboardButton(
+        'Maximum Market Capital', callback_data=f'maximum market capital')
+    minimum_liquidity = types.InlineKeyboardButton(
+        'Minimum Liquidity', callback_data=f'minimum liquidity')
+    buy_sell_tax = types.InlineKeyboardButton(
+        'Buy/Sell Tax', callback_data=f'buy sell tax')
+    stop_loss = types.InlineKeyboardButton(
+        'Stop Loss', callback_data=f'stop loss')
+
     buys = []
     for buy_amount in buy_amounts:
         buys.append(types.InlineKeyboardButton(
@@ -41,6 +53,10 @@ def get_keyboard(user_wallets):
     keyboard.row(*wallets[0:(wallet_count // 2)])
     keyboard.row(*wallets[(wallet_count // 2):wallet_count])
     keyboard.row(wallet_all)
+
+    keyboard.row(maximum_market_capital, minimum_liquidity)
+    keyboard.row(buy_sell_tax, stop_loss, limit_token_price)
+
     keyboard.row(*buys[0:(buy_count // 2)])
     keyboard.row(*buys[(buy_count // 2):buy_count])
     keyboard.row(buy_x)

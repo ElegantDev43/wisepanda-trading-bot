@@ -3,7 +3,7 @@ import telebot
 from telebot import types
 
 import config
-from src.telegram import start, sniper, buyer, orders, positions, bots, hots
+from src.telegram import start, sniper, buyer, orders, positions, bots, hots, seller, limit_order, dca_order
 from src.telegram.settings import main as settings, chains, wallets, keyboards
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
@@ -117,12 +117,24 @@ def handle_callback_query(call):
         keyboards.handle_select_sell_amount(bot, call.message, call.data)
     elif call.data == 'remove_wallet':
         wallets.handle_remove_wallet(bot, call.message)
+
+    elif call.data == 'seller':
+        seller.handle_seller(bot, call.message)
+    elif call.data == 'sell-limit-orders':
+        seller.handle_limit_order(bot, call.message)
+    elif call.data == 'sell-market-orders':
+        seller.handle_market_order(bot, call.message)
+    elif call.data == 'sell-dca-orders':
+        seller.handle_dca_order(bot, call.message)
+
+    elif call.data == 'manage-limit-orders':
+        limit_order.handle_limit_order(bot, call.message)
     # Market Order
-    elif call.data == 'do-limit-orders':
+    elif call.data == 'buy-limit-orders':
         buyer.handle_limit_order(bot, call.message)
-    elif call.data == 'do-market-orders':
+    elif call.data == 'buy-market-orders':
         buyer.handle_market_order(bot, call.message)
-    elif call.data == 'do-dca-orders':
+    elif call.data == 'buy-dca-orders':
         buyer.handle_dca_order(bot, call.message)
 
     elif call.data == 'create_wallet':
@@ -141,13 +153,15 @@ def handle_callback_query(call):
             sniper.handle_buy(bot, call.message, amount)
     elif call.data.startswith('manual wallet '):
         buyer.handle_toggle_wallet(bot, call.message, call.data[14:])
-    elif call.data.startswith('manual buy '):
+    elif call.data == 'make order':
+        buyer.handle_buy(bot, call.message)
+    elif call.data.startswith('buy amount'):
         amount = call.data[11:]
         if amount == 'x':
             buyer.handle_buy_x(bot, call.message)
         else:
             amount = float(amount)
-            buyer.handle_buy(bot, call.message, amount)
+            buyer.handle_buy_amount(bot, call.message, amount)
 
 
 def initialize():
