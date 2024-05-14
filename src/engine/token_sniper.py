@@ -2,38 +2,44 @@ import time
 import threading
 
 import config
-from src.database import sniper as sniper_model
+from src.database import main as database
 
-auto_sniper_tokens = []
+from src.engine.chain import token as token_engine
+from src.engine.chain import amm as amm_engine
 
-def update():
-    from src.engine import main as engine
+def add(chain_index, token, amount, wallets, criteria):
+    thread = threading.Thread()
+
+# auto_sniper_tokens = []
+
+# def update():
+#     from src.engine import main as engine
     
-    while True:
-        new_tokens = []
-        for token in auto_sniper_tokens:
-            if engine.check_token_liveness(token['chain'], token['address']) == True:
-                new_tokens.append(token)
+#     while True:
+#         new_tokens = []
+#         for token in auto_sniper_tokens:
+#             if engine.check_token_liveness(token['chain'], token['address']) == True:
+#                 new_tokens.append(token)
 
-        for token in new_tokens:
-            users = sniper_model.get_sniper_users_by_token(token['chain'], token['address'])
-            for user in users:
-                engine.trade(token['chain'], user['id'], token['address'], 'market', 'buy', user['amount'], user['wallets'])
-            sniper_model.remove_sniper_by_token(token['chain'], token['address'])
+#         for token in new_tokens:
+#             users = sniper_model.get_sniper_users_by_token(token['chain'], token['address'])
+#             for user in users:
+#                 engine.trade(token['chain'], user['id'], token['address'], 'market', 'buy', user['amount'], user['wallets'])
+#             sniper_model.remove_sniper_by_token(token['chain'], token['address'])
 
-        time.sleep(config.AUTO_SNIPER_TIMEOUT)
+#         time.sleep(config.AUTO_SNIPER_TIMEOUT)
 
-def add_sniper_user(chain, token, user):
-    sniper_model.add_sniper_user_by_token(chain, token, user)
+# def add_sniper_user(chain, token, user):
+#     sniper_model.add_sniper_user_by_token(chain, token, user)
 
-    exist = False
-    for token in auto_sniper_tokens:
-        if token['chain'] == chain and token['address'] == token:
-            exist = True
-            break
-    if not exist:
-        auto_sniper_tokens.append({'chain': chain, 'address': token})
+#     exist = False
+#     for token in auto_sniper_tokens:
+#         if token['chain'] == chain and token['address'] == token:
+#             exist = True
+#             break
+#     if not exist:
+#         auto_sniper_tokens.append({'chain': chain, 'address': token})
 
-def initialize():
-    thread = threading.Thread(target=update)
-    thread.start()
+# def initialize():
+#     thread = threading.Thread(target=update)
+#     thread.start()

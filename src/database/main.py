@@ -21,7 +21,7 @@ def get_wallets(chat_id):
 def add_wallet(chat_id, address, private_key):
     user = user_model.get_by_chat_id(chat_id)
 
-def remove_wallet(chat_id, index):
+def remove_wallet(chat_id, chain_index, wallet_index):
     user = user_model.get_by_chat_id(chat_id)
 
 def get_token_snipers(chat_id):

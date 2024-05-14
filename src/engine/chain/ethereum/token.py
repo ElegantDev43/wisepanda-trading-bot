@@ -75,10 +75,7 @@ def get_information(token):
         """ % token.lower()
         response = requests.post('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3', json={'query': query})
         data = response.json()
-        if data.get('data', {}).get('pools'):
-            return data.get('data', {}).get('pools', [])[0]
-        else:
-            return False
+        return data.get('data', {}).get('pools', [])[0]
     except Exception as e:
         print("Error:", e)
         return False

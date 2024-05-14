@@ -1,2 +1,2 @@
-def swap(type, token, amount, wallets, criteria):
-    return True
+def swap(type, token, amount, gas, slippage, wallets):
+    print(type, token, amount)
