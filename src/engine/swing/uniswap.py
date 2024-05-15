@@ -1,3 +1,6 @@
+import asyncio
+import websockets
+import json
 import requests
 from datetime import datetime
 
@@ -11,6 +14,8 @@ def fetch_trading_price_history(start_date,trading_pair,limit = 10, current_time
 
     # Convert the datetime object to a Unix timestamp (integer)
     timestamp = int(date_object.timestamp())
+
+    print(trading_pair,timestamp,current_time)
 
     # GraphQL query to fetch trading history for a specific pair in Uniswap V3
     query = """
@@ -28,7 +33,7 @@ def fetch_trading_price_history(start_date,trading_pair,limit = 10, current_time
             volumeToken0
             volumeToken1
             tvlUSD
-            sqrtPrice
+            sqrtPrice 
             volumeUSD
         }
     }
