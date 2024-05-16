@@ -8,5 +8,5 @@ chains = [
     base
 ]
 
-def swap(chain_index, type, token, amount, gas, slippage, wallets):
-    chains[chain_index].swap(type, token, amount, gas, slippage, wallets)
+def market_order(chain_index, type, token, amount, gas, slippage, wallets):
+    chains[chain_index].market_order(type, token, amount, gas, slippage, wallets)

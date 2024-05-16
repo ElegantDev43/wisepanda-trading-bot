@@ -1,6 +1,6 @@
 import config
 
-from src.database import main as database
+from src.database.api import main as database
 
 from src.engine import token_sniper as token_sniper_engine
 from src.engine import limit_order as limit_order_engine
@@ -10,9 +10,6 @@ from src.engine.chain import wallet as wallet_engine
 from src.engine.chain import token as token_engine
 from src.engine.chain import amm as amm_engine
 from src.engine.chain import hot as hot_engine
-
-def initialize():
-    pass
 
 def get_supported_chains():
     return config.CHAINS
