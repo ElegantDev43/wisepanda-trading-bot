@@ -2,11 +2,11 @@ import os
 from sqlalchemy import create_engine, Column, Integer, BigInteger, String, JSON
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-import config
 
 engine = create_engine(os.getenv('DATABASE_URL'))
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
+
 
 class User(Base):
     __tablename__ = 'users'
@@ -21,8 +21,10 @@ class User(Base):
     limit_orders = Column(JSON)
     dca_orders = Column(JSON)
 
+
 def initialize():
     Base.metadata.create_all(engine)
+
 
 def add_by_chat_id(chat_id):
     session = Session()
@@ -44,11 +46,13 @@ def add_by_chat_id(chat_id):
         session.commit()
     session.close()
 
+
 def get_by_chat_id(chat_id):
     session = Session()
     user = session.query(User).filter(User.chat_id == chat_id).first()
     session.close()
     return user
+
 
 def update_by_id(id, key, value):
     session = Session()

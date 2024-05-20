@@ -2,7 +2,6 @@ import os
 import telebot
 from telebot import types
 
-import config
 from src.telegram import start, sniper, buyer, orders, positions, bots, hots, seller, limit_order, dca_order
 from src.telegram.settings import main as settings, chains, wallets, keyboards
 

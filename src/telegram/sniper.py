@@ -2,7 +2,6 @@ from telebot import types
 
 from src.database import user as user_model
 from src.engine import main as engine
-import config
 
 main_wallets = [
     {"address": "Leo", "active": False, "age": 25},
