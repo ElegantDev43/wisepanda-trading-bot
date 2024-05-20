@@ -1,6 +1,6 @@
 from telebot import types
 
-import config
+# import config
 from src.database import user as user_model
 
 

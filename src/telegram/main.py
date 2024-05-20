@@ -19,6 +19,8 @@ commands = [
     types.BotCommand("keyboards", "Select your trading keys"),
     types.BotCommand("bots", "List all available backup bots")
 ]
+
+chain_titles = ['Ethereum', 'Solana', 'Base']
 bot.set_my_commands(commands)
 
 
@@ -99,20 +101,20 @@ def handle_callback_query(call):
                            message_id=call.message.message_id)
     elif call.data == 'chains':
         chains.handle_chains(bot, call.message)
-    elif call.data in config.CHAINS:
+    elif call.data in chain_titles:
         chains.handle_select_chain(bot, call.message, call.data)
         # New api
     elif call.data == 'keyboards':
         keyboards.handle_keyboards(bot, call.message)
     elif call.data == 'wallets':
         wallets.handle_wallets(bot, call.message)
-    elif call.data in config.BUY_AMOUNT:
-        keyboards.handle_select_buy_amount(bot, call.message, call.data)
-    elif call.data in config.GAS_AMOUNT:
-        keyboards.handle_select_gas_amount(bot, call.message, call.data)
-    elif call.data in config.SELL_AMOUNT:
-        keyboards.handle_select_sell_amount(bot, call.message, call.data)
-    elif call.data == 'remove_wallet':
+  #  elif call.data in config.BUY_AMOUNT:
+   #     keyboards.handle_select_buy_amount(bot, call.message, call.data)
+   # elif call.data in config.GAS_AMOUNT:
+   #     keyboards.handle_select_gas_amount(bot, call.message, call.data)
+   # elif call.data in config.SELL_AMOUNT:
+   #     keyboards.handle_select_sell_amount(bot, call.message, call.data)
+   # elif call.data == 'remove_wallet':
         wallets.handle_remove_wallet(bot, call.message)
 
     elif call.data == 'seller':

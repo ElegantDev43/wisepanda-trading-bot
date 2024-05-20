@@ -1,6 +1,6 @@
 from telebot import types
 
-import config
+# import config
 from src.database import user as user_model
 
 
@@ -46,9 +46,8 @@ Current Chain: *🔗 {next_chain}*
 
 Select the chain you'd like to use. You can only have one chain selected at the same time. Your defaults and presets will be different for each chain.
     '''
-
     buttons = []
-    for chain in config.CHAINS:
+    for chain in user.chain:
         caption = f'✅ {chain}' if chain == next_chain else chain
         button = types.InlineKeyboardButton(text=caption, callback_data=chain)
         buttons.append(button)

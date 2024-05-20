@@ -1,7 +1,7 @@
 from telebot import types
 
 from src.database import user as user_model
-from src.engine import main as engine
+# from src.engine import main as engine
 
 main_wallets = [
     {"address": "Leo", "active": False, "age": 25},
@@ -460,7 +460,7 @@ def get_keyboard(order_name, update_data):
 
 
 def select_buy_wallet(bot, message, index):
-    user = user_model.get_user_by_telegram(message.chat.id)
+    # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
 
@@ -489,7 +489,7 @@ def select_buy_wallet(bot, message, index):
 
 
 def select_buy_amount(bot, message, index):
-    user = user_model.get_user_by_telegram(message.chat.id)
+    # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
 
@@ -512,7 +512,7 @@ def select_buy_amount(bot, message, index):
 
 
 def select_gas_amount(bot, message, index):
-    user = user_model.get_user_by_telegram(message.chat.id)
+    # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
 
@@ -535,7 +535,7 @@ def select_gas_amount(bot, message, index):
 
 
 def select_gas_price(bot, message, index):
-    user = user_model.get_user_by_telegram(message.chat.id)
+   # ##user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
 
@@ -557,7 +557,7 @@ def select_gas_price(bot, message, index):
 
 
 def select_slip_page(bot, message, index):
-    user = user_model.get_user_by_telegram(message.chat.id)
+    # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
 
@@ -579,7 +579,7 @@ def select_slip_page(bot, message, index):
 
 
 def select_limit_token_price(bot, message, index):
-    user = user_model.get_user_by_telegram(message.chat.id)
+    # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
 
@@ -601,7 +601,7 @@ def select_limit_token_price(bot, message, index):
 
 
 def select_stop_loss(bot, message, index):
-    user = user_model.get_user_by_telegram(message.chat.id)
+    # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
 
@@ -623,7 +623,7 @@ def select_stop_loss(bot, message, index):
 
 
 def select_limit_tax(bot, message, index):
-    user = user_model.get_user_by_telegram(message.chat.id)
+    # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
     x_value_list['limit-tax'] = 0
@@ -644,7 +644,7 @@ def select_limit_tax(bot, message, index):
 
 
 def select_market_capital(bot, message, index):
-    user = user_model.get_user_by_telegram(message.chat.id)
+    # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
     x_value_list['market-capital'] = 0
@@ -665,7 +665,7 @@ def select_market_capital(bot, message, index):
 
 
 def select_liquidity(bot, message, index):
-    user = user_model.get_user_by_telegram(message.chat.id)
+    # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
     x_value_list['liquidity'] = 0
@@ -686,7 +686,7 @@ def select_liquidity(bot, message, index):
 
 
 def select_interval(bot, message, index):
-    user = user_model.get_user_by_telegram(message.chat.id)
+    # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
     x_value_list['interval'] = 0
@@ -707,7 +707,7 @@ def select_interval(bot, message, index):
 
 
 def select_duration(bot, message, index):
-    user = user_model.get_user_by_telegram(message.chat.id)
+    # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
     x_value_list['duration'] = 0
@@ -728,7 +728,7 @@ def select_duration(bot, message, index):
 
 
 def select_max_price(bot, message, index):
-    user = user_model.get_user_by_telegram(message.chat.id)
+    # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
     x_value_list['dca-max-price'] = 0
@@ -749,7 +749,7 @@ def select_max_price(bot, message, index):
 
 
 def select_min_price(bot, message, index):
-    user = user_model.get_user_by_telegram(message.chat.id)
+    # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
     x_value_list['dca-min-price'] = 0

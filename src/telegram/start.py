@@ -4,7 +4,7 @@ from src.database import user as user_model
 
 
 def handle_start(bot, message):
-    user_model.create_user_by_telegram(message.chat.id)
+   # user_model.initialize()
 
     text = '''
 *Welcome to the Panda Bot!*

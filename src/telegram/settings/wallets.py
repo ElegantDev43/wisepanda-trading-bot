@@ -1,8 +1,8 @@
 from telebot import types
 
-import config
+# import config
 from src.database import user as user_model
-from src.engine import main as engine
+# from src.engine import main as engine
 
 explorers = {
     'ethereum': 'https://etherscan.io/address/',
@@ -18,7 +18,7 @@ def handle_wallets(bot, message):
     text = f'''
 *Settings > Wallets (🔗 {chain})*
 
-You can use up to {config.WALLET_COUNT} multiple wallets.
+You can use up to 4 multiple wallets.
 
 Your currently added wallets:
 '''
