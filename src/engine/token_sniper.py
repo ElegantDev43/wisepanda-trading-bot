@@ -1,39 +1,25 @@
 import time
-import threading
 
-import config
-from src.database import sniper as sniper_model
+from src.database import api as database
+from src.engine.chain import token as token_engine
+from src.engine.chain import amm as amm_engine
+from src.engine import criteria as criteria_engine
 
-auto_sniper_tokens = []
-
-def update():
-    from src.engine import main as engine
-    
+def start(chat_id, chain_index, token):
     while True:
-        new_tokens = []
-        for token in auto_sniper_tokens:
-            if engine.check_token_liveness(token['chain'], token['address']) == True:
-                new_tokens.append(token)
+        data = database.get_token_sniper(chat_id, chain_index, token)
 
-        for token in new_tokens:
-            users = sniper_model.get_sniper_users_by_token(token['chain'], token['address'])
-            for user in users:
-                engine.trade(token['chain'], user['id'], token['address'], 'market', 'buy', user['amount'], user['wallets'])
-            sniper_model.remove_sniper_by_token(token['chain'], token['address'])
+        if data:
+            if token_engine.check_liveness(chain_index, token):
+                amount, gas, slippage, wallets, criteria = data
+                max_price, min_liquidity, max_market_captial, max_buy_tax = criteria
+                
+                if criteria_engine.check(chain_index, token, (None, max_price, min_liquidity, max_market_captial, max_buy_tax, None)):
+                    amm_engine.market_order(chain_index, 'buy', token, amount, gas, slippage, wallets)
+                    database.remove_token_sniper(chat_id, chain_index, token)
 
-        time.sleep(config.AUTO_SNIPER_TIMEOUT)
-
-def add_sniper_user(chain, token, user):
-    sniper_model.add_sniper_user_by_token(chain, token, user)
-
-    exist = False
-    for token in auto_sniper_tokens:
-        if token['chain'] == chain and token['address'] == token:
-            exist = True
+                break
+        else:
             break
-    if not exist:
-        auto_sniper_tokens.append({'chain': chain, 'address': token})
 
-def initialize():
-    thread = threading.Thread(target=update)
-    thread.start()
+        time.sleep(10)

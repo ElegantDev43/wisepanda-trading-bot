@@ -1,10 +1,11 @@
+import os
 from web3 import Web3
 import requests
 
 import config
 
 def get_name(token):
-    web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
+    web3 = Web3(Web3.HTTPProvider(os.getenv('ETHEREUM_RPC_URL')))
     token_address = Web3.to_checksum_address(token)
     token_abi = [
         {
@@ -75,10 +76,7 @@ def get_information(token):
         """ % token.lower()
         response = requests.post('https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v3', json={'query': query})
         data = response.json()
-        if data.get('data', {}).get('pools'):
-            return data.get('data', {}).get('pools', [])[0]
-        else:
-            return False
+        return data.get('data', {}).get('pools', [])[0]
     except Exception as e:
         print("Error:", e)
         return False
