@@ -11,10 +11,10 @@ main_wallets = [
     {"address": "Jack", "active": False, "age": 27}
 ]
 buy_amount_list = [
-    {"amount": "0.1", "active": False},
-    {"amount": "0.3", "active": False},
-    {"amount": "0.5", "active": False},
-    {"amount": "1", "active": False}
+    {"amount": "10", "active": False},
+    {"amount": "30", "active": False},
+    {"amount": "50", "active": False},
+    {"amount": "100", "active": False}
 ]
 gas_amount_list = [
     {"amount": "0.1", "active": False},
@@ -38,6 +38,11 @@ token_price_list = [
     {"amount": "20", "active": False}
 ]
 
+stop_loss_list = [
+    {"amount": "5", "active": False},
+    {"amount": "10", "active": False},
+    {"amount": "20", "active": False}
+]
 market_capital_list = [
     {"amount": "5", "active": False},
     {"amount": "10", "active": False},
@@ -83,7 +88,7 @@ order_list = [
     {"name": "Limit Order", "active": False},
     {"name": "DCA Order", "active": False}
 ]
-x_value_list = {"buy-amount": 0, "gas-amount": 0, "gas-price": 0, "limit-token-price": 0,
+x_value_list = {"buy-amount": 0, "gas-amount": 0, "gas-price": 0, "limit-token-price": 0, "stop-loss": 0,
                 "slippage": 0, "market-capital": 0, "liquidity": 0, "limit-tax": 0, "interval": 0, "duration": 0, "dca-max-price": 0, "dca-min-price": 0}
 
 
@@ -111,18 +116,30 @@ def initialize_x_value():
     x_value_list['limit-tax'] = 0
 
 
-def handle_buyer(bot, message):
+def handle_seller(bot, message):
     user_model.create_user_by_telegram(message.chat.id)
     initialize_all()
-    text = '''
-🛒 * Token Sniper*
+    token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
 
-Enter a token symbol or address to buy.
-    '''
+    chain = 'ethereum'
 
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
-    bot.register_next_step_handler_by_chat_id(
-        chat_id=message.chat.id, callback=lambda next_message: handle_input_token(bot, next_message))
+    name = "elo"
+
+    text = f'''
+    *Token Sell*
+
+    Sell your tokens here.
+
+  *{name}  (🔗{chain})*
+  {token}
+  ❌ Snipe not set
+
+  [Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
+      '''
+    order_index = order_list[0]['name']
+    keyboard = get_keyboard(order_index, x_value_list)
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                     reply_markup=keyboard, disable_web_page_preview=True)
 
 
 def get_keyboard(order_name, update_data):
@@ -136,31 +153,31 @@ def get_keyboard(order_name, update_data):
 
     if (order_name == "Market Order"):
         market_order = types.InlineKeyboardButton(
-            '✅ Market', callback_data='buy-market-orders')
+            '✅ Market', callback_data='seller-market-orders')
         limit_order = types.InlineKeyboardButton(
-            'Limit', callback_data='buy-limit-orders')
+            'Limit', callback_data='seller-limit-orders')
         dca_order = types.InlineKeyboardButton(
-            'DCA', callback_data='buy-dca-orders')
+            'DCA', callback_data='seller-dca-orders')
         for index in order_list:
             index['active'] = False
         order_list[0]['active'] = True
     elif order_name == "Limit Order":
         market_order = types.InlineKeyboardButton(
-            'Market', callback_data='buy-market-orders')
+            'Market', callback_data='seller-market-orders')
         limit_order = types.InlineKeyboardButton(
-            '✅ Limit', callback_data='buy-limit-orders')
+            '✅ Limit', callback_data='seller-limit-orders')
         dca_order = types.InlineKeyboardButton(
-            'DCA', callback_data='buy-dca-orders')
+            'DCA', callback_data='seller-dca-orders')
         for index in order_list:
             index['active'] = False
         order_list[1]['active'] = True
     elif order_name == "DCA Order":
         market_order = types.InlineKeyboardButton(
-            'Market', callback_data='buy-market-orders')
+            'Market', callback_data='seller-market-orders')
         limit_order = types.InlineKeyboardButton(
-            'Limit', callback_data='buy-limit-orders')
+            'Limit', callback_data='seller-limit-orders')
         dca_order = types.InlineKeyboardButton(
-            '✅ DCA', callback_data='buy-dca-orders')
+            '✅ DCA', callback_data='seller-dca-orders')
         for index in order_list:
             index['active'] = False
         order_list[2]['active'] = True
@@ -171,10 +188,10 @@ def get_keyboard(order_name, update_data):
         caption = f'{" 🟢" if main_wallets[index]['active'] == True else ""} W{
             index + 1}'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"select buy wallet {index}")
+            text=caption, callback_data=f"seller select buy wallet {index}")
         wallets.append(button)
     wallet_all = types.InlineKeyboardButton(
-        'All Wallets', callback_data=f'select buy wallet all')
+        'All Wallets', callback_data=f'seller select buy wallet all')
 
     anti_mev = types.InlineKeyboardButton(
         '🔴 Anti-Mev', callback_data=f'anti mev')
@@ -184,24 +201,24 @@ def get_keyboard(order_name, update_data):
     buys = []
     for index in range(buy_count):
         caption = f'{" 🟢" if buy_amount_list[index]['active'] == True else ""} 💰{
-            buy_amount_list[index]['amount']}Ξ'
+            buy_amount_list[index]['amount']}%'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"select buy amount {index}")
+            text=caption, callback_data=f"seller select buy amount {index}")
         buys.append(button)
 
     if update_data['buy-amount'] == 0:
-        caption = "💰 XΞ"
+        caption = "💰 X%"
     else:
-        caption = f"🟢 💰 {update_data['buy-amount']}Ξ"
+        caption = f"🟢 💰 {update_data['buy-amount']}%"
     buy_x = types.InlineKeyboardButton(
-        text=caption, callback_data='select buy amount x')
+        text=caption, callback_data='seller select buy amount x')
 
     gas_amounts = []
     for index in range(gas_amount_count):
         caption = f'{" 🟢" if gas_amount_list[index]['active'] == True else ""} {
             gas_amount_list[index]['amount']}'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"select gas amount {index}")
+            text=caption, callback_data=f"seller select gas amount {index}")
         gas_amounts.append(button)
     gas_amount_title = types.InlineKeyboardButton(
         '----- Gas Amount -----', callback_data='set title')
@@ -211,14 +228,14 @@ def get_keyboard(order_name, update_data):
     else:
         caption = f"🟢 {update_data['gas-amount']}"
     gas_amount_x = types.InlineKeyboardButton(
-        text=caption, callback_data='select gas amount x')
+        text=caption, callback_data='seller select gas amount x')
 
     gas_prices = []
     for index in range(gas_price_count):
         caption = f'{" 🟢" if gas_price_list[index]['active'] == True else ""} {
             gas_price_list[index]['amount']}'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"select gas price {index}")
+            text=caption, callback_data=f"seller select gas price {index}")
         gas_prices.append(button)
     gas_price_title = types.InlineKeyboardButton(
         '----- Gas Price -----', callback_data='set title')
@@ -227,14 +244,14 @@ def get_keyboard(order_name, update_data):
     else:
         caption = f"🟢 {update_data['gas-price']}"
     gas_price_x = types.InlineKeyboardButton(
-        text=caption, callback_data='select gas price x')
+        text=caption, callback_data='seller select gas price x')
 
     slippages = []
     for index in range(slip_page_count):
         caption = f'{" 🟢" if slip_page_list[index]['active'] == True else ""} {
             slip_page_list[index]['amount']}%'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"select slippage {index}")
+            text=caption, callback_data=f"seller select slippage {index}")
         slippages.append(button)
     slippage_title = types.InlineKeyboardButton(
         '----- Slippage -----', callback_data='set title')
@@ -243,30 +260,46 @@ def get_keyboard(order_name, update_data):
     else:
         caption = f"🟢 {update_data['slippage']}%"
     slippage_x = types.InlineKeyboardButton(
-        text=caption, callback_data='select slippage x')
+        text=caption, callback_data='seller select slippage x')
 # limit order
     limit_token_prices = []
     for index in range(3):
-        caption = f'{" 🟢" if token_price_list[index]['active'] == True else ""} {
-            token_price_list[index]['amount']}'
+        caption = f'{" 🟢" if token_price_list[index]['active'] == True else ""} + {
+            token_price_list[index]['amount']}%'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"select limit token price {index}")
+            text=caption, callback_data=f"seller select limit token price {index}")
         limit_token_prices.append(button)
     limit_token_price_title = types.InlineKeyboardButton(
         '----- Token Price -----', callback_data='set title')
     if update_data['limit-token-price'] == 0:
-        caption = "X"
+        caption = "+X%"
     else:
-        caption = f"🟢 {update_data['limit-token-price']}"
+        caption = f"🟢 +{update_data['limit-token-price']}%"
     limit_token_price_x = types.InlineKeyboardButton(
-        text=caption, callback_data='select limit token price x')
+        text=caption, callback_data='seller select limit token price x')
+
+    limit_stop_losses = []
+    for index in range(3):
+        caption = f'{" 🟢" if stop_loss_list[index]['active'] == True else ""} - {
+            stop_loss_list[index]['amount']}%'
+        button = types.InlineKeyboardButton(
+            text=caption, callback_data=f"seller select stop loss {index}")
+        limit_stop_losses.append(button)
+    stop_loss_title = types.InlineKeyboardButton(
+        '----- Stop Loss -----', callback_data='set title')
+    if update_data['stop-loss'] == 0:
+        caption = "-X%"
+    else:
+        caption = f"🟢 -{update_data['stop-loss']}%"
+    stop_loss_x = types.InlineKeyboardButton(
+        text=caption, callback_data='seller select stop loss x')
 
     limit_taxes = []
     for index in range(3):
         caption = f'{" 🟢" if tax_list[index]['active'] == True else ""} {
             tax_list[index]['amount']}%'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"select limit tax {index}")
+            text=caption, callback_data=f"seller select limit tax {index}")
         limit_taxes.append(button)
     limit_tax_title = types.InlineKeyboardButton(
         '----- Tax -----', callback_data='set title')
@@ -275,14 +308,14 @@ def get_keyboard(order_name, update_data):
     else:
         caption = f"🟢 {update_data['limit-tax']}%"
     limit_tax_x = types.InlineKeyboardButton(
-        text=caption, callback_data='select limit tax x')
+        text=caption, callback_data='seller select limit tax x')
 
     market_capitals = []
     for index in range(3):
         caption = f'{" 🟢" if market_capital_list[index]['active'] == True else ""} {
             market_capital_list[index]['amount']}'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"select market capital {index}")
+            text=caption, callback_data=f"seller select market capital {index}")
         market_capitals.append(button)
     market_capital_title = types.InlineKeyboardButton(
         '-----Max Market Capital -----', callback_data='set title')
@@ -291,14 +324,14 @@ def get_keyboard(order_name, update_data):
     else:
         caption = f"🟢 {update_data['market-capital']}"
     market_capital_x = types.InlineKeyboardButton(
-        text=caption, callback_data='select market capital x')
+        text=caption, callback_data='seller select market capital x')
 
     liquidities = []
     for index in range(3):
         caption = f'{" 🟢" if liquidity_list[index]['active'] == True else ""} {
             liquidity_list[index]['amount']}'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"select liquidity {index}")
+            text=caption, callback_data=f"seller select liquidity {index}")
         liquidities.append(button)
     liquidity_title = types.InlineKeyboardButton(
         '-----Min Liquidity -----', callback_data='set title')
@@ -307,14 +340,14 @@ def get_keyboard(order_name, update_data):
     else:
         caption = f"🟢 {update_data['liquidity']}"
     liquidity_x = types.InlineKeyboardButton(
-        text=caption, callback_data='select liquidity x')
+        text=caption, callback_data='seller select liquidity x')
 
     intervals = []
     for index in range(3):
         caption = f'{" 🟢" if interval_list[index]['active'] == True else ""} {
             interval_list[index]['amount']}min'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"select interval {index}")
+            text=caption, callback_data=f"seller select interval {index}")
         intervals.append(button)
     interval_title = types.InlineKeyboardButton(
         '-----Intervals -----', callback_data='set title')
@@ -323,14 +356,14 @@ def get_keyboard(order_name, update_data):
     else:
         caption = f"🟢 {update_data['interval']} min"
     interval_x = types.InlineKeyboardButton(
-        text=caption, callback_data='select interval x')
+        text=caption, callback_data='seller select interval x')
 
     durations = []
     for index in range(3):
         caption = f'{" 🟢" if duration_list[index]['active'] == True else ""} {
             duration_list[index]['amount']}d'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"select duration {index}")
+            text=caption, callback_data=f"seller select duration {index}")
         durations.append(button)
     duration_title = types.InlineKeyboardButton(
         '-----Durations -----', callback_data='set title')
@@ -339,14 +372,14 @@ def get_keyboard(order_name, update_data):
     else:
         caption = f"🟢 {update_data['duration']}"
     duration_x = types.InlineKeyboardButton(
-        text=caption, callback_data='select duration x')
+        text=caption, callback_data='seller select duration x')
 
     dca_max_prices = []
     for index in range(3):
         caption = f'{" 🟢" if max_price_list[index]['active'] == True else ""} {
             max_price_list[index]['amount']}'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"select max price {index}")
+            text=caption, callback_data=f"seller select max price {index}")
         dca_max_prices.append(button)
     dca_max_price_title = types.InlineKeyboardButton(
         '----- Max Price -----', callback_data='set title')
@@ -355,14 +388,14 @@ def get_keyboard(order_name, update_data):
     else:
         caption = f"🟢 {update_data['dca-max-price']}"
     dca_max_price_x = types.InlineKeyboardButton(
-        text=caption, callback_data='select min price x')
+        text=caption, callback_data='seller select min price x')
 
     dca_min_prices = []
     for index in range(3):
         caption = f'{" 🟢" if min_price_list[index]['active'] == True else ""} {
             min_price_list[index]['amount']}'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"select min price {index}")
+            text=caption, callback_data=f"seller select min price {index}")
         dca_min_prices.append(button)
     dca_min_price_title = types.InlineKeyboardButton(
         '-----Min Price -----', callback_data='set title')
@@ -371,10 +404,10 @@ def get_keyboard(order_name, update_data):
     else:
         caption = f"🟢 {update_data['dca-min-price']}"
     dca_min_price_x = types.InlineKeyboardButton(
-        text=caption, callback_data='select min price x')
+        text=caption, callback_data='seller select min price x')
 
     create_order = types.InlineKeyboardButton(
-        '✔️ Buy', callback_data='make buy order')
+        '✔️ Sell', callback_data='make buy order')
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
     keyboard.row(*wallets[0:(wallet_count // 2)])
@@ -405,6 +438,9 @@ def get_keyboard(order_name, update_data):
         keyboard.row(limit_tax_title)
         keyboard.row(
             *limit_taxes[0:(len(limit_taxes))], limit_tax_x)
+        keyboard.row(stop_loss_title)
+        keyboard.row(
+            *limit_stop_losses[0:(len(limit_stop_losses))], stop_loss_x)
     elif order_name == "DCA Order":
         keyboard.row(interval_title)
         keyboard.row(
@@ -422,32 +458,6 @@ def get_keyboard(order_name, update_data):
     keyboard.row(back, close)
 
     return keyboard
-
-
-def handle_input_token(bot, message):
-    user = user_model.get_user_by_telegram(message.chat.id)
-
-    token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
-
-    chain = 'ethereum'
-
-    name = "elo"
-
-    text = f'''
-            *Token Buy*
-
-    Sell your tokens here.
-
-  *{name}  (🔗{chain})*
-  {token}
-  ❌ Snipe not set
-
-  [Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
-      '''
-    order_index = order_list[0]['name']
-    keyboard = get_keyboard(order_index, x_value_list)
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
 
 
 def select_buy_wallet(bot, message, index):
@@ -580,6 +590,28 @@ def select_limit_token_price(bot, message, index):
     token_price_list[index]['active'] = True
     #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     x_value_list['limit-token-price'] = 0
+    order_index = ''
+   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
+    for order in order_list:
+        if order['active'] == True:
+            order_index = order['name']
+    keyboard = get_keyboard(order_index, x_value_list)
+
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+
+
+def select_stop_loss(bot, message, index):
+    user = user_model.get_user_by_telegram(message.chat.id)
+   # chain = user.chain
+    #  wallets = user.wallets[chain]
+
+    for amount in stop_loss_list:
+        amount['active'] = False
+    index = int(index)
+    stop_loss_list[index]['active'] = True
+    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
+    x_value_list['stop-loss'] = 0
     order_index = ''
    # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     for order in order_list:
@@ -740,7 +772,7 @@ def select_min_price(bot, message, index):
 
 def handle_buy_amount_x(bot, message):
     text = '''
-*Token Buy > 💰 XΞ*
+*Token Sell > 💰 XΞ*
 Enter the amount to buy:
 '''
     item = "Buy Amount"
@@ -751,7 +783,7 @@ Enter the amount to buy:
 
 def handle_gas_amount_x(bot, message):
     text = '''
-*Token Buy > ⛽ X*
+*Token Sell > ⛽ X*
 Enter the gas amount to set:
 '''
 
@@ -763,7 +795,7 @@ Enter the gas amount to set:
 
 def handle_gas_price_x(bot, message):
     text = '''
-*Token Buy > ⛽ X*
+*Token Sell > ⛽ X*
 Enter the gas price to set:
 '''
     item = "Gas Price"
@@ -774,7 +806,7 @@ Enter the gas price to set:
 
 def handle_slippage_x(bot, message):
     text = '''
-*Token Buy > 💧 X%*
+*Token Sell > 💧 X%*
 Enter the slippage to set:
 '''
     item = "Slippage"
@@ -785,7 +817,7 @@ Enter the slippage to set:
 
 def handle_limit_token_price_x(bot, message):
     text = '''
-*Token Buy > 💰 X*
+*Token Sell > 💰 X*
 Enter the Token Price to set:
 '''
     item = "Token Price"
@@ -794,9 +826,20 @@ Enter the Token Price to set:
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
 
 
+def handle_stop_loss_x(bot, message):
+    text = '''
+*Token Sell > 💰 X*
+Enter the Stop/Loss to set:
+'''
+    item = "Stop Loss"
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
+    bot.register_next_step_handler_by_chat_id(
+        chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
+
+
 def handle_market_capital_x(bot, message):
     text = '''
-*Token Buy > 💰 X*
+*Token Sell > 💰 X*
 Enter the Maximum Market Capital to set:
 '''
     item = "Market Capital"
@@ -807,7 +850,7 @@ Enter the Maximum Market Capital to set:
 
 def handle_liquidity_x(bot, message):
     text = '''
-*Token Buy > 💰 X*
+*Token Sell > 💰 X*
 Enter the liquidity to set:
 '''
     item = "Liquidity"
@@ -818,7 +861,7 @@ Enter the liquidity to set:
 
 def handle_limit_tax_x(bot, message):
     text = '''
-*Token Buy > 💰 X%*
+*Token Sell > 💰 X%*
 Enter the tax to set:
 '''
     item = "Tax"
@@ -829,7 +872,7 @@ Enter the tax to set:
 
 def handle_duration_x(bot, message):
     text = '''
-*Token Buy > 🕞 X*
+*Token Sell > 🕞 X*
 Enter the duration to set:
 '''
     item = "Duration"
@@ -840,7 +883,7 @@ Enter the duration to set:
 
 def handle_interval_x(bot, message):
     text = '''
-*Token Buy > 🕞 X*
+*Token Sell > 🕞 X*
 Enter the interval to set:
 '''
     item = "Interval"
@@ -851,7 +894,7 @@ Enter the interval to set:
 
 def handle_max_price_x(bot, message):
     text = '''
-*Token Buy > 💰 X*
+*Token Sell > 💰 X*
 Enter the max price to set:
 '''
     item = "Max Price"
@@ -862,7 +905,7 @@ Enter the max price to set:
 
 def handle_min_price_x(bot, message):
     text = '''
-*Token Buy > 💰 X*
+*Token Sell > 💰 X*
 Enter the min price to set:
 '''
     item = "Min Price"
@@ -891,6 +934,11 @@ def handle_input_value(bot, message, item):
         slippage_x = float(message.text)
         x_value_list['slippage'] = slippage_x
         for index in slip_page_list:
+            index['active'] = False
+    elif item == "Stop Loss":
+        slippage_x = float(message.text)
+        x_value_list['stop-loss'] = slippage_x
+        for index in stop_loss_list:
             index['active'] = False
     elif item == "Token Price":
         token_price_x = float(message.text)
@@ -944,7 +992,7 @@ def handle_input_value(bot, message, item):
 
     name = "elo"
     text = f'''
-            *Token Buy*
+        *Token Sell*
 
     Sell your tokens here.
 
