@@ -40,4 +40,3 @@ SELL_AMOUNT = ['0.1', '0.3', '0.5', '1']
 DCA_PERIOD = ['1h', '2h', '3h']
 BOT_NAME = ['Default', 'Sun', 'Moon', 'Mars',
             'Mercury', 'Jupiter', 'Venus', 'Saturn']
-ORDERS = ["Market Order", "Limit Order", "DCA Order"]

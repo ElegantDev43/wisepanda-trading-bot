@@ -107,8 +107,6 @@ def handle_callback_query(call):
         keyboards.handle_keyboards(bot, call.message)
     elif call.data == 'wallets':
         wallets.handle_wallets(bot, call.message)
-    elif call.data in config.ORDERS:
-        buyer.handle_select_order(bot, call.message, call.data)
     elif call.data in config.BUY_AMOUNT:
         keyboards.handle_select_buy_amount(bot, call.message, call.data)
     elif call.data in config.GAS_AMOUNT:
@@ -120,11 +118,11 @@ def handle_callback_query(call):
 
     elif call.data == 'seller':
         seller.handle_seller(bot, call.message)
-    elif call.data == 'sell-limit-orders':
+    elif call.data == 'seller-limit-orders':
         seller.handle_limit_order(bot, call.message)
-    elif call.data == 'sell-market-orders':
+    elif call.data == 'seller-market-orders':
         seller.handle_market_order(bot, call.message)
-    elif call.data == 'sell-dca-orders':
+    elif call.data == 'seller-dca-orders':
         seller.handle_dca_order(bot, call.message)
 
     elif call.data == 'manage-limit-orders':
@@ -156,21 +154,180 @@ def handle_callback_query(call):
         buyer.select_buy_wallet(bot, call.message, call.data[18:])
     elif call.data == 'make order':
         buyer.handle_buy(bot, call.message)
+
     elif call.data.startswith('select buy amount '):
         amount = call.data[18:]
         if (amount == 'x'):
             buyer.handle_buy_amount_x(bot, call.message)
         else:
             buyer.select_buy_amount(bot, call.message, call.data[18:])
-
     elif call.data.startswith('select gas amount '):
+        amount = call.data[18:]
+        if (amount == 'x'):
+            buyer.handle_gas_amount_x(bot, call.message)
         buyer.select_gas_amount(bot, call.message, call.data[18:])
     elif call.data.startswith('select gas price '):
+        amount = call.data[17:]
+        if (amount == 'x'):
+            buyer.handle_gas_price_x(bot, call.message)
         buyer.select_gas_price(bot, call.message, call.data[17:])
     elif call.data.startswith('select slippage '):
+        amount = call.data[16:]
+        if (amount == 'x'):
+            buyer.handle_slippage_x(bot, call.message)
         buyer.select_slip_page(bot, call.message, call.data[16:])
-    elif call.data.startswith('select buy amount x'):
-        buyer.handle_buy_amount_x(bot, call.message, call.data[18:])
+
+    elif call.data.startswith('select limit token price '):
+        amount = call.data[25:]
+        if (amount == 'x'):
+            buyer.handle_limit_token_price_x(bot, call.message)
+        buyer.select_limit_token_price(bot, call.message, call.data[25:])
+    elif call.data.startswith('select limit tax '):
+        amount = call.data[17:]
+        if (amount == 'x'):
+            buyer.handle_limit_tax_x(bot, call.message)
+        buyer.select_limit_tax(bot, call.message, call.data[17:])
+    elif call.data.startswith('select market capital '):
+        amount = call.data[22:]
+        if (amount == 'x'):
+            buyer.handle_market_capital_x(bot, call.message)
+        buyer.select_market_capital(bot, call.message, call.data[22:])
+    elif call.data.startswith('select liquidity '):
+        amount = call.data[17:]
+        if (amount == 'x'):
+            buyer.handle_liquidity_x(bot, call.message)
+        buyer.select_liquidity(bot, call.message, call.data[17:])
+
+    elif call.data.startswith('select interval '):
+        amount = call.data[16:]
+        if (amount == 'x'):
+            buyer.handle_interval_x(bot, call.message)
+        buyer.select_interval(bot, call.message, call.data[16:])
+    elif call.data.startswith('select duration '):
+        amount = call.data[16:]
+        if (amount == 'x'):
+            buyer.handle_duration_x(bot, call.message)
+        buyer.select_duration(bot, call.message, call.data[16:])
+    elif call.data.startswith('select max price '):
+        amount = call.data[17:]
+        if (amount == 'x'):
+            buyer.handle_max_price_x(bot, call.message)
+        buyer.select_max_price(bot, call.message, call.data[17:])
+    elif call.data.startswith('select min price '):
+        amount = call.data[17:]
+        if (amount == 'x'):
+            buyer.handle_min_price_x(bot, call.message)
+        buyer.select_min_price(bot, call.message, call.data[17:])
+
+
+######### Seller#####
+    elif call.data.startswith('seller select buy wallet '):
+        seller.select_buy_wallet(bot, call.message, call.data[25:])
+    elif call.data == 'make order':
+        seller.handle_buy(bot, call.message)
+
+    elif call.data.startswith('seller select buy amount '):
+        amount = call.data[25:]
+        if (amount == 'x'):
+            seller.handle_buy_amount_x(bot, call.message)
+        else:
+            seller.select_buy_amount(bot, call.message, call.data[25:])
+    elif call.data.startswith('seller select gas amount '):
+        amount = call.data[25:]
+        if (amount == 'x'):
+            seller.handle_gas_amount_x(bot, call.message)
+        seller.select_gas_amount(bot, call.message, call.data[25:])
+    elif call.data.startswith('seller select gas price '):
+        amount = call.data[24:]
+        if (amount == 'x'):
+            seller.handle_gas_price_x(bot, call.message)
+        seller.select_gas_price(bot, call.message, call.data[24:])
+    elif call.data.startswith('seller select slippage '):
+        amount = call.data[23:]
+        if (amount == 'x'):
+            seller.handle_slippage_x(bot, call.message)
+        seller.select_slip_page(bot, call.message, call.data[23:])
+
+    elif call.data.startswith('seller select limit token price '):
+        amount = call.data[32:]
+        if (amount == 'x'):
+            seller.handle_limit_token_price_x(bot, call.message)
+        seller.select_limit_token_price(bot, call.message, call.data[32:])
+    elif call.data.startswith('seller select stop loss '):
+        amount = call.data[24:]
+        if (amount == 'x'):
+            seller.handle_stop_loss_x(bot, call.message)
+        seller.select_stop_loss(bot, call.message, call.data[24:])
+
+    elif call.data.startswith('seller select limit tax '):
+        amount = call.data[24:]
+        if (amount == 'x'):
+            seller.handle_limit_tax_x(bot, call.message)
+        seller.select_limit_tax(bot, call.message, call.data[24:])
+    elif call.data.startswith('seller select market capital '):
+        amount = call.data[29:]
+        if (amount == 'x'):
+            seller.handle_market_capital_x(bot, call.message)
+        seller.select_market_capital(bot, call.message, call.data[29:])
+    elif call.data.startswith('seller select liquidity '):
+        amount = call.data[24:]
+        if (amount == 'x'):
+            seller.handle_liquidity_x(bot, call.message)
+        seller.select_liquidity(bot, call.message, call.data[24:])
+
+    elif call.data.startswith('seller select interval '):
+        amount = call.data[23:]
+        if (amount == 'x'):
+            seller.handle_interval_x(bot, call.message)
+        seller.select_interval(bot, call.message, call.data[23:])
+    elif call.data.startswith('seller select duration '):
+        amount = call.data[23:]
+        if (amount == 'x'):
+            seller.handle_duration_x(bot, call.message)
+        seller.select_duration(bot, call.message, call.data[23:])
+    elif call.data.startswith('seller select max price '):
+        amount = call.data[24:]
+        if (amount == 'x'):
+            seller.handle_max_price_x(bot, call.message)
+        seller.select_max_price(bot, call.message, call.data[24:])
+    elif call.data.startswith('seller select min price '):
+        amount = call.data[24:]
+        if (amount == 'x'):
+            seller.handle_min_price_x(bot, call.message)
+        seller.select_min_price(bot, call.message, call.data[24:])
+# sniper
+    elif call.data.startswith('sniper select buy wallet '):
+        sniper.select_buy_wallet(bot, call.message, call.data[25:])
+
+    elif call.data == 'make order':
+        sniper.handle_buy(bot, call.message)
+
+    elif call.data.startswith('sniper select buy amount '):
+        amount = call.data[25:]
+        if (amount == 'x'):
+            sniper.handle_buy_amount_x(bot, call.message)
+        else:
+            sniper.select_buy_amount(bot, call.message, call.data[25:])
+    elif call.data.startswith('sniper select limit token price '):
+        amount = call.data[32:]
+        if (amount == 'x'):
+            sniper.handle_limit_token_price_x(bot, call.message)
+        sniper.select_limit_token_price(bot, call.message, call.data[32:])
+    elif call.data.startswith('sniper select limit tax '):
+        amount = call.data[24:]
+        if (amount == 'x'):
+            sniper.handle_limit_tax_x(bot, call.message)
+        sniper.select_limit_tax(bot, call.message, call.data[24:])
+    elif call.data.startswith('sniper select market capital '):
+        amount = call.data[29:]
+        if (amount == 'x'):
+            sniper.handle_market_capital_x(bot, call.message)
+        sniper.select_market_capital(bot, call.message, call.data[29:])
+    elif call.data.startswith('sniper select liquidity '):
+        amount = call.data[24:]
+        if (amount == 'x'):
+            sniper.handle_liquidity_x(bot, call.message)
+        sniper.select_liquidity(bot, call.message, call.data[24:])
 
 
 def initialize():
