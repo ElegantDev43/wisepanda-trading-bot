@@ -8,11 +8,14 @@ chains = [
     base
 ]
 
+
 def get_name(chain_index, token):
     return chains[chain_index].get_name(token)
 
+
 def check_liveness(chain_index, token):
     return chains[chain_index].check_liveness(token)
+
 
 def get_information(chain_index, token):
     return chains[chain_index].get_information(token)

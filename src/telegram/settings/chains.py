@@ -1,14 +1,14 @@
 from telebot import types
 
 # import config
-from src.database import user as user_model
+from src.database import api as user_model
+from src.engine import api as main_api
 
 
 def handle_chains(bot, message):
     # user = user_model.get_user_by_telegram(message.chat.id)
-    chains = ['ethereum', 'solana', 'base']
-    current_chain = 'ethereum'
-
+    chains = main_api.get_supported_chains()
+    current_chain = chains[main_api.get_current_chain_index(message.chat.id)]
     text = f'''
 *Settings > Chains*
 
@@ -19,8 +19,9 @@ Select the chain you'd like to use. You can only have one chain selected at the 
 
     buttons = []
     for chain in chains:
-        caption = f'✅ {chain}' if chain == current_chain else chain
-        button = types.InlineKeyboardButton(text=caption, callback_data=chain)
+        caption = f'''✅ {chain}''' if chain == current_chain else chain
+        button = types.InlineKeyboardButton(
+            text=caption, callback_data=chain)
         buttons.append(button)
     back = types.InlineKeyboardButton('🔙 Back', callback_data='settings')
 
@@ -34,10 +35,18 @@ Select the chain you'd like to use. You can only have one chain selected at the 
 
 
 def handle_select_chain(bot, message, next_chain):
-    user = user_model.get_user_by_telegram(message.chat.id)
-    if user.chain == next_chain:
+    user = main_api.get_user_by_chat_id(message.chat.id)
+    chains = main_api.get_supported_chains()
+    current_chain = chains[main_api.get_current_chain_index(message.chat.id)]
+    if current_chain == next_chain:
         return
-    user_model.update_user_by_id(user.id, 'chain', next_chain)
+    if next_chain == "solana":
+        next_chain_index = 1
+    elif next_chain == "ethereum":
+        next_chain_index = 0
+    elif next_chain == "base":
+        next_chain_index = 2
+    user_model.update_current_chain_index(message.chat.id, next_chain_index)
 
     text = f'''
 *Settings > Chains*
@@ -47,7 +56,7 @@ Current Chain: *🔗 {next_chain}*
 Select the chain you'd like to use. You can only have one chain selected at the same time. Your defaults and presets will be different for each chain.
     '''
     buttons = []
-    for chain in user.chain:
+    for chain in chains:
         caption = f'✅ {chain}' if chain == next_chain else chain
         button = types.InlineKeyboardButton(text=caption, callback_data=chain)
         buttons.append(button)

@@ -1,52 +1,25 @@
 from telebot import types
 
 from src.database import user as user_model
+from src.engine import api as main_api
+import threading
 
-main_wallets = [
-    {"address": "Leo", "active": False, "age": 25},
-    {"address": "Tim", "active": False, "age": 23},
-    {"address": "Alice", "active": False, "age": 31},
-    {"address": "Jack", "active": False, "age": 27}
-]
-buy_amount_list = [
-    {"amount": "0.1", "active": False},
-    {"amount": "0.3", "active": False},
-    {"amount": "0.5", "active": False},
-    {"amount": "1", "active": False}
-]
+chain_gas_prices = [0.1, 0.2, 0.3]
+chain_slippages = [5, 10, 20]
+chain_limit_token_prices = [500, 1000, 2000]
+chain_market_caps = [10000, 200000, 50000]
+chain_liquidities = [10000, 200000, 50000]
+chain_taxes = [5, 10, 20]
 
-token_price_list = [
-    {"amount": "5", "active": False},
-    {"amount": "10", "active": False},
-    {"amount": "20", "active": False}
-]
+x_value_list = {"buy-amount": 0, "limit-token-price": 0, 'gas-price': 0, 'slippage': 0,
+                "market-capital": 0, "liquidity": 0, "limit-tax": 0}
 
-market_capital_list = [
-    {"amount": "5", "active": False},
-    {"amount": "10", "active": False},
-    {"amount": "20", "active": False}
-]
+index_list = {'wallet': 100, 'buy_amount': 100, 'gas_price': 100, 'slippage': 100,
+              'limit_token_price': 100, 'liquidity': 100,
+              'tax': 100, 'market_cap': 100}
 
-liquidity_list = [
-    {"amount": "5", "active": False},
-    {"amount": "10", "active": False},
-    {"amount": "20", "active": False}
-]
-
-tax_list = [
-    {"amount": "5", "active": False},
-    {"amount": "10", "active": False},
-    {"amount": "20", "active": False}
-]
-x_value_list = {"buy-amount": 0, "gas-amount": 0, "gas-price": 0, "limit-token-price": 0,
-                "slippage": 0, "market-capital": 0, "liquidity": 0, "limit-tax": 0}
-
-
-def initialize_all():
-    for index in main_wallets:
-        index['active'] = False
-    for index in buy_amount_list:
-        index['active'] = False
+result = {'wallet': 0, 'token': '', 'buy_amount': 0, 'gas_price': 0, 'slippage': 0,
+          'limit_token_price': 0, 'liquidity': 0, 'tax': 0, 'market_cap': 0}
 
 
 def initialize_x_value():
@@ -62,9 +35,8 @@ def initialize_x_value():
 
 def handle_sniper(bot, message):
    # user_model.create_user_by_telegram(message.chat.id)
-    initialize_all()
     text = '''
- 🎯 *Token Sniper*
+🛒 * Token Sniper*
 
 Enter a token symbol or address to buy.
     '''
@@ -74,25 +46,34 @@ Enter a token symbol or address to buy.
         chat_id=message.chat.id, callback=lambda next_message: handle_input_token(bot, next_message))
 
 
-def get_keyboard(update_data):
-    wallet_count = 4
-    buy_count = 4
+def get_keyboard(update_data, chat_id, index_data):
+   # wallet_count = 4
+    # buy_count = 4
+    # gas_amount_count = 3
 
     keyboard = types.InlineKeyboardMarkup()
+
     wallets = []
+
+    chain_wallets = main_api.get_wallets(chat_id)
+    wallet_count = len(chain_wallets)
     for index in range(wallet_count):
-        caption = f'{" 🟢" if main_wallets[index]['active'] == True else ""} W{
+        caption = f'{"🟢" if index == index_data['wallet'] else ""} W{
             index + 1}'
         button = types.InlineKeyboardButton(
             text=caption, callback_data=f"sniper select buy wallet {index}")
         wallets.append(button)
-    wallet_all = types.InlineKeyboardButton(
-        'All Wallets', callback_data=f'sniper select buy wallet all')
 
     buys = []
+    current_keyboards = main_api.get_keyboards(chat_id)
+    chain_buy_amounts = current_keyboards['buy']
+    buy_count = len(chain_buy_amounts)
     for index in range(buy_count):
-        caption = f'{" 🟢" if buy_amount_list[index]['active'] == True else ""} 💰{
-            buy_amount_list[index]['amount']}Ξ'
+        if index_data['buy_amount'] == 100:
+            caption = f'💰{chain_buy_amounts[index]}Ξ'
+        else:
+            caption = f'{"🟢" if index == index_data['buy_amount'] else ""} 💰{
+                chain_buy_amounts[index]}Ξ'
         button = types.InlineKeyboardButton(
             text=caption, callback_data=f"sniper select buy amount {index}")
         buys.append(button)
@@ -103,16 +84,60 @@ def get_keyboard(update_data):
         caption = f"🟢 💰 {update_data['buy-amount']}Ξ"
     buy_x = types.InlineKeyboardButton(
         text=caption, callback_data='sniper select buy amount x')
+
+    gas_prices = []
+    gas_price_count = len(chain_gas_prices)
+    for index in range(gas_price_count):
+        if index_data['gas_price'] == 100:
+            caption = f'{chain_gas_prices[index]}'
+        else:
+            caption = f'{" 🟢" if index == index_data['gas_price'] else ""} {
+                chain_gas_prices[index]}'
+        button = types.InlineKeyboardButton(
+            text=caption, callback_data=f"sniper select gas price {index}")
+        gas_prices.append(button)
+    gas_price_title = types.InlineKeyboardButton(
+        '----- Gas Price -----', callback_data='set title')
+    if update_data['gas-price'] == 0:
+        caption = "X"
+    else:
+        caption = f"🟢 {update_data['gas-price']}"
+    gas_price_x = types.InlineKeyboardButton(
+        text=caption, callback_data='sniper select gas price x')
+
+    slippages = []
+    slip_page_count = len(chain_slippages)
+    for index in range(slip_page_count):
+        if index_data['slippage'] == 100:
+            caption = f'{chain_slippages[index]}%'
+        else:
+            caption = f'{" 🟢" if index == index_data['slippage'] else ""} {
+                chain_slippages[index]}%'
+        button = types.InlineKeyboardButton(
+            text=caption, callback_data=f"sniper select slippage {index}")
+        slippages.append(button)
+    slippage_title = types.InlineKeyboardButton(
+        '----- Slippage -----', callback_data='set title')
+    if update_data['slippage'] == 0:
+        caption = "X %"
+    else:
+        caption = f"🟢 {update_data['slippage']}%"
+    slippage_x = types.InlineKeyboardButton(
+        text=caption, callback_data='sniper select slippage x')
 # limit order
     limit_token_prices = []
-    for index in range(3):
-        caption = f'{" 🟢" if token_price_list[index]['active'] == True else ""} {
-            token_price_list[index]['amount']}'
+    limit_token_price_count = len(chain_limit_token_prices)
+    for index in range(limit_token_price_count):
+        if index_data['limit_token_price'] == 100:
+            caption = f'{chain_limit_token_prices[index]}'
+        else:
+            caption = f'{" 🟢" if index == index_data['limit_token_price'] else ""} {
+                chain_limit_token_prices[index]}'
         button = types.InlineKeyboardButton(
             text=caption, callback_data=f"sniper select limit token price {index}")
         limit_token_prices.append(button)
     limit_token_price_title = types.InlineKeyboardButton(
-        'TP :', callback_data='set title')
+        '----- Token Price -----', callback_data='set title')
     if update_data['limit-token-price'] == 0:
         caption = "X"
     else:
@@ -121,14 +146,18 @@ def get_keyboard(update_data):
         text=caption, callback_data='sniper select limit token price x')
 
     limit_taxes = []
-    for index in range(3):
-        caption = f'{" 🟢" if tax_list[index]['active'] == True else ""} {
-            tax_list[index]['amount']}%'
+    limit_tax_count = len(chain_taxes)
+    for index in range(limit_tax_count):
+        if index_data['tax'] == 100:
+            caption = f'{chain_taxes[index]}%'
+        else:
+            caption = f'{" 🟢" if index == index_data['tax'] else ""} {
+                chain_taxes[index]}%'
         button = types.InlineKeyboardButton(
             text=caption, callback_data=f"sniper select limit tax {index}")
         limit_taxes.append(button)
     limit_tax_title = types.InlineKeyboardButton(
-        'Tax :', callback_data='set title')
+        '----- Tax -----', callback_data='set title')
     if update_data['limit-tax'] == 0:
         caption = "X %"
     else:
@@ -137,14 +166,18 @@ def get_keyboard(update_data):
         text=caption, callback_data='sniper select limit tax x')
 
     market_capitals = []
-    for index in range(3):
-        caption = f'{" 🟢" if market_capital_list[index]['active'] == True else ""} {
-            market_capital_list[index]['amount']}'
+    market_capital_count = len(chain_market_caps)
+    for index in range(market_capital_count):
+        if index_data['market_cap'] == 100:
+            caption = f'{chain_market_caps[index]}'
+        else:
+            caption = f'{" 🟢" if index == index_data['market_cap'] else ""} {
+                chain_market_caps[index]}'
         button = types.InlineKeyboardButton(
             text=caption, callback_data=f"sniper select market capital {index}")
         market_capitals.append(button)
     market_capital_title = types.InlineKeyboardButton(
-        'Max MC :', callback_data='set title')
+        '-----Max Market Capital -----', callback_data='set title')
     if update_data['market-capital'] == 0:
         caption = "X"
     else:
@@ -153,14 +186,18 @@ def get_keyboard(update_data):
         text=caption, callback_data='sniper select market capital x')
 
     liquidities = []
-    for index in range(3):
-        caption = f'{" 🟢" if liquidity_list[index]['active'] == True else ""} {
-            liquidity_list[index]['amount']}'
+    liquidity_count = len(chain_liquidities)
+    for index in range(liquidity_count):
+        if index_data['liquidity'] == 100:
+            caption = f'{chain_liquidities[index]}'
+        else:
+            caption = f'{" 🟢" if index == index_data['liquidity'] else ""} {
+                chain_liquidities[index]}'
         button = types.InlineKeyboardButton(
             text=caption, callback_data=f"sniper select liquidity {index}")
         liquidities.append(button)
     liquidity_title = types.InlineKeyboardButton(
-        'Min Liq :', callback_data='set title')
+        '-----Min Liquidity -----', callback_data='set title')
     if update_data['liquidity'] == 0:
         caption = "X"
     else:
@@ -169,15 +206,18 @@ def get_keyboard(update_data):
         text=caption, callback_data='sniper select liquidity x')
 
     create_order = types.InlineKeyboardButton(
-        '✔️ Buy', callback_data='make buy order')
+        '✔️ Set Sniper', callback_data='make sniper order')
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
-    keyboard.row(*wallets[0:(wallet_count // 2)])
-    keyboard.row(*wallets[(wallet_count // 2):wallet_count])
-    keyboard.row(wallet_all)
+    keyboard.row(*wallets[0:(wallet_count)])
 
     keyboard.row(*buys[0:(buy_count // 2)])
     keyboard.row(*buys[(buy_count // 2):buy_count], buy_x)
+
+    keyboard.row(gas_price_title)
+    keyboard.row(*gas_prices[0:(len(gas_prices))], gas_price_x)
+    keyboard.row(slippage_title)
+    keyboard.row(*slippages[0:(len(slippages))], slippage_x)
 
     keyboard.row(limit_token_price_title)
     keyboard.row(
@@ -191,7 +231,6 @@ def get_keyboard(update_data):
     keyboard.row(limit_tax_title)
     keyboard.row(
         *limit_taxes[0:(len(limit_taxes))], limit_tax_x)
-
     keyboard.row(create_order)
     keyboard.row(back, close)
 
@@ -199,7 +238,7 @@ def get_keyboard(update_data):
 
 
 def handle_input_token(bot, message):
-    # user = user_model.get_user_by_telegram(message.chat.id)
+   # user = user_model.get_user_by_telegram(message.chat.id)
 
     token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
 
@@ -208,59 +247,79 @@ def handle_input_token(bot, message):
     name = "elo"
 
     text = f'''
+            *Token Buy*
+
+    Sell your tokens here.
+
   *{name}  (🔗{chain})*
   {token}
   ❌ Snipe not set
 
   [Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
       '''
-    keyboard = get_keyboard(x_value_list)
+    keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
 
 
 def select_buy_wallet(bot, message, index):
-    # user = user_model.get_user_by_telegram(message.chat.id)
+   # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
-    #  wallets = user.wallets[chain]
+    #  wallets = user.wallets[chain]'
+    index_list['wallet'] = int(index)
+    result['wallet'] = int(index)
 
-    if index == 'all':
-        active_all = True
-        for wallet in main_wallets:
-            if wallet['active'] == False:
-                active_all = False
-                break
-
-        active = not active_all
-        for index in range(len(main_wallets)):
-            main_wallets[index]['active'] = active
-    else:
-        index = int(index)
-        main_wallets[index]['active'] = not main_wallets[index]['active']
-    order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    keyboard = get_keyboard(x_value_list)
+    keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
 
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 
 def select_buy_amount(bot, message, index):
+   # user = user_model.get_user_by_telegram(message.chat.id)
+   # chain = user.chain
+    #  wallets = user.wallets[chain]
+    index_list['buy_amount'] = int(index)
+    keyboards = main_api.get_keyboards(message.chat.id)
+    result['buy_amount'] = keyboards['buy'][int(index)]
+    x_value_list['buy-amount'] = 0
+
+    keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
+
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+
+
+def select_gas_price(bot, message, index):
     # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
 
-    for amount in buy_amount_list:
-        amount['active'] = False
-    index = int(index)
-    buy_amount_list[index]['active'] = True
-    x_value_list['buy-amount'] = 0
-
+    index_list['gas_price'] = int(index)
     #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    keyboard = get_keyboard(x_value_list)
+    result['gas_price'] = chain_gas_prices[int(index)]
+    x_value_list['gas-price'] = 0
+    keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
 
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+
+
+def select_slip_page(bot, message, index):
+   # user = user_model.get_user_by_telegram(message.chat.id)
+   # chain = user.chain
+    #  wallets = user.wallets[chain]
+
+    index_list['slippage'] = int(index)
+    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
+    result['slippage'] = chain_slippages[int(index)]
+    x_value_list['slippage'] = 0
+    keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
@@ -270,69 +329,60 @@ def select_limit_token_price(bot, message, index):
    # chain = user.chain
     #  wallets = user.wallets[chain]
 
-    for amount in token_price_list:
-        amount['active'] = False
-    index = int(index)
-    token_price_list[index]['active'] = True
+    index_list['limit_token_price'] = int(index)
+    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
+    result['limit_token_price'] = chain_limit_token_prices[int(index)]
     #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     x_value_list['limit-token-price'] = 0
-    order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    keyboard = get_keyboard(x_value_list)
+    keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
 
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 
 def select_limit_tax(bot, message, index):
-    # user = user_model.get_user_by_telegram(message.chat.id)
+  #  user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
     x_value_list['limit-tax'] = 0
-    for amount in tax_list:
-        amount['active'] = False
-    index = int(index)
-    tax_list[index]['active'] = True
+    index_list['tax'] = int(index)
     #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    keyboard = get_keyboard(x_value_list)
+    result['tax'] = chain_taxes[int(index)]
+    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
+    keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
 
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 
 def select_market_capital(bot, message, index):
-    # user = user_model.get_user_by_telegram(message.chat.id)
+  #  user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
     x_value_list['market-capital'] = 0
-    for amount in market_capital_list:
-        amount['active'] = False
-    index = int(index)
-    market_capital_list[index]['active'] = True
+    index_list['market_cap'] = int(index)
     #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    keyboard = get_keyboard(x_value_list)
+    result['market_cap'] = chain_market_caps[int(index)]
+    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
+    keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
 
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 
 def select_liquidity(bot, message, index):
-    # user = user_model.get_user_by_telegram(message.chat.id)
+   # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
     #  wallets = user.wallets[chain]
     x_value_list['liquidity'] = 0
-    for amount in liquidity_list:
-        amount['active'] = False
-    index = int(index)
-    liquidity_list[index]['active'] = True
+    index_list['liquidity'] = int(index)
     #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    keyboard = get_keyboard(x_value_list)
+    result['liquidity'] = chain_liquidities[int(index)]
+    keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
 
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
@@ -344,6 +394,28 @@ def handle_buy_amount_x(bot, message):
 Enter the amount to buy:
 '''
     item = "Buy Amount"
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
+    bot.register_next_step_handler_by_chat_id(
+        chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
+
+
+def handle_gas_price_x(bot, message):
+    text = '''
+*Token Buy > ⛽ X*
+Enter the gas price to set:
+'''
+    item = "Gas Price"
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
+    bot.register_next_step_handler_by_chat_id(
+        chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
+
+
+def handle_slippage_x(bot, message):
+    text = '''
+*Token Buy > 💧 X%*
+Enter the slippage to set:
+'''
+    item = "Slippage"
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
@@ -393,41 +465,66 @@ Enter the tax to set:
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
 
 
+def handle_duration_x(bot, message):
+    text = '''
+*Token Buy > 🕞 X*
+Enter the duration to set:
+'''
+    item = "Duration"
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
+    bot.register_next_step_handler_by_chat_id(
+        chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
+
+
 def handle_input_value(bot, message, item):
     if item == "Buy Amount":
         buy_amount_x = float(message.text)
         x_value_list['buy-amount'] = buy_amount_x
-        for index in buy_amount_list:
-            index['active'] = False
+        result['buy_amount'] = buy_amount_x
+        index_list['buy_amount'] = 100
+    elif item == "Gas Price":
+        gas_price_x = float(message.text)
+        x_value_list['gas-price'] = gas_price_x
+        result['gas_price'] = gas_price_x
+        index_list['gas_price'] = 100
+    elif item == "Slippage":
+        slippage_x = float(message.text)
+        x_value_list['slippage'] = slippage_x
+        result['slippage'] = slippage_x
+        index_list['slippage'] = 100
     elif item == "Token Price":
         token_price_x = float(message.text)
         x_value_list['limit-token-price'] = token_price_x
-        for index in token_price_list:
-            index['active'] = False
+        result['limit_token_price'] = token_price_x
+        index_list['limit_token_price'] = 100
     elif item == "Market Capital":
         market_capital_x = float(message.text)
         x_value_list['market-capital'] = market_capital_x
-        for index in market_capital_list:
-            index['active'] = False
+        result['market_cap'] = market_capital_x
+        index_list['market_cap'] = 100
     elif item == "Liquidity":
         slippage_x = float(message.text)
         x_value_list['liquidity'] = slippage_x
-        for index in liquidity_list:
-            index['active'] = False
+        result['liquidity'] = slippage_x
+        index_list['liquidity'] = 100
     elif item == "Tax":
         slippage_x = float(message.text)
         x_value_list['limit-tax'] = slippage_x
-        for index in tax_list:
-            index['active'] = False
-    order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    keyboard = get_keyboard(x_value_list)
+        result['tax'] = slippage_x
+        index_list['tax'] = 100
+
+    keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
     token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
 
     chain = 'ethereum'
 
     name = "elo"
     text = f'''
+            *Token Buy*
+
+    Sell your tokens here.
+
      *{name}  (🔗{chain})*
       {token}
       ❌ Snipe not set
@@ -438,10 +535,10 @@ def handle_input_value(bot, message, item):
                      reply_markup=keyboard, disable_web_page_preview=True)
 
 
-def handle_buy_amount(bot, message, amount):
-    order_amount = amount
-
-
-def handle_buy(bot, message):
+def handle_set_sniper(bot, message):
+    chain_index = main_api.get_current_chain_index(message.chat.id)
+    chains = main_api.get_supported_chains()
+    result['token'] = chains[chain_index]
+    main_api.token_sniper(message.chat.id, result)
     bot.send_message(chat_id=message.chat.id,
-                     text='Successfully registered Order')
+                     text='Successfully registered Sniper')

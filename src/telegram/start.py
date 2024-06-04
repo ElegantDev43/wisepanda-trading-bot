@@ -1,11 +1,9 @@
 from telebot import types
-
-from src.database import user as user_model
+from src.engine import api as main_api
 
 
 def handle_start(bot, message):
-   # user_model.initialize()
-
+    main_api.add_user_by_chat_id(message.chat.id)
     text = '''
 *Welcome to the Panda Bot!*
 
@@ -27,7 +25,7 @@ With Panda Bot, you can trade any token instantly, taking advantage of market op
     seller = types.InlineKeyboardButton(
         '💸 Sell', callback_data='seller')
     positions = types.InlineKeyboardButton(
-        '📊 Open Positions', callback_data='positions')
+        '📊 Token Snipers', callback_data='manage-token-snipers')
     orders = types.InlineKeyboardButton(
         '⏳ Pending Orders', callback_data='manage-pending-orders')
     limit_order = types.InlineKeyboardButton(

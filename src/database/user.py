@@ -7,6 +7,13 @@ engine = create_engine(os.getenv('DATABASE_URL'))
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
 
+chainss = ['ethereum', 'solana', 'base']
+
+key_index = ['buy', 'gas', 'sell']
+default_buy_amounts = [0.1, 0.3, 0.5, 1.0]
+default_gas_amounts = [0.1, 0.3, 0.5]
+default_sell_amounts = [10, 30, 50, 100]
+
 
 class User(Base):
     __tablename__ = 'users'
@@ -20,6 +27,7 @@ class User(Base):
     positions = Column(JSON)
     limit_orders = Column(JSON)
     dca_orders = Column(JSON)
+    keyboards = Column(JSON)
 
 
 def initialize():
@@ -30,17 +38,28 @@ def add_by_chat_id(chat_id):
     session = Session()
     user = session.query(User).filter(User.chat_id == chat_id).first()
     if user == None:
-        chains = config.CHAINS
+        chains = chainss
         wallets = {}
+        keyboards = {}
         for chain in chains:
             wallets[chain] = []
+        for index in key_index:
+            if index == 'buy':
+                keyboards[index] = default_buy_amounts
+            elif index == 'sell':
+                keyboards[index] = default_sell_amounts
+            elif index == 'gas':
+                keyboards[index] = default_gas_amounts
         user = User(
             chat_id=chat_id,
             current_chain_index=0,
             wallets=wallets,
             pending_orders=[],
+            limit_orders=[],
+            dca_orders=[],
             positions=[],
-            session={}
+            token_snipers=[],
+            keyboards=keyboards
         )
         session.add(user)
         session.commit()
@@ -71,5 +90,7 @@ def update_by_id(id, key, value):
         user.limit_orders = value
     elif key == 'dca_orders':
         user.dca_orders = value
+    elif key == 'keyboards':
+        user.keyboards = value
     session.commit()
     session.close()

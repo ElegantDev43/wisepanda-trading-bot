@@ -2,7 +2,7 @@ import os
 import telebot
 from telebot import types
 
-from src.telegram import start, sniper, buyer, orders, positions, bots, hots, seller, limit_order, dca_order
+from src.telegram import start, sniper, buyer, orders, token_snipers, positions, bots, hots, seller, limit_order, dca_order
 from src.telegram.settings import main as settings, chains, wallets, keyboards
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
@@ -20,7 +20,7 @@ commands = [
     types.BotCommand("bots", "List all available backup bots")
 ]
 
-chain_titles = ['Ethereum', 'Solana', 'Base']
+chain_titles = ['ethereum', 'solana', 'base']
 bot.set_my_commands(commands)
 
 
@@ -37,11 +37,6 @@ def handle_hots(message):
 @bot.message_handler(commands=['orders'])
 def handle_orders(message):
     orders.handle_orders(bot, message)
-
-
-@bot.message_handler(commands=['positions'])
-def handle_positions(message):
-    positions.handle_positions(bot, message)
 
 
 @bot.message_handler(commands=['chains'])
@@ -88,10 +83,16 @@ def handle_callback_query(call):
         sniper.handle_sniper(bot, call.message)
     elif call.data == 'buyer':
         buyer.handle_buyer(bot, call.message)
-    elif call.data == 'orders':
+
+    elif call.data == 'manage-pending-orders':
         orders.handle_orders(bot, call.message)
-    elif call.data == 'positions':
-        positions.handle_positions(bot, call.message)
+    elif call.data == 'handle_next_pending_order':
+        orders.handle_next_order(bot, call.message)
+    elif call.data == 'handle_prev_pending_order':
+        orders.handle_prev_order(bot, call.message)
+    elif call.data == 'handle_remove_pending_order':
+        orders.handle_remove_order(bot, call.message)
+
     elif call.data == 'settings':
         settings.handle_settings(bot, call.message)
     elif call.data == 'bots':
@@ -115,7 +116,16 @@ def handle_callback_query(call):
    # elif call.data in config.SELL_AMOUNT:
    #     keyboards.handle_select_sell_amount(bot, call.message, call.data)
    # elif call.data == 'remove_wallet':
-        wallets.handle_remove_wallet(bot, call.message)
+
+    elif call.data.startswith('select keyboard buy amount '):
+        keyboards.handle_default_values(
+            bot, call.message, call.data[16:19], call.data[27:])
+    elif call.data.startswith('select keyboard gas amount '):
+        keyboards.handle_default_values(
+            bot, call.message, call.data[16:19], call.data[27:])
+    elif call.data.startswith('select keyboard sell amount '):
+        keyboards.handle_default_values(
+            bot, call.message, call.data[16:20], call.data[28:])
 
     elif call.data == 'seller':
         seller.handle_seller(bot, call.message)
@@ -127,7 +137,47 @@ def handle_callback_query(call):
         seller.handle_dca_order(bot, call.message)
 
     elif call.data == 'manage-limit-orders':
-        limit_order.handle_limit_order(bot, call.message)
+        limit_order.handle_orders(bot, call.message)
+    elif call.data == 'handle_next_limit_order':
+        limit_order.handle_next_order(bot, call.message)
+    elif call.data == 'handle_prev_limit_order':
+        limit_order.handle_prev_order(bot, call.message)
+    elif call.data == 'handle_remove_limit_order':
+        limit_order.handle_remove_order(bot, call.message)
+    elif call.data == 'handle_update_limit_order':
+        limit_order.handle_update_order(bot, call.message)
+    elif call.data.startswith('handle_limit_input '):
+        item = call.data[19:]
+        limit_order.handle_input(bot, call.message, item)
+
+    elif call.data == 'manage-token-snipers':
+        token_snipers.handle_orders(bot, call.message)
+    elif call.data == 'handle_next_token_sniper':
+        token_snipers.handle_next_order(bot, call.message)
+    elif call.data == 'handle_prev_token_sniper':
+        token_snipers.handle_prev_order(bot, call.message)
+    elif call.data == 'handle_remove_token_sniper':
+        token_snipers.handle_remove_order(bot, call.message)
+    elif call.data == 'handle_update_token_sniper':
+        token_snipers.handle_update_order(bot, call.message)
+    elif call.data.startswith('handle_token_sniper_input '):
+        item = call.data[26:]
+        token_snipers.handle_input(bot, call.message, item)
+
+    elif call.data == 'manage-dca-orders':
+        dca_order.handle_orders(bot, call.message)
+    elif call.data == 'handle_next_dca_order':
+        dca_order.handle_next_order(bot, call.message)
+    elif call.data == 'handle_prev_dca_order':
+        dca_order.handle_prev_order(bot, call.message)
+    elif call.data == 'handle_remove_dca_order':
+        dca_order.handle_remove_order(bot, call.message)
+    elif call.data == 'handle_update_dca_order':
+        dca_order.handle_update_order(bot, call.message)
+    elif call.data.startswith('handle_dca_input '):
+        item = call.data[17:]
+        dca_order.handle_input(bot, call.message, item)
+
     # Market Order
     elif call.data == 'buy-limit-orders':
         buyer.handle_limit_order(bot, call.message)
@@ -140,6 +190,10 @@ def handle_callback_query(call):
         wallets.handle_create_wallet(bot, call.message)
     elif call.data == 'import_wallet':
         wallets.handle_import_wallet(bot, call.message)
+    elif call.data == 'remove_wallet':
+        wallets.handle_remove_wallet(bot, call.message)
+    elif call.data.startswith('select_remove_wallet '):
+        wallets.remove_selected_wallet(bot, call.message, call.data[21:])
 
     elif call.data.startswith('auto wallet '):
         sniper.handle_toggle_wallet(bot, call.message, call.data[12:])
@@ -153,9 +207,10 @@ def handle_callback_query(call):
 
     elif call.data.startswith('select buy wallet '):
         buyer.select_buy_wallet(bot, call.message, call.data[18:])
-    elif call.data == 'make order':
+    elif call.data == 'make buy order':
         buyer.handle_buy(bot, call.message)
-
+    elif call.data == 'make sell order':
+        seller.handle_sell(bot, call.message)
     elif call.data.startswith('select buy amount '):
         amount = call.data[18:]
         if (amount == 'x'):
@@ -300,8 +355,8 @@ def handle_callback_query(call):
     elif call.data.startswith('sniper select buy wallet '):
         sniper.select_buy_wallet(bot, call.message, call.data[25:])
 
-    elif call.data == 'make order':
-        sniper.handle_buy(bot, call.message)
+    elif call.data == 'make sniper order':
+        sniper.handle_set_sniper(bot, call.message)
 
     elif call.data.startswith('sniper select buy amount '):
         amount = call.data[25:]
@@ -309,6 +364,16 @@ def handle_callback_query(call):
             sniper.handle_buy_amount_x(bot, call.message)
         else:
             sniper.select_buy_amount(bot, call.message, call.data[25:])
+    elif call.data.startswith('sniper select gas price '):
+        amount = call.data[24:]
+        if (amount == 'x'):
+            sniper.handle_gas_price_x(bot, call.message)
+        sniper.select_gas_price(bot, call.message, call.data[24:])
+    elif call.data.startswith('sniper select slippage '):
+        amount = call.data[23:]
+        if (amount == 'x'):
+            sniper.handle_slippage_x(bot, call.message)
+        sniper.select_slip_page(bot, call.message, call.data[23:])
     elif call.data.startswith('sniper select limit token price '):
         amount = call.data[32:]
         if (amount == 'x'):
