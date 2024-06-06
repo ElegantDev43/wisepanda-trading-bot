@@ -1,0 +1,255 @@
+import sys
+import pandas as pd
+import requests
+import time
+import numpy as np
+from scipy.signal import argrelextrema
+from datetime import datetime
+import matplotlib.pyplot as plt
+import dataframe_image as dfi
+from tti.indicators import BollingerBands,SwingIndex,RelativeStrengthIndex,MovingAverage,EaseOfMovement
+from tti.indicators import MovingAverageConvergenceDivergence,OnBalanceVolume,WilliamsR,VolumeOscillator
+from tti.indicators import ChandeMomentumOscillator,DetrendedPriceOscillator,DirectionalMovementIndex
+from tti.indicators import LinearRegressionIndicator,LinearRegressionSlope,MedianPrice,Momentum
+from tti.indicators import PriceRateOfChange,StandardDeviation,StochasticMomentumIndex,WildersSmoothing
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+API_KEY = "e6e5d6ab4b3c415d9c691501ee505e06"
+X_CHAIN = "solana"
+
+#startAt = "2023-11-29 00:00:00"
+startAt = "2023-10-29 00:00:00"
+endAt = "2024-03-28 00:00:00"
+starttestAt = "2024-03-29 00:00:00"
+endtestAt = "2024-05-30 00:00:00"
+interval = "1H"
+
+async def exportTechnicalIndicators(address):
+  addressType = "token"
+
+  timeFrom = int(time.mktime(time.strptime(startAt, '%Y-%m-%d %H:%M:%S')))
+  timeTo = int(time.mktime(time.strptime(endAt, '%Y-%m-%d %H:%M:%S')))
+
+  print(timeFrom, timeTo,address)
+
+  url = f"https://public-api.birdeye.so/defi/history_price?address={address}&address_type={addressType}&type={interval}&time_from={timeFrom}&time_to={timeTo}"
+  headers = {
+      "x-chain": X_CHAIN,
+      "X-API-KEY": API_KEY
+  }
+  response = requests.get(url=url, headers=headers).json()
+  inputData = response['data']['items']
+
+  index = 0
+  for item in inputData:
+    unixTime = datetime.fromtimestamp(item['unixTime'])
+    item['id'] = index
+    item['Date'] = unixTime.strftime("%Y-%m-%d")
+    item['High'] = item['value']
+    item['Low'] = item['value']
+    item['open'] = item['value']
+    item['adj close'] = item['value']
+    item['volume'] = item['value']
+    item['close'] = item['value']
+    index = index + 1
+
+  dataFrame = pd.DataFrame.from_dict(inputData, orient='columns')
+  dataFrame.index = pd.DatetimeIndex(dataFrame['unixTime'])
+
+  dataFrame = dataFrame.drop(columns=['unixTime'])
+
+  dataFrame.ffill(inplace=True)
+  dataFrame.bfill(inplace=True)
+
+  swing_indicator = SwingIndex(input_data=dataFrame)
+  dataFrame['Swing'] = swing_indicator.getTiData()
+
+  rsi_indicator = RelativeStrengthIndex(input_data=dataFrame)
+  dataFrame['RSI'] = rsi_indicator.getTiData()
+
+  sma_indicator = MovingAverage(input_data=dataFrame,period = 5)
+  dataFrame['SMA_5'] = sma_indicator.getTiData()
+
+  sma_10_indicator = MovingAverage(input_data=dataFrame,period = 10)
+  dataFrame['SMA_10'] = sma_indicator.getTiData()
+
+  sma_indicator = MovingAverage(input_data=dataFrame,period = 20)
+  dataFrame['SMA_20'] = sma_indicator.getTiData()
+
+  sma_indicator = MovingAverage(input_data=dataFrame,period = 40)
+  dataFrame['SMA_40'] = sma_indicator.getTiData()
+
+  ema_indicator = MovingAverage(input_data=dataFrame,ma_type='exponential',period=5)
+  dataFrame['EMA_5'] = ema_indicator.getTiData()
+
+  ema_indicator = MovingAverage(input_data=dataFrame,ma_type='exponential',period=10)
+  dataFrame['EMA_10'] = ema_indicator.getTiData()
+
+  ema_indicator = MovingAverage(input_data=dataFrame,ma_type='exponential',period=20)
+  dataFrame['EMA_20'] = ema_indicator.getTiData()
+
+  ema_indicator = MovingAverage(input_data=dataFrame,ma_type='exponential',period=40)
+  dataFrame['EMA_40'] = ema_indicator.getTiData()
+
+  tsma_indicator = MovingAverage(input_data=dataFrame,ma_type='time_series')
+  dataFrame['TSMA'] = tsma_indicator.getTiData()
+  
+  tma_indicator = MovingAverage(input_data=dataFrame,ma_type='triangular')
+  dataFrame['TMA'] = tma_indicator.getTiData()
+
+  macd_indicator = MovingAverageConvergenceDivergence(input_data=dataFrame)
+  dataFrame['MACD'] = macd_indicator.getTiData()[['macd'][0]]
+  dataFrame['Signal'] = macd_indicator.getTiData()[['signal_line'][0]]
+
+  bb_indicator = BollingerBands(input_data=dataFrame)
+  dataFrame['bb_up'] = bb_indicator.getTiData()[['upper_band'][0]]
+  dataFrame['bb_low'] = bb_indicator.getTiData()[['lower_band'][0]]
+
+  william_indicator = WilliamsR(input_data=dataFrame)
+  dataFrame['william'] = william_indicator.getTiData()
+
+  volume_indicator = VolumeOscillator(input_data=dataFrame)
+  dataFrame['vol'] = volume_indicator.getTiData()
+  
+  onvolume_indicator = OnBalanceVolume(input_data=dataFrame)
+  dataFrame['OnVolume'] = onvolume_indicator.getTiData()
+  
+  adl_indicator = ChandeMomentumOscillator(input_data=dataFrame)
+  dataFrame['cmo'] = adl_indicator.getTiData()[['cmo'][0]]
+
+  dpo_indicator = DetrendedPriceOscillator(input_data=dataFrame)
+  dataFrame['dpo'] = dpo_indicator.getTiData()[['dpo'][0]]
+
+  lri_indicator = LinearRegressionIndicator(input_data=dataFrame)
+  dataFrame['lri'] = lri_indicator.getTiData()[['lri'][0]]
+
+  lrs_indicator = LinearRegressionSlope(input_data=dataFrame)
+  dataFrame['lrs'] = lrs_indicator.getTiData()[['lrs'][0]]
+
+  mp_indicator = MedianPrice(input_data=dataFrame)
+  dataFrame['mp'] = mp_indicator.getTiData()[['mp'][0]]
+
+  mom_indicator = Momentum(input_data=dataFrame)
+  dataFrame['mom'] = mom_indicator.getTiData()[['mom'][0]]
+
+  prc_indicator = PriceRateOfChange(input_data=dataFrame)
+  dataFrame['prc'] = prc_indicator.getTiData()[['prc'][0]]
+
+  smi_indicator = StandardDeviation(input_data=dataFrame)
+  dataFrame['sd'] = smi_indicator.getTiData()[['sd'][0]]
+
+  smi_indicator = StochasticMomentumIndex(input_data=dataFrame)
+  dataFrame['smi'] = smi_indicator.getTiData()[['smi'][0]]
+
+  ws_indicator = WildersSmoothing(input_data=dataFrame)
+  dataFrame['ws'] = ws_indicator.getTiData()[['ws'][0]]
+
+  dmi_indicator = DirectionalMovementIndex(input_data=dataFrame)
+  dmi_data = dmi_indicator.getTiData()
+  dataFrame['+di'] = dmi_data['+di']
+  dataFrame['-di'] = dmi_data['-di']
+  dataFrame['dx'] = dmi_data['dx']
+  dataFrame['adx'] = dmi_data['adx']
+  dataFrame['adxr'] = dmi_data['adxr']
+
+  date_num = 1
+#   for index in range(0,len(dataFrame[['close'][0]])):
+#     if ((dataFrame[['close'][0]][index] == np.max(dataFrame[['close'][0]][index-date_range:index+date_range])) or (dataFrame[['close'][0]][index] == np.min(dataFrame[['close'][0]][index-date_range:index+date_range]))):
+#         result.append(1)
+#     else:
+#         result.append(0)
+
+  dataFrame['Target'] = np.where(
+    dataFrame['id']
+  ,0,1)
+
+  #for date_num in range(1,date_range):
+  max_idx = argrelextrema(dataFrame['close'].values, np.greater, order=date_num)[0];
+  min_idx = argrelextrema(dataFrame['close'].values, np.less, order=date_num)[0];
+
+  for index in range(0,len(max_idx)):
+    dataFrame[['Target'][0]].iloc[max_idx[index]] = 1
+  for index in range(0,len(min_idx)):
+    dataFrame[['Target'][0]].iloc[min_idx[index]] = -1
+
+  # Add target variable for price direction
+  #dataFrame['Target'] = np.where(dataFrame['close'].shift(-1) > dataFrame['close'], 1, 0)
+
+  dataFrame = dataFrame.iloc[::-1]
+
+  dataFrame = dataFrame.dropna()
+
+  dataFrame.to_csv(f'src/engine/swing/price_data/price_data_{address}.csv', index=False)
+
+  print(dataFrame)
+
+async def SaveAsGraph(dataFrame,address):
+    # Plot the DataFrame
+    plt.figure(figsize=(10, 5))
+    plt.plot(dataFrame['Date'], dataFrame['value'], linestyle='-')
+
+    # Add labels and title
+    plt.xlabel('Date')
+    plt.ylabel('Value')
+    plt.title('Sample DataFrame Plot')
+
+    # Save the plot as a PNG file
+    plt.savefig(f'src/engine/swing/data_png/prices_{address}.png')
+
+async def exportTestValues(address):
+#   address = "So11111111111111111111111111111111111111112"
+
+  addressType = "token"
+
+  today = datetime.now()
+  formatted_today = today.strftime("%Y-%m-%d %H:%M:%S")
+  print("Today is:",formatted_today)
+
+  timeFrom = int(time.mktime(time.strptime(starttestAt, '%Y-%m-%d %H:%M:%S')))
+  timeTo = int(time.mktime(time.strptime(formatted_today, '%Y-%m-%d %H:%M:%S')))
+
+  url = f"https://public-api.birdeye.so/defi/history_price?address={address}&address_type={addressType}&type={'1D'}&time_from={timeFrom}&time_to={timeTo}"
+  headers = {
+      "x-chain": X_CHAIN,
+      "X-API-KEY": API_KEY
+  }
+  response = requests.get(url=url, headers=headers).json()
+  inputData = response['data']['items']
+
+  index = 0
+  for item in inputData:
+    unixTime = datetime.fromtimestamp(item['unixTime'])
+    item['id'] = index
+    item['Date'] = unixTime.strftime("%Y-%m-%d")
+    item['High'] = item['value']
+    item['Low'] = item['value']
+    item['open'] = item['value']
+    item['adj close'] = item['value']
+    item['volume'] = item['value']
+    item['close'] = item['value']
+    index = index + 1
+
+  dataFrame = pd.DataFrame.from_dict(inputData, orient='columns')
+  dataFrame.index = pd.DatetimeIndex(dataFrame['unixTime'])
+
+  dataFrame = dataFrame.drop(columns=['unixTime'])
+
+  dataFrame = dataFrame.iloc[::-1]
+
+  dataFrame = dataFrame.dropna()
+
+  dataFrame.to_csv(f"src/engine/swing/test_data/test_data_{address}.csv", index=False)
+
+  # Save the DataFrame as a PNG image
+  await SaveAsGraph(dataFrame,address)
+
+async def data_extract_main(addresses):
+
+  for index in range(0, len(addresses)):
+    await exportTechnicalIndicators(addresses[index])
+    print("Test_data_Done")
+    await exportTestValues(addresses[index])
+    print("Technical_data_Done")
