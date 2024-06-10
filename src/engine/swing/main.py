@@ -27,7 +27,7 @@ async def Control():
   print("Position::",len(positions))
   for index in range(0,len(positions)):
     current_position = positions[index]
-    dataFrame = pd.read_csv('src/engine/swing/test_data/test_data.csv', parse_dates=True, index_col= 2)
+    dataFrame = pd.read_csv(f'src/engine/swing/test_data/test_data_{positions[index].token}.csv', parse_dates=True, index_col= 2)
     dataFrame = dataFrame.iloc[::-1]
 
     first_data = dataFrame.iloc[-40:]
