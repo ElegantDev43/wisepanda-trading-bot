@@ -33,3 +33,6 @@ def get_balance(address):
   else:
     error_message = response_json.get('error', {}).get('message', 'Unknown error')
     raise Exception(f'Failed to retrieve balance: {error_message}')
+
+def get_token_balance(address, token):
+  return 0

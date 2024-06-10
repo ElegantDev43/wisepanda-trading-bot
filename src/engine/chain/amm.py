@@ -1,11 +1,11 @@
-from src.engine.chain.ethereum import amm as ethereum
 from src.engine.chain.solana import amm as solana
+from src.engine.chain.ethereum import amm as ethereum
 from src.engine.chain.base import amm as base
 
 chains = [
-    ethereum,
-    solana,
-    base
+  solana,
+  ethereum,
+  base
 ]
 
 
