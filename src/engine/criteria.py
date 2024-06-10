@@ -16,5 +16,5 @@ def check(chain_index, token, criteria):
         return False
     if max_sell_tax and sell_tax > max_sell_tax:
         return False
-    
+
     return True
