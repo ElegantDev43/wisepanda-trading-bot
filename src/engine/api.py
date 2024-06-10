@@ -10,8 +10,7 @@ from src.engine import dca_order as dca_order_engine
 
 from src.engine.chain import wallet as wallet_engine
 from src.engine.chain import token as token_engine
-from src.engine.chain import amm as amm_engine
-from src.engine.chain import hot as hot_engine
+from src.engine.chain import dex as dex_engine
 
 from solders.keypair import Keypair
 import threading
@@ -86,7 +85,7 @@ def check_liveness(chat_id, token):
 def market_order(chat_id, data):
     # time.sleep(10)
     chain_index = get_current_chain_index(chat_id)
-    tx_hash = amm_engine.market_order(chain_index, data['type'], data['token'],
+    tx_hash = dex_engine.market_order(chain_index, data['type'], data['token'],
                                       data['buy_amount'], data['gas_amount'],
                                       data['slippage'], data['wallet'])
     criterias = {'slippage': data['slippage'],
@@ -102,7 +101,7 @@ def market_order(chat_id, data):
 
 def limit_order(chat_id, data):
     chain_index = get_current_chain_index(chat_id)
-    # amm_engine.market_order(chain_index, data['type'], data['token'],
+    # dex_engine.market_order(chain_index, data['type'], data['token'],
     #                       data['buy_amount'], data['gas_amount'], data['slippage'], data['wallet'])
     keypair = Keypair()
     thread_id = str(keypair)
@@ -112,7 +111,7 @@ def limit_order(chat_id, data):
                  'market_cap': data['market_cap'], 'liquidity': data['liquidity'], 'tax': data['tax']}
     database.add_limit_order(
         chat_id, thread_id, data['type'], thread_id, data['token'], data['buy_amount'], data['wallet'], criterias)
-    tx_hash = amm_engine.limit_order(chain_index, thread_id, chat_id, data['type'], data['token'],
+    tx_hash = dex_engine.limit_order(chain_index, thread_id, chat_id, data['type'], data['token'],
                                      data['buy_amount'], data['limit_token_price'],
                                      data['tax'], data['market_cap'], data['liquidity'], data['wallet'])
 
@@ -126,7 +125,7 @@ def dca_order(chat_id, data):
                  'min_dca_price': data['min_dca_price']}
     database.add_dca_order(
         chat_id, thread_id, data['type'], thread_id, data['token'], data['buy_amount'], data['wallet'], criterias)
-    tx_hash = amm_engine.dca_order(chain_index, thread_id, chat_id, data['type'], data['token'],
+    tx_hash = dex_engine.dca_order(chain_index, thread_id, chat_id, data['type'], data['token'],
                                    data['buy_amount'], data['interval'],
                                    data['duration'], data['max_dca_price'], data['min_dca_price'], data['wallet'])
 
