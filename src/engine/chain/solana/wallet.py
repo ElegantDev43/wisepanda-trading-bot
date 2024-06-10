@@ -19,9 +19,9 @@ def create_wallet():
 
 def import_wallet(private_key):
     keypair = Keypair.from_base58_string(private_key)
-    address = keypair.pubkey()
+    address = str(keypair.pubkey())
     balance = get_balance(address)
-    print(balance)
+    # print(balance)
     return address, balance
 
 

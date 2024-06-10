@@ -114,7 +114,7 @@ Your orders are:
 def handle_remove_order(bot, message):
     orders = main_api.get_dca_orders(message.chat.id)
     index = current_dca_order['index']
-    tx_hash = orders[index]['tx_hash']
+    tx_hash = orders[index]['thread_id']
     main_api.remove_dca_order(message.chat.id, tx_hash)
     bot.send_message(chat_id=message.chat.id,
                      text="Successfully cancelled order!!!")

@@ -6,12 +6,12 @@ import threading
 
 chain_gas_prices = [0.1, 0.2, 0.3]
 chain_slippages = [0.5, 3, 5]
-chain_limit_token_prices = [500, 1000, 2000]
+chain_limit_token_prices = [171, 173, 175]
 chain_market_caps = [10000, 200000, 50000]
 chain_liquidities = [10000, 200000, 50000]
 chain_taxes = [5, 10, 20]
-chain_intervals = [10, 20, 30]
-chain_durations = [5, 10, 20]
+chain_intervals = [1, 2, 3]
+chain_durations = [1, 3, 5]
 chain_dca_max_prices = [10000, 20000, 30000]
 chain_dca_min_prices = [1000, 2000, 3000]
 
@@ -191,7 +191,7 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
             text=caption, callback_data=f"select slippage {index}")
         slippages.append(button)
     slippage_title = types.InlineKeyboardButton(
-        '----- Slippage -----', callback_data='set title')
+        'Slippage:', callback_data='set title')
     if update_data['slippage'] == 0:
         caption = "X %"
     else:
@@ -199,23 +199,12 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
     slippage_x = types.InlineKeyboardButton(
         text=caption, callback_data='select slippage x')
 # limit order
-    limit_token_prices = []
-    limit_token_price_count = len(chain_limit_token_prices)
-    for index in range(limit_token_price_count):
-        if index_data['limit_token_price'] == 100:
-            caption = f'{chain_limit_token_prices[index]}'
-        else:
-            caption = f'{" 🟢" if index == index_data['limit_token_price'] else ""} {
-                chain_limit_token_prices[index]}'
-        button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"select limit token price {index}")
-        limit_token_prices.append(button)
     limit_token_price_title = types.InlineKeyboardButton(
         '----- Token Price -----', callback_data='set title')
     if update_data['limit-token-price'] == 0:
         caption = "X"
     else:
-        caption = f"🟢 {update_data['limit-token-price']}"
+        caption = f"{update_data['limit-token-price']}"
     limit_token_price_x = types.InlineKeyboardButton(
         text=caption, callback_data='select limit token price x')
 
@@ -366,18 +355,20 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
     keyboard.row(*buys[0:(buy_count // 2)])
     keyboard.row(*buys[(buy_count // 2):buy_count], buy_x)
 
+    current_chain_index = main_api.get_current_chain_index(chat_id)
+    chains = main_api.get_supported_chains()
+    current_chain = chains[current_chain_index]
     if order_name == "Market Order":
-        keyboard.row(gas_amount_title)
-        keyboard.row(*gas_amounts[0:(len(gas_amounts))], gas_amount_x)
-        keyboard.row(gas_price_title)
-        keyboard.row(*gas_prices[0:(len(gas_prices))], gas_price_x)
-        keyboard.row(slippage_title)
-        keyboard.row(*slippages[0:(len(slippages))], slippage_x)
+        if current_chain == 'ethereum':
+            keyboard.row(gas_amount_title)
+            keyboard.row(*gas_amounts[0:(len(gas_amounts))], gas_amount_x)
+            keyboard.row(gas_price_title)
+            keyboard.row(*gas_prices[0:(len(gas_prices))], gas_price_x)
+        keyboard.row(slippage_title, *
+                     slippages[0:(len(slippages))], slippage_x)
         keyboard.row(anti_mev, anti_rug)
     elif order_name == "Limit Order":
-        keyboard.row(limit_token_price_title)
-        keyboard.row(
-            *limit_token_prices[0:(len(limit_token_prices))], limit_token_price_x)
+        keyboard.row(limit_token_price_title, limit_token_price_x)
         keyboard.row(market_capital_title)
         keyboard.row(
             *market_capitals[0:(len(market_capitals))], market_capital_x)
@@ -629,7 +620,7 @@ def select_interval(bot, message, index):
     x_value_list['interval'] = 0
     index_list['interval'] = int(index)
     #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    result['interval'] = chain_liquidities[int(index)]
+    result['interval'] = chain_intervals[int(index)]
     #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     order_index = ''
    # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
@@ -650,7 +641,7 @@ def select_duration(bot, message, index):
     x_value_list['duration'] = 0
     index_list['duration'] = int(index)
     #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    result['duration'] = chain_liquidities[int(index)]
+    result['duration'] = chain_durations[int(index)]
     #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     order_index = ''
    # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
@@ -669,8 +660,8 @@ def select_max_price(bot, message, index):
     #  wallets = user.wallets[chain]
     x_value_list['dca-max-price'] = 0
     index_list['max_dca_price'] = int(index)
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    result['max_dca_price'] = chain_liquidities[int(index)]
+    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)~
+    result['max_dca_price'] = chain_dca_max_prices[int(index)]
     #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     order_index = ''
    # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
@@ -691,7 +682,7 @@ def select_min_price(bot, message, index):
     x_value_list['dca-min-price'] = 0
     index_list['min_dca_price'] = int(index)
     #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    result['min_dca_price'] = chain_liquidities[int(index)]
+    result['min_dca_price'] = chain_dca_min_prices[int(index)]
     #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     order_index = ''
    # user_model.update_user_by_id(user.id, 'wallets', user.wallets)

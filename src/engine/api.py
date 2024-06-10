@@ -13,6 +13,7 @@ from src.engine.chain import token as token_engine
 from src.engine.chain import amm as amm_engine
 from src.engine.chain import hot as hot_engine
 
+from solders.keypair import Keypair
 import threading
 import time
 chains = ['ethereum', 'solana', 'base']
@@ -59,8 +60,8 @@ def create_wallet(chat_id):
 
 def import_wallet(chat_id, private_key):
     chain_index = get_current_chain_index(chat_id)
-    address = wallet_engine.import_wallet(chain_index, private_key)
-    balance = wallet_engine.get_balance(chain_index, address)
+    address, balance = wallet_engine.import_wallet(chain_index, private_key)
+    # balance = wallet_engine.get_balance(chain_index, address)
     database.import_wallet(chat_id, chain_index, address, private_key, balance)
     return address, balance
 
@@ -103,27 +104,31 @@ def limit_order(chat_id, data):
     chain_index = get_current_chain_index(chat_id)
     # amm_engine.market_order(chain_index, data['type'], data['token'],
     #                       data['buy_amount'], data['gas_amount'], data['slippage'], data['wallet'])
-    tx_hash = amm_engine.limit_order(chain_index, data['type'], data['token'],
-                                     data['buy_amount'], data['limit_token_price'],
-                                     data['tax'], data['market_cap'], data['liquidity'], data['wallet'])
+    keypair = Keypair()
+    thread_id = str(keypair)
+    thread_type = 0
 
     criterias = {'limit_token_price': data['limit_token_price'], 'stop-loss': data['stop-loss'],
                  'market_cap': data['market_cap'], 'liquidity': data['liquidity'], 'tax': data['tax']}
     database.add_limit_order(
-        chat_id, data['type'], tx_hash, data['token'], data['buy_amount'], data['wallet'], criterias)
+        chat_id, thread_id, data['type'], thread_id, data['token'], data['buy_amount'], data['wallet'], criterias)
+    tx_hash = amm_engine.limit_order(chain_index, thread_id, chat_id, data['type'], data['token'],
+                                     data['buy_amount'], data['limit_token_price'],
+                                     data['tax'], data['market_cap'], data['liquidity'], data['wallet'])
 
 
 def dca_order(chat_id, data):
     chain_index = get_current_chain_index(chat_id)
+    keypair = Keypair()
+    thread_id = str(keypair)
     criterias = {'interval': data['interval'],
                  'duration': data['duration'], 'max_dca_price': data['max_dca_price'],
                  'min_dca_price': data['min_dca_price']}
-    tx_hash = amm_engine.dca_order(chain_index, data['type'], data['token'],
+    database.add_dca_order(
+        chat_id, thread_id, data['type'], thread_id, data['token'], data['buy_amount'], data['wallet'], criterias)
+    tx_hash = amm_engine.dca_order(chain_index, thread_id, chat_id, data['type'], data['token'],
                                    data['buy_amount'], data['interval'],
                                    data['duration'], data['max_dca_price'], data['min_dca_price'], data['wallet'])
-
-    database.add_dca_order(
-        chat_id, data['type'], tx_hash, data['token'], data['buy_amount'], data['wallet'], criterias)
 
 
 def get_pending_orders(chat_id):
@@ -155,6 +160,8 @@ def remove_dca_order(chat_id, hash):
 
 
 def update_limit_order(chat_id, data):
+    chain_index = get_current_chain_index(chat_id)
+    thread_type = 2
     criterias = {'limit_token_price': data['limit_token_price'], 'stop-loss': data['stop-loss'],
                  'market_cap': data['market_cap'], 'liquidity': data['liquidity'], 'tax': data['tax']}
     database.update_limit_order(

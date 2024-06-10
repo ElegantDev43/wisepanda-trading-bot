@@ -6,7 +6,8 @@ def add_user_by_chat_id(chat_id):
 
 
 def get_user_by_chat_id(chat_id):
-    user_model.get_by_chat_id(chat_id)
+    user = user_model.get_by_chat_id(chat_id)
+    return user
 
 
 def get_keyboards(chat_id):
@@ -156,11 +157,11 @@ def remove_position(chat_id, token):
     user = user_model.get_by_chat_id(chat_id)
 
 
-def add_limit_order(chat_id, type, tx_hash, token, amount, wallets, criteria):
+def add_limit_order(chat_id, thread_id, type, tx_hash, token, amount, wallets, criteria):
     user = user_model.get_by_chat_id(chat_id)
     length = len(user.limit_orders)
     length += 1
-    user.limit_orders.append({'id': length, 'type': type, 'tx_hash': tx_hash,
+    user.limit_orders.append({'id': length, 'thread_id': thread_id, 'type': type, 'tx_hash': tx_hash,
                               'token': token, 'buy_amount': amount,
                               'limit_token_price': criteria['limit_token_price'],
                               'stop-loss': criteria['stop-loss'],
@@ -196,7 +197,7 @@ def remove_limit_order(chat_id, tx_hash):
     user = user_model.get_by_chat_id(chat_id)
     removal_index = 0
     for index in range(len(user.limit_orders)):
-        if user.limit_orders[index]['tx_hash'] == tx_hash:
+        if user.limit_orders[index]['thread_id'] == tx_hash:
             removal_index = index
     orders = user.limit_orders.pop(removal_index)
     user_model.update_by_id(user.id, 'limit_orders', user.limit_orders)
@@ -207,11 +208,11 @@ def get_dca_orders(chat_id):
     return user.dca_orders
 
 
-def add_dca_order(chat_id, type, tx_hash, token, amount, wallets, criteria):
+def add_dca_order(chat_id, thread_id, type, tx_hash, token, amount, wallets, criteria):
     user = user_model.get_by_chat_id(chat_id)
     length = len(user.dca_orders)
     length += 1
-    user.dca_orders.append({'id': length, 'type': type, 'tx_hash': tx_hash,
+    user.dca_orders.append({'id': length, 'thread_id': thread_id, 'type': type, 'tx_hash': tx_hash,
                             'token': token, 'buy_amount': amount,
                             'interval': criteria['interval'],
                             'duration': criteria['duration'],
@@ -240,7 +241,7 @@ def remove_dca_order(chat_id, tx_hash):
     user = user_model.get_by_chat_id(chat_id)
     removal_index = 0
     for index in range(len(user.dca_orders)):
-        if user.dca_orders[index]['tx_hash'] == tx_hash:
+        if user.dca_orders[index]['thread_id'] == tx_hash:
             removal_index = index
     orders = user.dca_orders.pop(removal_index)
     user_model.update_by_id(user.id, 'dca_orders', user.dca_orders)

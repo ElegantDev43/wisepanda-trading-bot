@@ -27,6 +27,7 @@ def get_name(token):
 
 
 def check_liveness(token_address):
+
     return 0
 
 

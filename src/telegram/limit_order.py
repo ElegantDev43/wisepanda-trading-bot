@@ -3,7 +3,7 @@ from src.engine import api as main_api
 
 current_limit_order = {'index': 0}
 updat_values = {'id': 0, 'type': 0, 'tx_hash': '', 'token': "", 'buy_amount': 0, 'limit_token_price': 0,
-                'tax': 0, 'stop-loss': 0, 'market_cap': 0, 'liquidity': 0, 'wallet': 0}
+                'tax': 0, 'stop-loss': 0, 'market_cap': 0, 'liquidity': 0, 'wallet': 0, 'thread_id': ''}
 
 
 def get_keyboard(chat_id, order, order_index):
@@ -120,8 +120,8 @@ Your orders are:
 def handle_remove_order(bot, message):
     orders = main_api.get_limit_orders(message.chat.id)
     index = current_limit_order['index']
-    tx_hash = orders[index]['tx_hash']
-    main_api.remove_limit_order(message.chat.id, tx_hash)
+    thread_id = orders[index]['thread_id']
+    main_api.remove_limit_order(message.chat.id, thread_id)
     bot.send_message(chat_id=message.chat.id,
                      text="Successfully cancelled order!!!")
     handle_orders(bot, message)
@@ -148,6 +148,8 @@ def handle_input_value(bot, message, item):
     index = current_limit_order['index']
     order = orders[index]
     updat_values[item] = message.text
+    thread_id = orders[index]['thread_id']
+    updat_values['thread_id'] = thread_id
     text = f'''
 *limit Orders*
 
