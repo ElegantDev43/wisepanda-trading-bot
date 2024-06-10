@@ -6,5 +6,7 @@ from src.engine import main as engine
 from src.telegram import main as telegram
 
 database.initialize()
-engine.initialize()
+
+#engine.initialize()
+
 telegram.initialize()

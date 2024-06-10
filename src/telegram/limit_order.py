@@ -1,25 +1,20 @@
 from telebot import types
 
 from src.database import user as user_model
-# from src.engine import main as engine
 
 
-def handle_hots(bot, message):
+def handle_limit_order(bot, message):
     user = user_model.get_user_by_telegram(message.chat.id)
-    hot_tokens = ['1', '2', '3']
 
     text = f'''
-*Hot Tokens*
+*Limit Orders*
 
-The following tokens are the hotest ones on {user.chain} recently.
-Click one of them to start to buy manually.
-    '''
+You currently have {len(user.positions)} orders.
+
+Manager your orders with your necesary criteria.
+'''
 
     keyboard = types.InlineKeyboardMarkup()
-    for token in hot_tokens:
-        button = types.InlineKeyboardButton(
-            token['token0']['symbol'], callback_data=f'hot {token['token0']['id']}')
-        keyboard.row(button)
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
     keyboard.row(back)
