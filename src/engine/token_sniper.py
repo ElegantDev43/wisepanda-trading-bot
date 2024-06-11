@@ -5,23 +5,22 @@ from src.database import api as database
 from src.engine.chain import token as token_engine
 from src.engine.chain import dex as dex_engine
 
-def start(chat_id, chain_index, timestamp):
+def start(user_id, token_sniper_id):
   while True:
-    token_sniper = database.get_token_sniper(chat_id, chain_index, timestamp)
+    token_sniper = database.get_token_sniper(user_id, token_sniper_id)
     if token_sniper:
-      stage, token, amount, slippage, wallet_index, criteria, auto_sell = token_sniper
+      stage, chain, token, amount, slippage, wallet, criteria, auto_sell = token_sniper
       if stage == 'buy':
-        if token_engine.check_liveness(chain_index, token):
+        if token_engine.check_liveness(chain, token):
           max_price = criteria
-          price = token_engine.get_market_data(chain_index, token)
+          price = token_engine.get_market_data(chain, token)
           valid = price < max_price
           if valid:
-            dex_engine.swap(chain_index, 'buy', token, amount, slippage, wallet_index)
+            dex_engine.swap(chain, 'buy', token, amount, slippage, wallet)
           else:
             print('Cancel token sniper because of criteria')
-          break
       else:
-        print('Multiple Auto Sell')
+        print(auto_sell)
     else:
       break
     time.sleep(10)

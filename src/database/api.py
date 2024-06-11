@@ -22,13 +22,6 @@ def add_wallet(user_id, chain, wallet):
   user.wallets[chain].append(wallet)
   user_model.set(user_id, 'wallets', user.wallets)
 
-def get_wallet(user_id, chain, wallet_id):
-  user = get_user(user_id)
-  for wallet in user.wallets[chain]:
-    if wallet['id'] == wallet_id:
-      return wallet
-  return None
-
 def remove_wallet(user_id, chain, wallet_id):
   user = get_user(user_id)
   for index, wallet in enumerate(user.wallets[chain]):
