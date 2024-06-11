@@ -1,3 +1,4 @@
+import os
 import sys
 import pandas as pd
 import requests
@@ -262,6 +263,15 @@ async def exportTestValues(address):
   await SaveAsGraph(dataFrame,address)
 
 async def data_extract_main(addresses):
+
+  if not os.path.exists('src/engine/swing/test_data'):
+        os.makedirs('src/engine/swing/test_data')
+  if not os.path.exists('src/engine/swing/price_data'):
+        os.makedirs('src/engine/swing/price_data')
+  if not os.path.exists('src/engine/swing/model'):
+        os.makedirs('src/engine/swing/model')
+  if not os.path.exists('src/engine/swing/data_png'):
+        os.makedirs('src/engine/swing/data_png')
 
   for index in range(0, len(addresses)):
     await exportTechnicalIndicators(addresses[index])
