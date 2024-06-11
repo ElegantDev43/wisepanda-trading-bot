@@ -1,10 +1,10 @@
+import os
 import requests
 import json
 import base64
 
 from solana.rpc.api import Client
 from solana.rpc.types import TxOpts
-from solana.rpc.commitment import Processed
 
 from solders.message import to_bytes_versioned # type: ignore
 from solders.keypair import Keypair # type: ignore
@@ -26,7 +26,8 @@ def swap(type, token, amount, slippage, wallet):
   payload = {
     'inputMint': input_mint,
     'outputMint': output_mint,
-    'amount': amount
+    'amount': amount,
+    'slippageBps': int(slippage * 100)
   }
   response = requests.request("GET", url, headers=headers, params=payload)
   quote_response = response.json()
@@ -51,8 +52,9 @@ def swap(type, token, amount, slippage, wallet):
   signature = sender.sign_message(to_bytes_versioned(transaction.message))
   transaction = transaction.populate(transaction.message, [signature])
 
-  client = Client('https://api.mainnet-beta.solana.com')
-  opts = TxOpts(skip_preflight=False, preflight_commitment=Processed)
+  client = Client(os.getenv('SOLANA_RPC_URL'))
+  opts = TxOpts(skip_preflight=True, max_retries=3)
   result = client.send_raw_transaction(bytes(transaction), opts)
   transaction_id = json.loads(result.to_json())['result']
-  print('result', transaction_id)
+
+  return transaction_id

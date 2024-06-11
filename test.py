@@ -22,8 +22,8 @@ def check_wallet_engine():
   print('token_balance', token_balance)
 
 def check_token_engine():
-  name = token_engine.get_name(chain_index, token)
-  print('name', name)
+  metadata = token_engine.get_metadata(chain_index, token)
+  print('metadata', metadata)
 
   liveness = token_engine.check_liveness(chain_index, token)
   print('liveness', liveness)
@@ -44,5 +44,6 @@ def check_dex_engine():
 
 def initialize():
   # check_wallet_engine()
-  # check_token_engine()
-  check_dex_engine()
+  check_token_engine()
+  # check_dex_engine()
+  print('Test Done')
