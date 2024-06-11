@@ -5,6 +5,7 @@ import time
 import numpy as np
 from scipy.signal import argrelextrema
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import matplotlib.pyplot as plt
 import dataframe_image as dfi
 from tti.indicators import BollingerBands,SwingIndex,RelativeStrengthIndex,MovingAverage,EaseOfMovement
@@ -30,8 +31,13 @@ interval = "1H"
 async def exportTechnicalIndicators(address):
   addressType = "token"
 
+  today = datetime.now()
+  two_months_before = today - relativedelta(months=2)
+  two_months_before = two_months_before.strftime("%Y-%m-%d %H:%M:%S")
+
   timeFrom = int(time.mktime(time.strptime(startAt, '%Y-%m-%d %H:%M:%S')))
-  timeTo = int(time.mktime(time.strptime(endAt, '%Y-%m-%d %H:%M:%S')))
+#  timeTo = int(time.mktime(time.strptime(endAt, '%Y-%m-%d %H:%M:%S')))
+  timeTo = int(time.mktime(time.strptime(two_months_before, '%Y-%m-%d %H:%M:%S')))
 
   print(timeFrom, timeTo,address)
 
@@ -42,6 +48,9 @@ async def exportTechnicalIndicators(address):
   }
   response = requests.get(url=url, headers=headers).json()
   inputData = response['data']['items']
+
+  if inputData == [] or len(inputData) < 1000:
+      return
 
   index = 0
   for item in inputData:
@@ -155,25 +164,26 @@ async def exportTechnicalIndicators(address):
   dataFrame['adx'] = dmi_data['adx']
   dataFrame['adxr'] = dmi_data['adxr']
 
-  date_num = 1
+  date_range = [2,5,10]
 #   for index in range(0,len(dataFrame[['close'][0]])):
 #     if ((dataFrame[['close'][0]][index] == np.max(dataFrame[['close'][0]][index-date_range:index+date_range])) or (dataFrame[['close'][0]][index] == np.min(dataFrame[['close'][0]][index-date_range:index+date_range]))):
 #         result.append(1)
 #     else:
 #         result.append(0)
 
-  dataFrame['Target'] = np.where(
-    dataFrame['id']
-  ,0,1)
 
-  #for date_num in range(1,date_range):
-  max_idx = argrelextrema(dataFrame['close'].values, np.greater, order=date_num)[0];
-  min_idx = argrelextrema(dataFrame['close'].values, np.less, order=date_num)[0];
+  for date_num in range(0,len(date_range)):
+    dataFrame[f'Target_{date_range[date_num]}'] = np.where(
+        dataFrame['id']
+    ,0,1)
 
-  for index in range(0,len(max_idx)):
-    dataFrame[['Target'][0]].iloc[max_idx[index]] = 1
-  for index in range(0,len(min_idx)):
-    dataFrame[['Target'][0]].iloc[min_idx[index]] = -1
+    max_idx = argrelextrema(dataFrame['close'].values, np.greater, order=date_range[date_num])[0];
+    min_idx = argrelextrema(dataFrame['close'].values, np.less, order=date_range[date_num])[0];
+
+    for index in range(0,len(max_idx)):
+        dataFrame[[f'Target_{date_range[date_num]}'][0]].iloc[max_idx[index]] = 1
+    for index in range(0,len(min_idx)):
+        dataFrame[[f'Target_{date_range[date_num]}'][0]].iloc[min_idx[index]] = -1
 
   # Add target variable for price direction
   #dataFrame['Target'] = np.where(dataFrame['close'].shift(-1) > dataFrame['close'], 1, 0)
@@ -206,9 +216,11 @@ async def exportTestValues(address):
 
   today = datetime.now()
   formatted_today = today.strftime("%Y-%m-%d %H:%M:%S")
+  two_months_before = today - relativedelta(months=2)
+  two_months_before = two_months_before.strftime("%Y-%m-%d %H:%M:%S")
   print("Today is:",formatted_today)
 
-  timeFrom = int(time.mktime(time.strptime(starttestAt, '%Y-%m-%d %H:%M:%S')))
+  timeFrom = int(time.mktime(time.strptime(two_months_before, '%Y-%m-%d %H:%M:%S')))
   timeTo = int(time.mktime(time.strptime(formatted_today, '%Y-%m-%d %H:%M:%S')))
 
   url = f"https://public-api.birdeye.so/defi/history_price?address={address}&address_type={addressType}&type={'1D'}&time_from={timeFrom}&time_to={timeTo}"
@@ -231,6 +243,9 @@ async def exportTestValues(address):
     item['volume'] = item['value']
     item['close'] = item['value']
     index = index + 1
+
+  if inputData == []:
+      return
 
   dataFrame = pd.DataFrame.from_dict(inputData, orient='columns')
   dataFrame.index = pd.DatetimeIndex(dataFrame['unixTime'])

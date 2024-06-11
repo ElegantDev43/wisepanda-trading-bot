@@ -1,21 +1,29 @@
 from telebot import types
 
-# from src.database import user as user_model
+from src.database import Htokens as HTokens_model
 
 def handle_start(bot, message):
-    # user_model.create_user_by_telegram(message.chat.id)
+    limit = 2
+    sh_bul_tokens,sh_bea_tokens,me_bul_tokens,me_bea_tokens,lo_bul_tokens,lo_bea_tokens = HTokens_model.get_hot_tokens(limit)
 
-    hot_bearish_tokens = ['A','B','C','D','E','F']
-    hot_bullish_tokens = ['G','H','I','J','K','L']
+    # hot_bearish_tokens = ['A','B','C','D','E','F']
+    # hot_bullish_tokens = ['G','H','I','J','K','L']
     bearish_buttons = []
     bullish_buttons = []
 
-    token_count = len(hot_bearish_tokens)
-
+    token_count = len(sh_bul_tokens)
 
     for index in range(token_count):
-        bearish_buttons.append(types.InlineKeyboardButton(hot_bearish_tokens[index], callback_data=f'auto - bearish token {index}'))
-        bullish_buttons.append(types.InlineKeyboardButton(hot_bullish_tokens[index], callback_data=f'auto - bullish token {index}'))
+        bearish_buttons.append(types.InlineKeyboardButton(sh_bea_tokens[index].name, callback_data=f'auto_token_{sh_bea_tokens[index].address}'))
+        bullish_buttons.append(types.InlineKeyboardButton(sh_bul_tokens[index].name, callback_data=f'auto_token_{sh_bul_tokens[index].address}'))
+
+    for index in range(token_count):
+        bearish_buttons.append(types.InlineKeyboardButton(me_bea_tokens[index].name, callback_data=f'auto_token_{me_bea_tokens[index].address}'))
+        bullish_buttons.append(types.InlineKeyboardButton(me_bul_tokens[index].name, callback_data=f'auto_token_{me_bul_tokens[index].address}'))
+
+    for index in range(token_count):
+        bearish_buttons.append(types.InlineKeyboardButton(lo_bea_tokens[index].name, callback_data=f'auto_token_{lo_bea_tokens[index].address}'))
+        bullish_buttons.append(types.InlineKeyboardButton(lo_bul_tokens[index].name, callback_data=f'auto_token_{lo_bul_tokens[index].address}'))
 
     text = '''
 *Welcome to Swing Trading!*
