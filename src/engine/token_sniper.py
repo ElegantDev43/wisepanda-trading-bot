@@ -9,7 +9,7 @@ def start(chat_id, chain_index, timestamp):
   while True:
     token_sniper = database.get_token_sniper(chat_id, chain_index, timestamp)
     if token_sniper:
-      stage, token, amount, slippage, wallet_index, criteria = token_sniper
+      stage, token, amount, slippage, wallet_index, criteria, auto_sell = token_sniper
       if stage == 'buy':
         if token_engine.check_liveness(chain_index, token):
           max_price = criteria
@@ -20,6 +20,8 @@ def start(chat_id, chain_index, timestamp):
           else:
             print('Cancel token sniper because of criteria')
           break
+      else:
+        print('Multiple Auto Sell')
     else:
       break
     time.sleep(10)

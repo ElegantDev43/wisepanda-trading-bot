@@ -29,7 +29,6 @@ def get_metadata(token):
     'decimals': decimals
   }
 
-
 def check_liveness(token):
   url = 'https://quote-api.jup.ag/v6/quote'
   params = {

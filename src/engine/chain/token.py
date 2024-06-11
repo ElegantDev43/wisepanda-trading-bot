@@ -2,17 +2,17 @@ from src.engine.chain.solana import token as solana
 from src.engine.chain.ethereum import token as ethereum
 from src.engine.chain.base import token as base
 
-chains = [
+engines = [
   solana,
   ethereum,
   base
 ]
 
-def get_metadata(chain_index, token):
-  return chains[chain_index].get_metadata(token)
+def get_metadata(chain, token):
+  return engines[chain].get_metadata(token)
 
-def check_liveness(chain_index, token):
-  return chains[chain_index].check_liveness(token)
+def check_liveness(chain, token):
+  return engines[chain].check_liveness(token)
 
-def get_market_data(chain_index, token):
-  return chains[chain_index].get_market_data(token)
+def get_market_data(chain, token):
+  return engines[chain].get_market_data(token)
