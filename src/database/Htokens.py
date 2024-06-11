@@ -1,6 +1,7 @@
 import os
 from sqlalchemy import create_engine, Column, Integer, BigInteger, String, JSON
 from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.sql.expression import func
 
 
 engine = create_engine(os.getenv('DATABASE_URL'))
@@ -26,27 +27,27 @@ def get_hot_tokens(limit):
     session = Session()
     sh_bul_tokens = session.query(HTokens).filter(HTokens.short_signal == 1).limit(limit).all()
     if len(sh_bul_tokens) < limit:
-        sh_bul_tokens = session.query(HTokens).filter(HTokens.short_signal == 0).limit(limit).all()
+        sh_bul_tokens = session.query(HTokens).filter(HTokens.short_signal == 0).order_by(func.random()).limit(limit).all()
 
     sh_bea_tokens = session.query(HTokens).filter(HTokens.short_signal == -1).limit(limit).all()
     if len(sh_bea_tokens) < limit:
-        sh_bea_tokens = session.query(HTokens).filter(HTokens.short_signal == 0).limit(limit).all()
+        sh_bea_tokens = session.query(HTokens).filter(HTokens.short_signal == 0).order_by(func.random()).limit(limit).all()
 
     me_bul_tokens = session.query(HTokens).filter(HTokens.medium_signal == 1).limit(limit).all()
     if len(me_bul_tokens) < limit:
-        me_bul_tokens = session.query(HTokens).filter(HTokens.medium_signal == 0).limit(limit).all()
+        me_bul_tokens = session.query(HTokens).filter(HTokens.medium_signal == 0).order_by(func.random()).limit(limit).all()
 
     me_bea_tokens = session.query(HTokens).filter(HTokens.medium_signal == -1).limit(limit).all()
     if len(me_bea_tokens) < limit:
-        me_bea_tokens = session.query(HTokens).filter(HTokens.medium_signal == 0).limit(limit).all()
+        me_bea_tokens = session.query(HTokens).filter(HTokens.medium_signal == 0).order_by(func.random()).limit(limit).all()
 
     lo_bul_tokens = session.query(HTokens).filter(HTokens.long_signal == 1).limit(limit).all()
     if len(lo_bul_tokens) < limit:
-        lo_bul_tokens = session.query(HTokens).filter(HTokens.long_signal == 0).limit(limit).all()
+        lo_bul_tokens = session.query(HTokens).filter(HTokens.long_signal == 0).order_by(func.random()).limit(limit).all()
 
     lo_bea_tokens = session.query(HTokens).filter(HTokens.long_signal == -1).limit(limit).all()
     if len(lo_bea_tokens) < limit:
-        lo_bea_tokens = session.query(HTokens).filter(HTokens.long_signal == 0).limit(limit).all()
+        lo_bea_tokens = session.query(HTokens).filter(HTokens.long_signal == 0).order_by(func.random()).limit(limit).all()
 
     session.close()
     return sh_bul_tokens,sh_bea_tokens,me_bul_tokens,me_bea_tokens,lo_bul_tokens,lo_bea_tokens

@@ -1,7 +1,9 @@
+import os
 from telebot import types
 
 #from src.database import user as user_model
 #from src.engine import main as engine
+from src.engine.swing.data_extract import exportTestValues
 from src.database import swing as swing_model
 from src.database import user as user_model
 from src.telegram.start import handle_start
@@ -13,6 +15,7 @@ default_duration = 14
 default_amount = 0.1
 default_buy_index = 0
 default_wallet_index = 0
+default_token_address = ''
 
 def handle_token_selection(bot, message):
     #user_model.create_user_by_telegram(message.chat.id)
@@ -50,7 +53,7 @@ def get_keyboard(message,wallet_index , buy_index , buyer_amount,trade_duration)
 
     btn_wallets = []
     for index in range(wallet_count):
-        btn_wallets.append(types.InlineKeyboardButton(f'{"🟢 " if wallet_index == index else ""} W{index}', callback_data=f'auto_wallet {index}'))
+        btn_wallets.append(types.InlineKeyboardButton(f'{"🟢 " if wallet_index == index else ""} W{index + 1}', callback_data=f'auto_wallet {index}'))
 
     buy = types.InlineKeyboardButton('▶️  Start', callback_data='auto_start')
     period = types.InlineKeyboardButton(f'🕒️ Durations ({trade_duration})', callback_data='auto_period')
@@ -73,8 +76,12 @@ def get_keyboard(message,wallet_index , buy_index , buyer_amount,trade_duration)
 def handle_autoorder(bot, message, address):
 
     # user_model.create_user_by_telegram(message.chat.id)
-    global default_duration,default_amount,default_buy_index,default_wallet_index
-    image_path = 'src/engine/swing/SMA.png'  # Local image file path
+    global default_duration,default_amount,default_buy_index,default_wallet_index,default_token_address
+    if os.path.exists(f'src/engine/swing/data_png/prices_{address}.png') != True:
+        exportTestValues(address)
+
+    image_path = f'src/engine/swing/data_png/prices_{address}.png'  # Local image file path
+    default_token_address = address
 
     user = user_model.get_user_by_telegram(message.chat.id)
     chain = user.chain
@@ -83,12 +90,12 @@ def handle_autoorder(bot, message, address):
     for index in range(0,len(wallets)):
         if index > 0:
             walletinfo += '|'
-        walletinfo += f'W{index}: {wallets[index]['balance']:.3f}Ξ'
+        walletinfo += f'W{index + 1}: {wallets[index]['balance']:.3f}Ξ'
 
 #    token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
     token = address
 
-    chain = 'ethereum'
+#    chain = 'ethereum'
 
     name = "elo"
 
@@ -165,8 +172,14 @@ def handle_input_duration_x(bot, message,prev_message,new_message):
 
 
 def handle_autostart(bot, message):
-  swing_model.add_by_user_id(1,'solana','0x0EDc58C57Fc5e7D441484bffb5750eA4dFacBa8C',
-                             default_duration,default_amount,'0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7')
+  global default_token_address
+
+  user = user_model.get_user_by_telegram(message.chat.id)
+  chain = user.chain
+  wallets = user.wallets[chain]
+
+  swing_model.add_by_user_id(1,'solana',wallets[default_wallet_index]['address'],
+                             default_duration,default_amount,default_token_address)
 
   bot.delete_message(chat_id = message.chat.id, message_id = message.message_id, timeout = 0 )
   handle_start(bot, message)

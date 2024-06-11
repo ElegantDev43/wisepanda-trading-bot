@@ -50,13 +50,13 @@ def handle_token_tradehistory(bot, message,swing_token):
     text = f'''
 *📊️ Trade History*
 
-Total Trades: {position.total_count}
+Total Trades: {position.sell_count + position.buy_count + position.stop_count}
 Total Winning Trades: {position.sell_count}
 Total Lost Trades: {position.stop_count}
-Total Pips Won: 1902
-Total P/L: $469
-Total Pips Loss: 113
-Average Returns: 344%
+Total Pips Won: {position.total_profit}
+Total P/L: $ {position.total_profit - position.total_loss}
+Total Pips Loss: {position.total_loss}
+Average Returns: {position.amount / position.original_amount * 100}%
 Winning Rates: {winrate}%
 
 💬 [Visit our Official Chat](https://t.me/wisepandaofficial)
@@ -97,6 +97,7 @@ def handle_check_stop_trading(bot, message,swing_token):
 
 
 def handle_remove_swing_token(bot, message,swing_token):
+    print(swing_token)
     swing_model.remove_by_swing_id(swing_token)
 
     bot.delete_message(chat_id = message.chat.id, message_id = message.message_id, timeout = 0 )

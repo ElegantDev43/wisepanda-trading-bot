@@ -24,6 +24,9 @@ class Swing(Base):
     sell_count = Column(Integer)
     stop_count = Column(Integer)
     total_count = Column(Integer)
+    total_profit = Column(Float)
+    total_loss = Column(Float)
+    original_amount = Column(Float)
 
 
 def initialize():
@@ -63,13 +66,16 @@ def add_by_user_id(user_id, chain,wallet,durations,amount,token):
       buy_count = 0,
       sell_count = 0,
       stop_count = 0,
-      total_count = 0
+      total_count = 0,
+      total_profit = 0,
+      total_loss = 0,
+      original_amount = amount
     )
     session.add(newposition)
     session.commit()
     session.close()
 
-def update_by_user_id(id,amount,original_price,original_state,buy_count,sell_count,stop_count,total_count):
+def update_by_user_id(id,amount,original_price,original_state,buy_count,sell_count,stop_count,total_count,total_profit,total_loss):
     session = Session()
     position = session.query(Swing).filter(Swing.id == id).first()
     print("Amounts::",amount,original_price)
@@ -81,6 +87,8 @@ def update_by_user_id(id,amount,original_price,original_state,buy_count,sell_cou
     position.stop_count = stop_count
     position.total_count = total_count
     position.date_current = position.date_current + 1
+    position.total_profit += total_profit
+    position.total_loss += total_loss
     session.commit()
     session.close()
 

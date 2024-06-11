@@ -5,6 +5,8 @@ import asyncio
 async def updateData():
     while True:
         await Control()
+    # await Control()
+
 
 def run_update_data_in_thread():
     loop = asyncio.new_event_loop()

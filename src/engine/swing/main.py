@@ -75,7 +75,7 @@ async def Control():
     dataFrame = dataFrame.iloc[::-1]
 
     first_data = dataFrame.iloc[-40:]
-    amount,original_price,original_state,buy_count,sell_count,stop_count,total_count = await OrderSystem(
+    amount,original_price,original_state,buy_count,sell_count,stop_count,total_count ,trend, total_profit, total_loss = await OrderSystem(
                 current_position.token,
                 first_data,current_position.amount,current_position.original_price,
                 current_position.original_state,current_position.buy_count,current_position.sell_count,
@@ -87,5 +87,7 @@ async def Control():
                                   buy_count=buy_count,
                                   sell_count=sell_count,
                                   stop_count=stop_count,
-                                  total_count=total_count)
+                                  total_count=total_count,
+                                  total_profit=total_profit,
+                                  total_loss=total_loss)
 

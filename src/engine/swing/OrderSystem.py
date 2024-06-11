@@ -179,7 +179,9 @@ def checkTrend(prices,predict_model):
   print(y_result)
   return y_result[0]
 
-async def OrderSystem(token,prices,amount,origianl_price,original_state,buy_count,sell_count,stop_count,total_count,period):
+async def OrderSystem(token,prices,amount,original_price,original_state,buy_count,sell_count,stop_count,total_count,period):
+  profit = 0
+  loss = 0
   print("Hello-Order")
 
   if os.path.exists(f'src/engine/swing/model/model_{token}_{period}.pkl') != True:
@@ -188,32 +190,41 @@ async def OrderSystem(token,prices,amount,origianl_price,original_state,buy_coun
     predict_model = pickle.load(open(f'src/engine/swing/model/model_{token}_{period}.pkl', 'rb'))
 
   if len(prices) < 40:
-      return amount,origianl_price,original_state,buy_count,sell_count,stop_count,total_count
+      return amount,original_price,original_state,buy_count,sell_count,stop_count,total_count,0,profit,loss
 
   trend = checkTrend(prices,predict_model)
 
   print("Mine",prices[['close'][0]][39])
 
-  current_price = prices[['close'][0]][39]
-  divergence = prices[['close'][0]][39] - prices[['close'][0]][38]
+  current_price = prices[['close'][0]].iloc[39]
+  divergence = prices[['close'][0]].iloc[39] - prices[['close'][0]].iloc[38]
 
-  if trend == 1:
+  if trend == 1 or trend == -1:
       total_count = total_count + 1
 
-  if trend == 1 and divergence > 0 and original_state == 'buy' and current_price > origianl_price:
+  if trend == -1 and original_state == 'buy' and current_price > original_price:
       original_state = 'sell'
-      amount = amount * (current_price / origianl_price)
-      origianl_price = 0
+      profit = amount * (current_price / original_price - 1)
+      amount = amount * (current_price / original_price)
+      original_price = 0
       sell_count = sell_count + 1
-  elif trend == 1 and divergence < 0 and original_state == 'sell':
+
+      #amount = amount * 99/100
+  elif trend == 1 and original_state == 'sell':
       original_state = 'buy'
-      origianl_price = current_price
+      original_price = current_price
       buy_count = buy_count + 1
 
-  if current_price < (origianl_price * 95 / 100) and origianl_price == 'buy':
-      amount = amount *  (current_price / origianl_price)
+      #amount = amount * 99/100
+
+  print('SEE',original_price, current_price)
+  if current_price < (original_price * 95 / 100):
+      loss = amount * (current_price / original_price - 1)
+      amount = amount *  (current_price / original_price)
       original_state = 'sell'
-      origianl_price = 0
+      original_price = 0
       stop_count = stop_count + 1
 
-  return amount,origianl_price,original_state,buy_count,sell_count,stop_count,total_count
+      #amount = amount * 99/100
+
+  return amount,original_price,original_state,buy_count,sell_count,stop_count,total_count,trend , profit, loss

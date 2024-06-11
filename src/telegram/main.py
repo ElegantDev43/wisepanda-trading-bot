@@ -152,7 +152,7 @@ def handle_callback_query(call):
    # elif call.data in config.SELL_AMOUNT:
    #     keyboards.handle_select_sell_amount(bot, call.message, call.data)
    # elif call.data == 'remove_wallet':
-        wallets.handle_remove_wallet(bot, call.message)
+        # wallets.handle_remove_wallet(bot, call.message)
 
     elif call.data == 'seller':
         seller.handle_seller(bot, call.message)
