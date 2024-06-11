@@ -28,14 +28,13 @@ def get_by_chat_id(chat_id):
 
 def add_by_chat_id(chat_id):
 	session = Session()
-	wallets = [[], [], []]
 	user = User(
 		chat_id=chat_id,
 		current_chain_index=0,
-		wallets=wallets,
-		token_snipers=[],
-		limit_orders=[],
-		dca_orders=[],
+		wallets=[[], [], []],
+		token_snipers=[[], [], []],
+		limit_orders=[[], [], []],
+		dca_orders=[[], [], []],
 	)
 	session.add(user)
 	session.commit()
