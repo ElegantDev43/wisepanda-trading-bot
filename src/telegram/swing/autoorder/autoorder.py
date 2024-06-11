@@ -20,11 +20,18 @@ def handle_token_selection(bot, message):
     text = '''
 *Auto Sniper*
 Paste in a token address below to setup auto sniper for new launching token.
-e.g. 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
+e.g. 5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm
     '''
 
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
-    bot.register_next_step_handler_by_chat_id(chat_id=message.chat.id, callback=lambda next_message: handle_autoorder(bot, next_message))
+    new_message = bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
+    bot.register_next_step_handler_by_chat_id(chat_id=message.chat.id, callback=lambda next_message: handle_input_address_x(bot, next_message,message,new_message))
+
+def handle_input_address_x(bot, message,prev_message,new_message):
+    address = message.text
+    bot.delete_message(chat_id = message.chat.id, message_id = message.message_id, timeout = 0 )
+    bot.delete_message(chat_id = message.chat.id, message_id = new_message.message_id, timeout = 0 )
+    handle_autoorder(bot, prev_message,address)
+
 
 def get_keyboard(message,wallet_index , buy_index , buyer_amount,trade_duration):
     user = user_model.get_user_by_telegram(message.chat.id)
@@ -63,7 +70,7 @@ def get_keyboard(message,wallet_index , buy_index , buyer_amount,trade_duration)
     return keyboard
 
 
-def handle_autoorder(bot, message):
+def handle_autoorder(bot, message, address):
 
     # user_model.create_user_by_telegram(message.chat.id)
     global default_duration,default_amount,default_buy_index,default_wallet_index
@@ -78,7 +85,8 @@ def handle_autoorder(bot, message):
             walletinfo += '|'
         walletinfo += f'W{index}: {wallets[index]['balance']:.3f}Ξ'
 
-    token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
+#    token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
+    token = address
 
     chain = 'ethereum'
 

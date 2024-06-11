@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 
@@ -18,6 +19,9 @@ from sklearn.metrics import accuracy_score, classification_report
 
 
 def checkTrend(prices,predict_model):
+
+  if len(prices) < 40:
+      return 0
 
   ind_swing = 0
   swing_indicator = SwingIndex(input_data=prices)
@@ -175,10 +179,16 @@ def checkTrend(prices,predict_model):
   print(y_result)
   return y_result[0]
 
-async def OrderSystem(token,prices,amount,origianl_price,original_state,buy_count,sell_count,stop_count,total_count):
+async def OrderSystem(token,prices,amount,origianl_price,original_state,buy_count,sell_count,stop_count,total_count,period):
   print("Hello-Order")
 
-  predict_model = pickle.load(open(f'src/engine/swing/model/model_{token}.pkl', 'rb'))
+  if os.path.exists(f'src/engine/swing/model/model_{token}_{period}.pkl') != True:
+    predict_model = pickle.load(open(f'src/engine/swing/model/model_{period}.pkl', 'rb'))
+  else:
+    predict_model = pickle.load(open(f'src/engine/swing/model/model_{token}_{period}.pkl', 'rb'))
+
+  if len(prices) < 40:
+      return amount,origianl_price,original_state,buy_count,sell_count,stop_count,total_count
 
   trend = checkTrend(prices,predict_model)
 

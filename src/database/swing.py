@@ -90,3 +90,15 @@ def remove_by_swing_id(id):
     session.delete(position)
     session.commit()
     session.close()
+
+def get_all_tokens():
+    session = Session()
+    positions = session.query(Swing).all()
+    tokens = []
+    for position in positions:
+        if position.token in tokens:
+            continue
+        else:
+            tokens.append(position.token)
+    session.close()
+    return tokens

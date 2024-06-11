@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 
@@ -9,7 +10,7 @@ import pickle
 
 from sklearn.metrics import accuracy_score, classification_report
 
-async def study_model(token):
+async def prepare_model(token,period):
   # Define parameter grid
   param_grid = {
       'n_estimators': [50, 100, 200, 300],
@@ -17,8 +18,14 @@ async def study_model(token):
       'max_depth': [3, 4, 5, 6]
   }
 
+  if os.path.exists(f'src/engine/swing/price_data/price_data_{token}.csv') != True:
+    return
+
   dataFrame = pd.read_csv(f'src/engine/swing/price_data/price_data_{token}.csv', parse_dates=True, index_col= 2)
   dataFrame = dataFrame.iloc[::-1]
+
+  if dataFrame.empty:
+    return
 
   features = [
             'swing', 'rsi', 'sma_5','sma_10','sma_20','sma_40',
@@ -28,7 +35,12 @@ async def study_model(token):
             ]
 
   X = dataFrame[features]
-  Y = dataFrame['Target']
+  if period == 'short':
+    Y = dataFrame['Target_2']
+  elif period == 'medium':
+    Y = dataFrame['Target_5']
+  elif period == 'long':
+    Y = dataFrame['Target_10']
   print(X)
 
   # Split data into training and test sets
@@ -43,7 +55,10 @@ async def study_model(token):
   model = GradientBoostingClassifier(n_estimators=100, random_state=42)
   model.fit(X_train_scaled, y_train)
 
-  with open(f'src/engine/swing/model/model_{token}.pkl', 'wb') as f:
+  with open(f'src/engine/swing/model/model_{token}_{period}.pkl', 'wb') as f:
+      pickle.dump(model, f)
+
+  with open(f'src/engine/swing/model/model_{period}.pkl', 'wb') as f:
       pickle.dump(model, f)
 
   # Predict on test set
@@ -53,3 +68,9 @@ async def study_model(token):
   # Evaluate the model
   print("Accuracy:", accuracy_score(y_test, y_pred))
   print(classification_report(y_test, y_pred))
+
+
+async def study_model(token):
+    await prepare_model(token,'short')
+    await prepare_model(token,'medium')
+    await prepare_model(token,'long')
