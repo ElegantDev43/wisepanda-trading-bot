@@ -116,17 +116,14 @@ def handle_callback_query(call):
         swing.handle_start(bot, call.message)
     elif call.data == 'select_token':
         autoorder.handle_token_selection(bot, call.message)
-    # elif call.data.startswith('auto -'):
-    #     autoorder.handle_autoorder(bot, call.message)
+    elif call.data.startswith('auto -'):
+        autoorder.handle_autoorder(bot, call.message)
     elif call.data.startswith('auto_buy'):
         index = int(call.data[8:])
         if index < 4:
             autoorder.handle_toggle(bot, call.message,'toggle_buy',0, index, 0, 0)
         elif index == 4:
             autoorder.handle_buy_x(bot,call.message)
-    elif call.data.startswith('auto_token_'):
-        address = call.data[11:]
-        autoorder.handle_autoorder(bot, call.message, address)
     elif call.data.startswith('auto_wallet'):
         index = int(call.data[12:])
         autoorder.handle_toggle(bot, call.message,'toggle_wallet', index, 0, 0, 0)
