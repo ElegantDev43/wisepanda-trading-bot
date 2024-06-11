@@ -31,7 +31,7 @@ def check_token_engine():
   if not liveness:
     return
 
-  information = token_engine.get_information(chain_index, token)
+  information = token_engine.get_market_data(chain_index, token)
   print('information', information)
 
 def check_dex_engine():

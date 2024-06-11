@@ -102,7 +102,7 @@ def check_liveness(token):
         return False
 
 
-def get_information(token):
+def get_market_data(token):
     url = f'https://api.coingecko.com/api/v3/coins/ethereum?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false'
     response = requests.get(url)
     address = "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc"

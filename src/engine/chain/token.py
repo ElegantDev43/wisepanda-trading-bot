@@ -14,5 +14,5 @@ def get_metadata(chain_index, token):
 def check_liveness(chain_index, token):
   return chains[chain_index].check_liveness(token)
 
-def get_information(chain_index, token):
-  return chains[chain_index].get_information(token)
+def get_market_data(chain_index, token):
+  return chains[chain_index].get_market_data(token)

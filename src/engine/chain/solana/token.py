@@ -48,7 +48,7 @@ def check_liveness(token):
   except Exception as e:
     print("Error fetching quote:", e)
 
-def get_information(token):
+def get_market_data(token):
   price = get_token_price(token)
   return {'price': price}
 

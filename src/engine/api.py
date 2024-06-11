@@ -70,9 +70,9 @@ def remove_wallet(chat_id, wallet_index):
     database.remove_wallet(chat_id, chain_index, wallet_index)
 
 
-def get_information(chat_id, token):
+def get_market_data(chat_id, token):
     chain_index = get_current_chain_index(chat_id)
-    data = token_engine.get_information(chain_index, token)
+    data = token_engine.get_market_data(chain_index, token)
     return data
 
 

@@ -1,9 +1,7 @@
 import requests
 import os
 import json
-from solana.rpc.api import Client
 from solders.keypair import Keypair # type: ignore
-from solders.pubkey import Pubkey # type: ignore
 
 def create_wallet():
   keypair = Keypair()
@@ -28,8 +26,7 @@ def get_balance(address):
   response_json = response.json()
   if 'result' in response_json:
     lamports = response_json['result']['value']
-    sol = lamports / 1_000_000_000
-    return sol
+    return lamports
   else:
     error_message = response_json.get('error', {}).get('message', 'Unknown error')
     raise Exception(f'Failed to retrieve balance: {error_message}')
