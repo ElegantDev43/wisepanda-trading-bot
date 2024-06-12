@@ -20,8 +20,8 @@ Select an option below to configure:
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     keyboard.row(chains)
     keyboard.row(wallets)
-    keyboard.row(criterias)
-    keyboard.row(keyboards)
+    # keyboard.row(criterias)
+    # keyboard.row(keyboards)
     keyboard.row(auto_orders)
     keyboard.row(back)
 

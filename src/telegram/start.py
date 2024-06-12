@@ -3,7 +3,9 @@ from src.engine import api as main_api
 
 
 def handle_start(bot, message):
-    main_api.add_user_by_chat_id(message.chat.id)
+    if not main_api.get_user(message.chat.id):
+      main_api.add_user(message.chat.id)
+    
     text = '''
 *Welcome to the Panda Bot!*
 

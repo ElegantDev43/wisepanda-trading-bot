@@ -14,17 +14,20 @@ explorers = {
 
 def handle_wallets(bot, message):
    # user = user_model.get_user_by_telegram(message.chat.id)
-    current_chain_index = main_api.get_current_chain_index(message.chat.id)
+    current_chain_index = main_api.get_chain(message.chat.id)
     wallets = main_api.get_wallets(message.chat.id)
 
-    chains = main_api.get_supported_chains()
+    chains = main_api.get_chains()
     current_chain = chains[current_chain_index]
+    
+    for index in range(len(wallets)):
+      wallets[index]['balance'] = main_api.get_wallet_balance(message.chat.id, wallets[index]['address'])
 
     wallet_count = len(wallets)
     text = f'''
 *Settings > Wallets (🔗 {current_chain})*
 
-You can use up to 4 multiple wallets.
+You can use up to 100 multiple wallets.
 
 Your currently added {wallet_count} wallets:
 '''
@@ -50,8 +53,8 @@ Your currently added {wallet_count} wallets:
 
 def handle_create_wallet(bot, message):
     # user = user_model.get_user_by_telegram(message.chat.id)
-    chains = main_api.get_supported_chains()
-    current_chain_index = main_api.get_current_chain_index(message.chat.id)
+    chains = main_api.get_chains()
+    current_chain_index = main_api.get_chain(message.chat.id)
 
     wallets = main_api.get_wallets(message.chat.id)
     if len(wallets) == 5:
@@ -74,8 +77,8 @@ Private Key: {private_key}
 def handle_import_wallet(bot, message):
    # user = user_model.get_user_by_telegram(message.chat.id)
     # chain = user.chain
-    chains = main_api.get_supported_chains()
-    current_chain_index = main_api.get_current_chain_index(message.chat.id)
+    chains = main_api.get_chains()
+    current_chain_index = main_api.get_chain(message.chat.id)
     wallets = main_api.get_wallets(message.chat.id)
     if len(wallets) == 5:
         bot.send_message(chat_id=message.chat.id,
@@ -89,8 +92,8 @@ def handle_import_wallet(bot, message):
 
 def handle_remove_wallet(bot, message):
     # user = user_model.get_user_by_telegram(message.chat.id)
-    chains = main_api.get_supported_chains()
-    current_chain_index = main_api.get_current_chain_index(message.chat.id)
+    chains = main_api.get_chains()
+    current_chain_index = main_api.get_chain(message.chat.id)
     wallets = main_api.get_wallets(message.chat.id)
     text = f'''
 *Settings > Wallets (🔗 {chains[current_chain_index]})*
@@ -100,13 +103,16 @@ Select a wallet to remove.
 Your currently added {len(wallets)} wallets:
 '''
 
+    for index in range(len(wallets)):
+      wallets[index]['balance'] = main_api.get_wallet_balance(message.chat.id, wallets[index]['address'])
+
     keyboard = types.InlineKeyboardMarkup()
     buttons = []
     for index in range(len(wallets)):
         caption = f'''⭕ Address : {wallets[index]['address']
                                    },  Balance : {wallets[index]['balance']}'''
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f'''select_remove_wallet {index}''')
+            text=caption, callback_data=f'''select_remove_wallet {wallets[index]['id']}''')
         buttons.append(button)
     back = types.InlineKeyboardButton('🔙 Back', callback_data='wallets')
 
@@ -118,7 +124,7 @@ Your currently added {len(wallets)} wallets:
 
 
 def remove_selected_wallet(bot, message, index):
-    wallet_index = int(index)
+    wallet_index = float(index)
     main_api.remove_wallet(message.chat.id, wallet_index)
     text = f'''
 ✅ Successfully removed a wallet❗:
@@ -130,7 +136,8 @@ def remove_selected_wallet(bot, message, index):
 def handle_input_private_key(bot, message):
     # user = user_model.get_user_by_telegram(message.chat.id)
     private_key = message.text
-    address, balance = main_api.import_wallet(message.chat.id, private_key)
+    address = main_api.import_wallet(message.chat.id, private_key)
+    balance = main_api.get_wallet_balance(message.chat.id, address)
     text = f'''
 ✅ A new wallet has been imported for you. Save the private key below❗:
 

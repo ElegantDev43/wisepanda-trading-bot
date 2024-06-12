@@ -7,8 +7,8 @@ from src.engine import api as main_api
 
 def handle_chains(bot, message):
     # user = user_model.get_user_by_telegram(message.chat.id)
-    chains = main_api.get_supported_chains()
-    current_chain = chains[main_api.get_current_chain_index(message.chat.id)]
+    chains = main_api.get_chains()
+    current_chain = chains[main_api.get_chain(message.chat.id)]
     text = f'''
 *Settings > Chains*
 
@@ -35,18 +35,17 @@ Select the chain you'd like to use. You can only have one chain selected at the 
 
 
 def handle_select_chain(bot, message, next_chain):
-    user = main_api.get_user_by_chat_id(message.chat.id)
-    chains = main_api.get_supported_chains()
-    current_chain = chains[main_api.get_current_chain_index(message.chat.id)]
+    chains = main_api.get_chains()
+    current_chain = chains[main_api.get_chain(message.chat.id)]
     if current_chain == next_chain:
         return
     if next_chain == "solana":
-        next_chain_index = 1
-    elif next_chain == "ethereum":
         next_chain_index = 0
+    elif next_chain == "ethereum":
+        next_chain_index = 1
     elif next_chain == "base":
         next_chain_index = 2
-    user_model.update_current_chain_index(message.chat.id, next_chain_index)
+    user_model.set_chain(message.chat.id, next_chain_index)
 
     text = f'''
 *Settings > Chains*

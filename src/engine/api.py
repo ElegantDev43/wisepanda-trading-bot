@@ -30,10 +30,12 @@ def get_chain(user_id):
 def set_chain(user_id, chain):
   database.set_chain(user_id, chain)
 
-def get_wallets(user_id, chain):
+def get_wallets(user_id):
+  chain = get_chain(user_id)
   return database.get_wallets(user_id, chain)
 
-def create_wallet(user_id, chain):
+def create_wallet(user_id):
+  chain = get_chain(user_id)
   address, private_key = wallet_engine.create_wallet(chain)
   wallet = {
     'id': time.time(),
@@ -41,9 +43,10 @@ def create_wallet(user_id, chain):
     'private_key': private_key
   }
   database.add_wallet(user_id, chain, wallet)
-  return wallet
+  return address, private_key
 
-def import_wallet(user_id, chain, private_key):
+def import_wallet(user_id, private_key):
+  chain = get_chain(user_id)
   address = wallet_engine.import_wallet(chain, private_key)
   wallet = {
     'id': time.time(),
@@ -51,10 +54,15 @@ def import_wallet(user_id, chain, private_key):
     'private_key': private_key
   }
   database.add_wallet(user_id, chain, wallet)
-  return wallet
+  return address
 
-def remove_wallet(user_id, chain, wallet_id):
+def remove_wallet(user_id, wallet_id):
+  chain = get_chain(user_id)
   database.remove_wallet(user_id, chain, wallet_id)
+
+def get_wallet_balance(user_id, address):
+  chain = get_chain(user_id)
+  return wallet_engine.get_balance(chain, address)
 
 def market_buy(chain, token, amount, slippage, wallet):
   dex_engine.swap(chain, 'buy', token, amount, slippage, wallet)
