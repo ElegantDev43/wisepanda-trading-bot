@@ -1,3 +1,8 @@
 venv/
 __pycache__
 .env
+src/engine/main.py
+src/engine/swing/data_png/
+src/engine/swing/model/
+src/engine/swing/price_data/
+src/engine/swing/test_data/
