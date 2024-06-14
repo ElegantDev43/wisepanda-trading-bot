@@ -6,7 +6,7 @@ from src.telegram.start import handle_start
 
 def handle_tradehistory(bot, message):
     # user_model.create_user_by_telegram(message.chat.id)
-    positions = swing_model.get_by_user_id(1)
+    positions = swing_model.get_by_user_id(message.chat.id)
 
     trading_tokens = ['A','B','C','D','E','F']
     trading_buttons = []

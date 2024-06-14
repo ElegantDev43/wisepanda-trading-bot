@@ -1,4 +1,5 @@
 import os
+import asyncio
 from telebot import types
 
 #from src.database import user as user_model
@@ -16,6 +17,8 @@ default_amount = 0.1
 default_buy_index = 0
 default_wallet_index = 0
 default_token_address = ''
+
+chain_name = ['ethereum','solana']
 
 def handle_token_selection(bot, message):
     #user_model.create_user_by_telegram(message.chat.id)
@@ -37,7 +40,7 @@ def handle_input_address_x(bot, message,prev_message,new_message):
 
 
 def get_keyboard(message,wallet_index , buy_index , buyer_amount,trade_duration):
-    user = user_model.get_user_by_telegram(message.chat.id)
+    user = user_model.get(message.chat.id)
     chain = user.chain
     wallets = user.wallets[chain]
 
@@ -78,19 +81,19 @@ def handle_autoorder(bot, message, address):
     # user_model.create_user_by_telegram(message.chat.id)
     global default_duration,default_amount,default_buy_index,default_wallet_index,default_token_address
     if os.path.exists(f'src/engine/swing/data_png/prices_{address}.png') != True:
-        exportTestValues(address)
+        asyncio.run(exportTestValues(address))
 
     image_path = f'src/engine/swing/data_png/prices_{address}.png'  # Local image file path
     default_token_address = address
 
-    user = user_model.get_user_by_telegram(message.chat.id)
+    user = user_model.get(message.chat.id)
     chain = user.chain
     wallets = user.wallets[chain]
     walletinfo = ''
-    for index in range(0,len(wallets)):
-        if index > 0:
-            walletinfo += '|'
-        walletinfo += f'W{index + 1}: {wallets[index]['balance']:.3f}Ξ'
+    # for index in range(0,len(wallets)):
+    #     if index > 0:
+    #         walletinfo += '|'
+    #     walletinfo += f'W{index + 1}: {wallets[index]['balance']:.3f}Ξ'
 
 #    token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
     token = address
@@ -101,10 +104,10 @@ def handle_autoorder(bot, message, address):
 
 
     text = f'''
-*{name}  (🔗{chain})*
+*{name}  (🔗{chain_name[chain]})*
 {token}
 
-Wallet:{walletinfo}
+
 
 [Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
     '''
@@ -174,11 +177,11 @@ def handle_input_duration_x(bot, message,prev_message,new_message):
 def handle_autostart(bot, message):
   global default_token_address
 
-  user = user_model.get_user_by_telegram(message.chat.id)
+  user = user_model.get(message.chat.id)
   chain = user.chain
   wallets = user.wallets[chain]
 
-  swing_model.add_by_user_id(1,'solana',wallets[default_wallet_index]['address'],
+  swing_model.add_by_user_id(message.chat.id,'solana',wallets[default_wallet_index]['address'],
                              default_duration,default_amount,default_token_address)
 
   bot.delete_message(chat_id = message.chat.id, message_id = message.message_id, timeout = 0 )

@@ -11,7 +11,7 @@ class Swing(Base):
     __tablename__ = 'swing'
 
     id = Column(Integer, primary_key=True)
-    userid = Column(Integer)
+    userid = Column(BigInteger)
     chain = Column(String)
     wallet = Column(String)
     durations = Column(Integer)
