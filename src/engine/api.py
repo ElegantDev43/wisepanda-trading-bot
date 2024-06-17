@@ -64,10 +64,18 @@ def get_wallet_balance(user_id, address):
   chain = get_chain(user_id)
   return wallet_engine.get_balance(chain, address)
 
-def market_buy(chain, token, amount, slippage, wallet):
+def get_token_market_data(user_id, token):
+  chain = get_chain(user_id)
+  return token_engine.get_market_data(chain, token)
+
+def market_buy(user_id, token, amount, slippage, wallet_id):
+  chain = get_chain(user_id)
+  wallet = database.get_wallet(user_id, chain, wallet_id)
   dex_engine.swap(chain, 'buy', token, amount, slippage, wallet)
 
-def market_sell(chain, token, amount, slippage, wallet):
+def market_sell(user_id, token, amount, slippage, wallet_id):
+  chain = get_chain(user_id)
+  wallet = database.get_wallet(user_id, chain, wallet_id)
   dex_engine.swap(chain, 'sell', token, amount, slippage, wallet)
 
 def get_token_snipers(user_id, chain):
