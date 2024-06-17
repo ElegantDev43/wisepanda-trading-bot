@@ -33,6 +33,8 @@ def swap(type, token, amount, slippage, wallet):
     response = requests.request("GET", url, headers=headers, params=payload)
     quote_response = response.json()
 
+    # print('quote_response', quote_response)
+
     url = "https://quote-api.jup.ag/v6/swap"
     headers = {
       'Content-Type': 'application/json',
@@ -44,6 +46,8 @@ def swap(type, token, amount, slippage, wallet):
     }
     response = requests.request("POST", url, headers=headers, json=payload)
     swap_response = response.json()
+
+    # print('swap_response', swap_response)
 
     swap_transaction = swap_response['swapTransaction']
     transaction_bytes = base64.b64decode(swap_transaction)
@@ -57,7 +61,6 @@ def swap(type, token, amount, slippage, wallet):
     opts = TxOpts(skip_preflight=True, max_retries=3)
     result = client.send_raw_transaction(bytes(transaction), opts)
     transaction_id = json.loads(result.to_json())['result']
-
     return transaction_id
 
   except Exception as e:

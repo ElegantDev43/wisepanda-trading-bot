@@ -9,4 +9,4 @@ engines = [
 ]
 
 def swap(chain, type, token, amount, slippage, wallet):
-  engines[chain].swap(type, token, amount, slippage, wallet)
+  return engines[chain].swap(type, token, amount, slippage, wallet)
