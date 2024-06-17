@@ -74,6 +74,7 @@ def get_token_market_data(user_id, token):
 
 def market_buy(user_id, token, amount, slippage, wallet_id):
   chain = get_chain(user_id)
+  amount = int(amount * 1_000_000_000)
   wallet = database.get_wallet(user_id, chain, wallet_id)
   return dex_engine.swap(chain, 'buy', token, amount, slippage, wallet)
 
