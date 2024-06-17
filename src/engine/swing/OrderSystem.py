@@ -218,7 +218,7 @@ async def OrderSystem(token,prices,amount,original_price,original_state,buy_coun
       #amount = amount * 99/100
 
   print('SEE',original_price, current_price)
-  if current_price < (original_price * 95 / 100):
+  if current_price < (original_price * 98 / 100):
       loss = amount * (current_price / original_price - 1)
       amount = amount *  (current_price / original_price)
       original_state = 'sell'

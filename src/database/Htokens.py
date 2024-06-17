@@ -33,6 +33,7 @@ tokenlist= [
   { 'name': 'MEW','address':'MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5'},
   { 'name': '$michi','address':'5mbK36SZ7J19An8jFochhQS4of8g6BwUjbeCSxBSoWdp'},
 ]
+
 class HTokens(Base):
     __tablename__ = 'HTokens'
 
