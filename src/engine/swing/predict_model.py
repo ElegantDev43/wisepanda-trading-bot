@@ -43,13 +43,23 @@ async def prepare_model(token,period):
     Y = dataFrame['Target_10']
   print(X)
 
-  # Split data into training and test sets
-  X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
+  # # Split data into training and test sets
+  # X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=42)
 
-  # Feature scaling
+  # # Feature scaling
+  # scaler = StandardScaler()
+  # X_train_scaled = scaler.fit_transform(X_train)
+  # X_test_scaled = scaler.transform(X_test)
+
   scaler = StandardScaler()
-  X_train_scaled = scaler.fit_transform(X_train)
-  X_test_scaled = scaler.transform(X_test)
+  X = scaler.fit_transform(X)
+  # X_test_scaled = scaler.transform(X_test)
+
+  X_train, X_test, y_train, y_test = train_test_split(X, Y,stratify=Y,test_size=0.2, random_state=42)
+
+  # # Feature scaling
+  X_train_scaled = X_train
+  X_test_scaled = X_test
 
   # Train the model
   model = GradientBoostingClassifier(n_estimators=100, random_state=42)
