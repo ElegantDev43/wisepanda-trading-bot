@@ -9,7 +9,7 @@ def start(user_id, limit_order_id):
   while True:
     limit_order = database.get_limit_order(user_id, limit_order_id)
     if limit_order:
-      chain, type, token, amount, slippage, wallet, criteria = limit_order
+      chain, type, token, amount, slippage, wallet_id, criteria = limit_order
       price = token_engine.get_market_data(chain, token)
       if type == 'buy':
         max_price = criteria
@@ -18,6 +18,7 @@ def start(user_id, limit_order_id):
         min_price = criteria
         valid = price > min_price
       if valid:
+        wallet = database.get_wallet(user_id, chain, wallet_id)
         dex_engine.swap(chain, type, token, amount, slippage, wallet)
         database.remove_limit_order(user_id, limit_order_id)
     else:

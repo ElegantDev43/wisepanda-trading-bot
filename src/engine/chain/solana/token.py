@@ -49,7 +49,9 @@ def check_liveness(token):
 
 def get_market_data(token):
   price = get_token_price(token)
-  return {'price': price}
+  return {
+    'price': price
+  }
 
 def get_token_price(token):
   url = 'https://quote-api.jup.ag/v6/quote'

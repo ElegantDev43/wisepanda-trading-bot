@@ -61,6 +61,7 @@ def swap(type, token, amount, slippage, wallet):
     opts = TxOpts(skip_preflight=True, max_retries=3)
     result = client.send_raw_transaction(bytes(transaction), opts)
     transaction_id = json.loads(result.to_json())['result']
+    print('transaction_id', transaction_id)
     return transaction_id
 
   except Exception as e:
