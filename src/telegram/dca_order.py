@@ -2,8 +2,9 @@ from telebot import types
 from src.engine import api as main_api
 
 current_dca_order = {'index': 0}
-updat_values = {'id': 0, 'type': 0, 'tx_hash': '', 'token': "", 'buy_amount': 0, 'interval': 0,
-                'duration': 0, 'min_dca_price': 0, 'max_dca_price': 0, 'wallet': 0}
+updat_values = {'id': 0, 'chain':0,'type': 0, 'token': "", 'amount': 0,'slippage':0, 'wallet_id': 0,
+                'criteria': {'min_price':0, 'max_price':0},
+                'interval': 0}
 
 
 def get_keyboard(chat_id, order, order_index):
@@ -19,17 +20,19 @@ def get_keyboard(chat_id, order, order_index):
     token = types.InlineKeyboardButton(
         f'Token: {order['token']}', callback_data='aaa')
     wallet = types.InlineKeyboardButton(
-        f'Wallet: W{order['wallet']}', callback_data='aaa')
+        f'Wallet: W{order['wallet_id']}', callback_data='aaa')
     amount = types.InlineKeyboardButton(
-        f'Buy Amount: {order['buy_amount']}E', callback_data='handle_dca_input buy_amount')
+        f'Amount: {order['amount']}E', callback_data='handle_dca_input amount')
     interval = types.InlineKeyboardButton(
-        f'Interval: {order['interval']}', callback_data='handle_dca_input interval')
+        f'Interval: {order['interval']}min', callback_data='handle_dca_input interval')
     duration = types.InlineKeyboardButton(
-        f'Times: {order['duration']}%', callback_data='handle_dca_input duration')
+        f'Count: {order['count']}', callback_data='handle_dca_input count')
+    slippage = types.InlineKeyboardButton(
+        f'Slippage: {order['slippage']}', callback_data='handle_dca_input slippage')
     min_dca_price = types.InlineKeyboardButton(
-        f'Min Price: {order['min_dca_price']}', callback_data='handle_dca_input min_dca_price')
+        f'Min Price: {order['criteria']['min_price']}', callback_data='handle_dca_input criteria min_price')
     max_dca_price = types.InlineKeyboardButton(
-        f'Max Price: {order['max_dca_price']}', callback_data='handle_dca_input max_dca_price')
+        f'Max Price: {order['criteria']['max_price']}', callback_data='handle_dca_input criteria max_price')
     left_button = types.InlineKeyboardButton(
         '<<', callback_data='handle_prev_dca_order')
     right_button = types.InlineKeyboardButton(
@@ -42,8 +45,8 @@ def get_keyboard(chat_id, order, order_index):
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
 
     keyboard.row(left_button, index_button, right_button)
-    keyboard.row(type, token)
-    keyboard.row(wallet, amount)
+    keyboard.row(token)
+    keyboard.row(type, amount, wallet, slippage)
     keyboard.row(interval, duration)
     keyboard.row(min_dca_price, max_dca_price)
     keyboard.row(update, cancel)
@@ -114,8 +117,8 @@ Your orders are:
 def handle_remove_order(bot, message):
     orders = main_api.get_dca_orders(message.chat.id)
     index = current_dca_order['index']
-    tx_hash = orders[index]['thread_id']
-    main_api.remove_dca_order(message.chat.id, tx_hash)
+    removeal_id = orders[index]['id']
+    main_api.remove_dca_order(message.chat.id, removeal_id)
     bot.send_message(chat_id=message.chat.id,
                      text="Successfully cancelled order!!!")
     handle_orders(bot, message)
@@ -132,7 +135,13 @@ Enter the value to change:
 
 
 def handle_update_order(bot, message):
-    main_api.update_dca_order(message.chat.id, updat_values)
+    index = current_dca_order['index']
+    orders = main_api.get_dca_orders(message.chat.id)
+    update_id = orders[index]['id']
+    print(update_id)
+    chain_index = main_api.get_chain(message.chat.id)
+    updat_values['chain'] = chain_index
+    main_api.set_dca_order(message.chat.id, update_id, updat_values)
     bot.send_message(chat_id=message.chat.id,
                      text="Successfully updated order!!!")
 
@@ -141,7 +150,12 @@ def handle_input_value(bot, message, item):
     orders = main_api.get_dca_orders(message.chat.id)
     index = current_dca_order['index']
     order = orders[index]
-    updat_values[item] = message.text
+    if item == "criteria min_price":
+      updat_values['criteria']['min_price'] = message.text
+    elif item == "criteria max_price":
+      updat_values['criteria']['max_price'] = message.text
+    else:
+      updat_values[item] = message.text
     text = f'''
 *dca Orders*
 

@@ -119,8 +119,8 @@ def get_dca_order(user_id, dca_order_id):
 
 def set_dca_order(user_id, dca_order_id, dca_order):
   user = get_user(user_id)
-  for index, dca_order in enumerate(user.dca_orders):
-    if dca_order['id'] == dca_order_id:
+  for index in range(len(user.dca_orders)):
+    if user.dca_orders[index]['id'] == dca_order_id:
       user.dca_orders[index] = dca_order
       break
   user_model.set(user_id, 'dca_orders', user.dca_orders)
