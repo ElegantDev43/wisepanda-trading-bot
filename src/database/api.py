@@ -87,8 +87,8 @@ def get_limit_order(user_id, limit_order_id):
 
 def set_limit_order(user_id, limit_order_id, limit_order):
   user = get_user(user_id)
-  for index, limit_order in enumerate(user.limit_orders):
-    if limit_order['id'] == limit_order_id:
+  for index in range(len(user.limit_orders)):
+    if user.limit_orders[index]['id'] == limit_order_id:
       user.limit_orders[index] = limit_order
       break
   user_model.set(user_id, 'limit_orders', user.limit_orders)

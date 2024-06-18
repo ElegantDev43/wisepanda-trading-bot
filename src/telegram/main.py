@@ -398,4 +398,4 @@ def handle_callback_query(call):
 
 def initialize():
     print('Starting the bot...')
-    bot.infinity_polling(restart_on_change=True)
+    bot.infinity_polling()

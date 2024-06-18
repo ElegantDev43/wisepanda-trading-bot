@@ -4,6 +4,8 @@ from src.database import user as user_model
 from src.engine import api as main_api
 import threading
 
+chain_buy_amounts = [0.01, 0.03, 0.05, 0.1]
+chain_gas_amounts = [0.1, 0.2, 0.3]
 chain_gas_prices = [0.1, 0.2, 0.3]
 chain_slippages = [0.5, 3, 5]
 chain_limit_token_prices = [171, 173, 175]
@@ -29,7 +31,7 @@ index_list = {'wallet': 100, 'buy_amount': 100,
               'min_dca_price': 100, 'order_index': 0, 'stop-loss': 0}
 
 result = {'wallet': 0, 'buy_amount': 0,
-          'gas_price': 0, 'gas_amount': 0, 'slippage': 0, 'type': 0, 'token': "",
+          'gas_price': 0, 'gas_amount': 0, 'slippage': 0, 'type': 0, 'token':'',
           'limit_token_price': 0, 'liquidity': 0, 'tax': 0, 'market_cap': 0,
           'interval': 0, 'duration': 0, 'max_dca_price': 0,
           'min_dca_price': 0, 'stop-loss': 0}
@@ -117,8 +119,6 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
         '🔴 Anti-Rug', callback_data=f'anti Rug')
 
     buys = []
-    current_keyboards = main_api.get_keyboards(chat_id)
-    chain_buy_amounts = current_keyboards['buy']
     buy_count = len(chain_buy_amounts)
     for index in range(buy_count):
         if index_data['buy_amount'] == 100:
@@ -137,7 +137,6 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
     buy_x = types.InlineKeyboardButton(
         text=caption, callback_data='select buy amount x')
 
-    chain_gas_amounts = current_keyboards['gas']
     gas_amount_count = len(chain_gas_amounts)
     gas_amounts = []
     for index in range(gas_amount_count):
@@ -355,8 +354,8 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
     keyboard.row(*buys[0:(buy_count // 2)])
     keyboard.row(*buys[(buy_count // 2):buy_count], buy_x)
 
-    current_chain_index = main_api.get_current_chain_index(chat_id)
-    chains = main_api.get_supported_chains()
+    current_chain_index = main_api.get_chain(chat_id)
+    chains = main_api.get_chains()
     current_chain = chains[current_chain_index]
     if order_name == "Market Order":
         if current_chain == 'ethereum':
@@ -375,9 +374,8 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
         keyboard.row(liquidity_title)
         keyboard.row(
             *liquidities[0:(len(liquidities))], liquidity_x)
-        keyboard.row(limit_tax_title)
-        keyboard.row(
-            *limit_taxes[0:(len(limit_taxes))], limit_tax_x)
+        keyboard.row(slippage_title, *
+                     slippages[0:(len(slippages))], slippage_x)
     elif order_name == "DCA Order":
         keyboard.row(interval_title)
         keyboard.row(
@@ -400,10 +398,9 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
 def handle_input_token(bot, message):
    # user = user_model.get_user_by_telegram(message.chat.id)
 
-    token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
-
+    result['token'] = message.text
     chain = 'ethereum'
-
+    token = result['token']
     name = "elo"
 
     text = f'''
@@ -412,7 +409,7 @@ def handle_input_token(bot, message):
     Sell your tokens here.
 
   *{name}  (🔗{chain})*
-  {token}
+  {message.text}
   ❌ Snipe not set
 
   [Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
@@ -447,8 +444,7 @@ def select_buy_amount(bot, message, index):
    # chain = user.chain
     #  wallets = user.wallets[chain]
     index_list['buy_amount'] = int(index)
-    keyboards = main_api.get_keyboards(message.chat.id)
-    result['buy_amount'] = keyboards['buy'][int(index)]
+    result['buy_amount'] = chain_buy_amounts[int(index)]
     x_value_list['buy-amount'] = 0
 
     #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
@@ -471,8 +467,7 @@ def select_gas_amount(bot, message, index):
 
     index_list['gas_amount'] = int(index)
     #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    keyboards = main_api.get_keyboards(message.chat.id)
-    result['gas_amount'] = keyboards['gas'][int(index)]
+    result['gas_amount'] = chain_gas_amounts[int(index)]
     x_value_list['gas-amount'] = 0
     order_index = ''
    # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
@@ -928,17 +923,18 @@ def handle_buy(bot, message):
         if index['active'] == True:
             order_name = index['name']
 
-    chain_index = main_api.get_current_chain_index(message.chat.id)
-    chains = main_api.get_supported_chains()
-    result['token'] = chains[chain_index]
+    chain_index = main_api.get_chain(message.chat.id)
+    chains = main_api.get_chains()
+    wallets = main_api.get_wallets(message.chat.id)
+    buy_wallet = wallets[result['wallet']]['id']
+    buy_amount = int(result['buy_amount'] * 1_000_000_000)
+    print(result['token'])
 
     if order_name == "Market Order":
-        order = threading.Thread(
-            target=main_api.market_order, args=(message.chat.id, result))
-        order.start()
-        order.join()
+        tx_hash = main_api.market_buy(message.chat.id, result['token'], buy_amount, result['slippage'], buy_wallet)
+        print(tx_hash)
     elif order_name == "Limit Order":
-        main_api.limit_order(message.chat.id, result)
+        main_api.add_limit_order(message.chat.id, result['type'], result['token'], result['buy_amount'], result['slippage'], result['wallet'], result['limit_token_price'])
     elif order_name == "DCA Order":
         main_api.dca_order(message.chat.id, result)
     bot.send_message(chat_id=message.chat.id,

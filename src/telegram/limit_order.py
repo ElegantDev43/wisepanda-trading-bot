@@ -2,8 +2,7 @@ from telebot import types
 from src.engine import api as main_api
 
 current_limit_order = {'index': 0}
-updat_values = {'id': 0, 'type': 0, 'tx_hash': '', 'token': "", 'buy_amount': 0, 'limit_token_price': 0,
-                'tax': 0, 'stop-loss': 0, 'market_cap': 0, 'liquidity': 0, 'wallet': 0, 'thread_id': ''}
+updat_values = {'id':0, 'chain':0, 'type': 0, 'token': "", 'amount': 0, 'slippage':0,'wallet_id': 0,'criteria': 0}
 
 
 def get_keyboard(chat_id, order, order_index):
@@ -19,19 +18,13 @@ def get_keyboard(chat_id, order, order_index):
     token = types.InlineKeyboardButton(
         f'Token: {order['token']}', callback_data='aaa')
     wallet = types.InlineKeyboardButton(
-        f'Wallet: W{order['wallet']}', callback_data='aaa')
+        f'Wallet: W{order['wallet_id']}', callback_data='aaa')
     amount = types.InlineKeyboardButton(
-        f'Buy Amount: {order['buy_amount']}E', callback_data='handle_limit_input buy_amount')
+        f'Amount: {order['amount']}E', callback_data='handle_limit_input amount')
     limit_token_price = types.InlineKeyboardButton(
-        f'Token Price: {order['limit_token_price']}', callback_data='handle_limit_input limit_token_price')
-    stop_loss = types.InlineKeyboardButton(
-        f'Stop Loss: {order['stop-loss']}%', callback_data='handle_limit_input stop-loss')
-    tax = types.InlineKeyboardButton(
-        f'Tax: {order['tax']}%', callback_data='handle_limit_input tax')
-    market_cap = types.InlineKeyboardButton(
-        f'MaxCap: {order['market_cap']}', callback_data='handle_limit_input market_cap')
-    liquidity = types.InlineKeyboardButton(
-        f'Liq: {order['liquidity']}', callback_data='handle_limit_input liquidity')
+        f'Criteria: {order['criteria']}', callback_data='handle_limit_input criteria')
+    slippage = types.InlineKeyboardButton(
+        f'Slippage: {order['slippage']}%', callback_data='handle_limit_input slippage')
     left_button = types.InlineKeyboardButton(
         '<<', callback_data='handle_prev_limit_order')
     right_button = types.InlineKeyboardButton(
@@ -44,14 +37,9 @@ def get_keyboard(chat_id, order, order_index):
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
 
     keyboard.row(left_button, index_button, right_button)
-    keyboard.row(type, token)
-    if order['type'] == 1:
-        keyboard.row(amount)
-        keyboard.row(stop_loss, tax)
-    else:
-        keyboard.row(wallet, amount)
-        keyboard.row(limit_token_price, tax)
-    keyboard.row(market_cap, liquidity)
+    keyboard.row(token)
+    keyboard.row(type, amount, wallet)
+    keyboard.row(limit_token_price, slippage)
     keyboard.row(update, cancel)
     keyboard.row(back, close)
     return keyboard
@@ -120,8 +108,8 @@ Your orders are:
 def handle_remove_order(bot, message):
     orders = main_api.get_limit_orders(message.chat.id)
     index = current_limit_order['index']
-    thread_id = orders[index]['thread_id']
-    main_api.remove_limit_order(message.chat.id, thread_id)
+    remove_id = orders[index]['id']
+    main_api.remove_limit_order(message.chat.id, remove_id)
     bot.send_message(chat_id=message.chat.id,
                      text="Successfully cancelled order!!!")
     handle_orders(bot, message)
@@ -138,7 +126,13 @@ Enter the value to change:
 
 
 def handle_update_order(bot, message):
-    main_api.update_limit_order(message.chat.id, updat_values)
+    index = current_limit_order['index']
+    orders = main_api.get_limit_orders(message.chat.id)
+    update_id = orders[index]['id']
+    print(update_id)
+    chain_index = main_api.get_chain(message.chat.id)
+    updat_values['chain'] = chain_index
+    main_api.set_limit_order(message.chat.id, update_id, updat_values)
     bot.send_message(chat_id=message.chat.id,
                      text="Successfully updated order!!!")
 
@@ -148,8 +142,6 @@ def handle_input_value(bot, message, item):
     index = current_limit_order['index']
     order = orders[index]
     updat_values[item] = message.text
-    thread_id = orders[index]['thread_id']
-    updat_values['thread_id'] = thread_id
     text = f'''
 *limit Orders*
 
