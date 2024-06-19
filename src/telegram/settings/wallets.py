@@ -21,7 +21,7 @@ def handle_wallets(bot, message):
     current_chain = chains[current_chain_index]
     
     for index in range(len(wallets)):
-      wallets[index]['balance'] = main_api.get_wallet_balance(message.chat.id, wallets[index]['address'])
+      wallets[index]['balance'] = main_api.get_wallet_balance(message.chat.id, wallets[index]['id'])
 
     wallet_count = len(wallets)
     text = f'''
@@ -57,17 +57,17 @@ def handle_create_wallet(bot, message):
     current_chain_index = main_api.get_chain(message.chat.id)
 
     wallets = main_api.get_wallets(message.chat.id)
-    if len(wallets) == 5:
+    if len(wallets) == 100:
         bot.send_message(chat_id=message.chat.id,
-                         text='Exceed wallets limit of 5')
+                         text='Exceed wallets limit of 100')
         return
     else:
-        address, private_key = main_api.create_wallet(message.chat.id)
+        new_wallet = main_api.create_wallet(message.chat.id, 'AAA')
         text = f'''
 ✅ A new wallet has been generated for you. Save the private key below❗:
 
-Address: {address}
-Private Key: {private_key}
+Address: {new_wallet['address']}
+Private Key: {new_wallet['private_key']}
     '''
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
 
@@ -104,7 +104,7 @@ Your currently added {len(wallets)} wallets:
 '''
 
     for index in range(len(wallets)):
-      wallets[index]['balance'] = main_api.get_wallet_balance(message.chat.id, wallets[index]['address'])
+      wallets[index]['balance'] = main_api.get_wallet_balance(message.chat.id, wallets[index]['id'])
 
     keyboard = types.InlineKeyboardMarkup()
     buttons = []
@@ -125,6 +125,7 @@ Your currently added {len(wallets)} wallets:
 
 def remove_selected_wallet(bot, message, index):
     wallet_index = float(index)
+    wallets = main_api.get_wallets(message.chat.id)
     main_api.remove_wallet(message.chat.id, wallet_index)
     text = f'''
 ✅ Successfully removed a wallet❗:
@@ -136,12 +137,12 @@ def remove_selected_wallet(bot, message, index):
 def handle_input_private_key(bot, message):
     # user = user_model.get_user_by_telegram(message.chat.id)
     private_key = message.text
-    address = main_api.import_wallet(message.chat.id, private_key)
-    balance = main_api.get_wallet_balance(message.chat.id, address)
+    wallet = main_api.import_wallet(message.chat.id, private_key, 'AAA')
+    balance = main_api.get_wallet_balance(message.chat.id, wallet['id'])
     text = f'''
 ✅ A new wallet has been imported for you. Save the private key below❗:
 
-Address: {address}
+Address: {wallet['address']}
 Balance: {balance}
     '''
 

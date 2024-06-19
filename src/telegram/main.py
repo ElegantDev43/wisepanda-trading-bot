@@ -3,7 +3,7 @@ import telebot
 from telebot import types
 
 from src.telegram import start, sniper, buyer, orders, token_snipers, positions, bots, hots, seller, limit_order, dca_order
-from src.telegram.settings import main as settings, chains, wallets, keyboards
+from src.telegram.settings import main as settings, chains, wallets, keyboards, auto_order
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
 
@@ -105,8 +105,14 @@ def handle_callback_query(call):
     elif call.data in chain_titles:
         chains.handle_select_chain(bot, call.message, call.data)
         # New api
-    elif call.data == 'keyboards':
-        keyboards.handle_keyboards(bot, call.message)
+    elif call.data == 'auto-orders':
+        auto_order.handle_auto_orders(bot, call.message)
+    elif call.data == 'aut_order_status_change':
+        auto_order.handle_status(bot, call.message)
+    elif call.data.startswith('handle_input_auto_order '):
+        item = call.data[24:]
+        auto_order.handle_input(bot, call.message, item)
+
     elif call.data == 'wallets':
         wallets.handle_wallets(bot, call.message)
   #  elif call.data in config.BUY_AMOUNT:
@@ -160,6 +166,17 @@ def handle_callback_query(call):
         token_snipers.handle_remove_order(bot, call.message)
     elif call.data == 'handle_update_token_sniper':
         token_snipers.handle_update_order(bot, call.message)
+    elif call.data == 'handle_sniper_add_auto_param':
+        token_snipers.handle_add_auto_param(bot, call.message)
+    elif call.data.startswith('handle_sniper_remove_auto_params '):
+        item = call.data[32:]
+        token_snipers.handle_remove_auto_param(bot, call.message, item)
+    elif call.data.startswith('handle_sniper_auto_amount '):
+        item = call.data[26:]
+        token_snipers.handle_input_auto_amount(bot, call.message, item)
+    elif call.data.startswith('handle_sniper_auto_price '):
+        item = call.data[25:]
+        token_snipers.handle_input_auto_price(bot, call.message, item)
     elif call.data.startswith('handle_token_sniper_input '):
         item = call.data[26:]
         token_snipers.handle_input(bot, call.message, item)
@@ -358,6 +375,10 @@ def handle_callback_query(call):
     elif call.data == 'make sniper order':
         sniper.handle_set_sniper(bot, call.message)
 
+    elif call.data == 'sniper set auto_sell':
+        sniper.handle_auto_sell(bot, call.message)
+    elif call.data == 'sniper add auto params':
+        sniper.add_auto_param(bot, call.message)
     elif call.data.startswith('sniper select buy amount '):
         amount = call.data[25:]
         if (amount == 'x'):
@@ -378,12 +399,15 @@ def handle_callback_query(call):
         amount = call.data[32:]
         if (amount == 'x'):
             sniper.handle_limit_token_price_x(bot, call.message)
-        sniper.select_limit_token_price(bot, call.message, call.data[32:])
     elif call.data.startswith('sniper select limit tax '):
         amount = call.data[24:]
         if (amount == 'x'):
             sniper.handle_limit_tax_x(bot, call.message)
         sniper.select_limit_tax(bot, call.message, call.data[24:])
+    elif call.data.startswith('sniper select stop-loss '):
+        amount = call.data[24:]
+        if (amount == 'x'):
+            sniper.handle_stop_loss_x(bot, call.message)
     elif call.data.startswith('sniper select market capital '):
         amount = call.data[29:]
         if (amount == 'x'):
@@ -395,7 +419,16 @@ def handle_callback_query(call):
             sniper.handle_liquidity_x(bot, call.message)
         sniper.select_liquidity(bot, call.message, call.data[24:])
 
-
+    elif call.data.startswith('sniper select auto amount '):
+        amount = call.data[26:]
+        sniper.handle_auto_amount_value(bot, call.message, call.data[26:])
+    elif call.data.startswith('sniper select auto price '):
+        amount = call.data[25:]
+        sniper.handle_auto_price_value(bot, call.message, call.data[25:])
+    elif call.data.startswith('sniper remove auto params '):
+        amount = call.data[26:]
+        sniper.handle_remove_auto_params(bot, call.message, call.data[26:])
+        
 def initialize():
     print('Starting the bot...')
-    bot.infinity_polling()
+    bot.infinity_polling(restart_on_change=True)

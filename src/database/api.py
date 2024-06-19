@@ -55,8 +55,8 @@ def get_token_sniper(user_id, token_sniper_id):
 
 def set_token_sniper(user_id, token_sniper_id, token_sniper):
   user = get_user(user_id)
-  for index, token_sniper in enumerate(user.token_snipers):
-    if token_sniper['id'] == token_sniper_id:
+  for index in range(len(user.token_snipers)):
+    if user.token_snipers[index]['id'] == token_sniper_id:
       user.token_snipers[index] = token_sniper
       break
   user_model.set(user_id, 'token_snipers', user.token_snipers)

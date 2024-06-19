@@ -2,9 +2,8 @@ from telebot import types
 from src.engine import api as main_api
 
 current_token_sniper = {'index': 0}
-updat_values = {'id': 0, 'token': "", 'buy_amount': 0, 'gas': 0, 'slippage': 0, 'limit_token_price': 0,
-                'tax': 0, 'market_cap': 0, 'liquidity': 0, 'wallet': 0, 'tx_hash': ''}
-
+updat_values = {'id': 0, 'stage':'buy', 'chain':0, 'token': "", 'amount': 0, 'slippage': 0,'wallet_id': 0, 'criteria': 0,
+                'stop_loss': 0, 'auto_sell':[]}
 
 def get_keyboard(chat_id, order, order_index):
     keyboard = types.InlineKeyboardMarkup()
@@ -14,21 +13,45 @@ def get_keyboard(chat_id, order, order_index):
     token = types.InlineKeyboardButton(
         f'Token: {order['token']}', callback_data='aaa')
     wallet = types.InlineKeyboardButton(
-        f'Wallet: W{order['wallet']}', callback_data='aaa')
+        f'Wallet: W{order['wallet_id']}', callback_data='aaa')
     amount = types.InlineKeyboardButton(
-        f'Buy Amount: {order['buy_amount']}E', callback_data='handle_token_sniper_input buy_amount')
-    gas = types.InlineKeyboardButton(
-        f'Gas: {order['gas']}', callback_data='handle_token_sniper_input gas')
+        f'Amount: {order['amount']}E', callback_data='handle_token_sniper_input amount')
+    criteria = types.InlineKeyboardButton(
+        f'Criteria: {order['criteria']}', callback_data='handle_token_sniper_input criteria')
     slippage = types.InlineKeyboardButton(
         f'Slippage: {order['slippage']}%', callback_data='handle_token_sniper_input slippage')
-    limit_token_price = types.InlineKeyboardButton(
-        f'Token Price: {order['limit_token_price']}', callback_data='handle_token_sniper_input limit_token_price')
-    tax = types.InlineKeyboardButton(
-        f'Tax: {order['tax']}%', callback_data='handle_token_sniper_input tax')
-    market_cap = types.InlineKeyboardButton(
-        f'MaxCap: {order['market_cap']}', callback_data='handle_token_sniper_input market_cap')
-    liquidity = types.InlineKeyboardButton(
-        f'Liq: {order['liquidity']}', callback_data='handle_token_sniper_input liquidity')
+    stop_loss = types.InlineKeyboardButton(
+        f'Stop Loss: {order['stop_loss']}', callback_data='handle_token_sniper_input stop_loss')
+    
+    
+    auto_amount_title = types.InlineKeyboardButton(
+        'Amount:', callback_data='2')
+    auto_price_title = types.InlineKeyboardButton(
+        'Price:', callback_data='2')
+    auto_add_button = types.InlineKeyboardButton(
+        'Add', callback_data='handle_sniper_add_auto_param')
+
+
+    auto_amounts = []
+    for index in range(len(order['auto_sell'])):
+      auto_amount_x = types.InlineKeyboardButton(
+          text=f'''{order['auto_sell'][index]['amount']}''', callback_data=f'handle_sniper_auto_amount {index}')
+      auto_amounts.append(auto_amount_x)
+    
+    auto_prices = []
+    for index in range(len(order['auto_sell'])):
+      auto_price_x = types.InlineKeyboardButton(
+          text=f'''{order['auto_sell'][index]['price']}''', callback_data=f'handle_sniper_auto_price {index}')
+      auto_prices.append(auto_price_x)
+
+    auto_removes = []
+    for index in range(len(order['auto_sell'])):
+      auto_remove_x = types.InlineKeyboardButton(
+          text='remove', callback_data=f'handle_sniper_remove_auto_params {index}')
+      auto_removes.append(auto_remove_x)
+    
+    auto_sell = types.InlineKeyboardButton(
+        'Auto Sell', callback_data='333')
     left_button = types.InlineKeyboardButton(
         '<<', callback_data='handle_prev_token_sniper')
     right_button = types.InlineKeyboardButton(
@@ -41,10 +64,14 @@ def get_keyboard(chat_id, order, order_index):
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
 
     keyboard.row(left_button, index_button, right_button)
-    keyboard.row(token, wallet, amount)
-    keyboard.row(gas, slippage)
-    keyboard.row(limit_token_price, tax)
-    keyboard.row(market_cap, liquidity)
+    keyboard.row(token)
+    keyboard.row(wallet, amount, slippage)
+    keyboard.row(criteria, stop_loss)
+    keyboard.row(auto_sell)
+    for index in range(len(order['auto_sell'])):
+      keyboard.row(auto_amount_title, auto_amounts[index], auto_price_title, auto_prices[index], auto_removes[index])
+    keyboard.row(auto_add_button)
+    
     keyboard.row(update, cancel)
     keyboard.row(back, close)
     return keyboard
@@ -113,8 +140,8 @@ Your orders are:
 def handle_remove_order(bot, message):
     orders = main_api.get_token_snipers(message.chat.id)
     index = current_token_sniper['index']
-    tx_hash = orders[index]['tx_hash']
-    main_api.remove_token_sniper(message.chat.id, tx_hash)
+    removal_id = orders[index]['id']
+    main_api.remove_token_sniper(message.chat.id, removal_id)
     bot.send_message(chat_id=message.chat.id,
                      text="Successfully cancelled order!!!")
     handle_orders(bot, message)
@@ -129,9 +156,99 @@ Enter the value to change:
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
 
+def handle_input_auto_amount(bot, message, item):
+    text = '''
+*Update Order*
+Enter the value to change:
+'''
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
+    bot.register_next_step_handler_by_chat_id(
+        chat_id=message.chat.id, callback=lambda next_message: handle_input_auto_amount_value(bot, next_message, item))
+  
+def handle_input_auto_price(bot, message, item):
+    text = '''
+*Update Order*
+Enter the value to change:
+'''
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
+    bot.register_next_step_handler_by_chat_id(
+        chat_id=message.chat.id, callback=lambda next_message: handle_input_auto_price_value(bot, next_message, item))
 
+def handle_input_auto_price_value(bot, message, item):
+    orders = main_api.get_token_snipers(message.chat.id)
+    index = current_token_sniper['index']
+    order = orders[index]
+    updat_values['auto_sell'][int(item)]['price'] = message.text
+    text = f'''
+*limit Orders*
+
+You currently have {len(orders)} limit orders. You can manage your orders here.
+
+Your orders are:
+    '''
+    keyboard = get_keyboard(message.chat.id, updat_values, index)
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                     reply_markup=keyboard, disable_web_page_preview=True)
+
+def handle_input_auto_amount_value(bot, message, item):
+    orders = main_api.get_token_snipers(message.chat.id)
+    index = current_token_sniper['index']
+    order = orders[index]
+    updat_values['auto_sell'][int(item)]['amount'] = message.text
+    text = f'''
+*limit Orders*
+
+You currently have {len(orders)} limit orders. You can manage your orders here.
+
+Your orders are:
+    '''
+    keyboard = get_keyboard(message.chat.id, updat_values, index)
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                     reply_markup=keyboard, disable_web_page_preview=True)
+
+def handle_remove_auto_param(bot, message, item):
+    orders = main_api.get_token_snipers(message.chat.id)
+    index = current_token_sniper['index']
+    order = orders[index]
+    id = int(item)
+    
+    updat_values['auto_sell'].pop(id)
+    text = f'''
+*limit Orders*
+
+You currently have {len(orders)} limit orders. You can manage your orders here.
+
+Your orders are:
+    '''
+    keyboard = get_keyboard(message.chat.id, updat_values, index)
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                     reply_markup=keyboard, disable_web_page_preview=True)
+
+def handle_add_auto_param(bot, message):
+    orders = main_api.get_token_snipers(message.chat.id)
+    index = current_token_sniper['index']
+    order = orders[index]
+    new_param = {'amount':0, 'price':0}
+    updat_values['auto_sell'].append(new_param)
+    text = f'''
+*limit Orders*
+
+You currently have {len(orders)} limit orders. You can manage your orders here.
+
+Your orders are:
+    '''
+    keyboard = get_keyboard(message.chat.id, updat_values, index)
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                     reply_markup=keyboard, disable_web_page_preview=True)
+    
 def handle_update_order(bot, message):
-    main_api.update_token_sniper(message.chat.id, updat_values)
+    index = current_token_sniper['index']
+    orders = main_api.get_token_snipers(message.chat.id)
+    update_id = orders[index]['id']
+    print(update_id)
+    chain_index = main_api.get_chain(message.chat.id)
+    updat_values['chain'] = chain_index
+    main_api.set_token_sniper(message.chat.id, update_id, updat_values)
     bot.send_message(chat_id=message.chat.id,
                      text="Successfully updated order!!!")
 

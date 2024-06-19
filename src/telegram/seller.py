@@ -4,7 +4,7 @@ from src.database import user as user_model
 from src.engine import api as main_api
 import threading
 
-chain_gas_prices = [0.1, 0.2, 0.3]
+chain_buy_amounts = [0.01,0.03, 0.05,0.1]
 chain_slippages = [0.5, 3, 5]
 chain_limit_token_prices = [500, 1000, 2000]
 chain_market_caps = [10000, 200000, 50000]
@@ -118,8 +118,6 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
         '🔴 Anti-Rug', callback_data=f'anti Rug')
 
     buys = []
-    current_keyboards = main_api.get_keyboards(chat_id)
-    chain_buy_amounts = current_keyboards['sell']
     buy_count = len(chain_buy_amounts)
     for index in range(buy_count):
         if index_data['buy_amount'] == 100:
@@ -138,48 +136,6 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
     buy_x = types.InlineKeyboardButton(
         text=caption, callback_data='seller select buy amount x')
 
-    chain_gas_amounts = current_keyboards['gas']
-    gas_amount_count = len(chain_gas_amounts)
-    gas_amounts = []
-    for index in range(gas_amount_count):
-        if index_data['gas_amount'] == 100:
-            caption = f'{chain_gas_amounts[index]}'
-        else:
-            caption = f'{" 🟢" if index == index_data['gas_amount'] else ""} {
-                chain_gas_amounts[index]}'
-        button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"seller select gas amount {index}")
-        gas_amounts.append(button)
-    gas_amount_title = types.InlineKeyboardButton(
-        '----- Gas Amount -----', callback_data='set title')
-
-    if update_data['gas-amount'] == 0:
-        caption = "X"
-    else:
-        caption = f"🟢 {update_data['gas-amount']}"
-    gas_amount_x = types.InlineKeyboardButton(
-        text=caption, callback_data='seller select gas amount x')
-
-    gas_prices = []
-    gas_price_count = len(chain_gas_prices)
-    for index in range(gas_price_count):
-        if index_data['gas_price'] == 100:
-            caption = f'{chain_gas_prices[index]}'
-        else:
-            caption = f'{" 🟢" if index == index_data['gas_price'] else ""} {
-                chain_gas_prices[index]}'
-        button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"seller select gas price {index}")
-        gas_prices.append(button)
-    gas_price_title = types.InlineKeyboardButton(
-        '----- Gas Price -----', callback_data='set title')
-    if update_data['gas-price'] == 0:
-        caption = "X"
-    else:
-        caption = f"🟢 {update_data['gas-price']}"
-    gas_price_x = types.InlineKeyboardButton(
-        text=caption, callback_data='seller select gas price x')
-
     slippages = []
     slip_page_count = len(chain_slippages)
     for index in range(slip_page_count):
@@ -192,7 +148,7 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
             text=caption, callback_data=f"seller select slippage {index}")
         slippages.append(button)
     slippage_title = types.InlineKeyboardButton(
-        '----- Slippage -----', callback_data='set title')
+        'Slippage:', callback_data='set title')
     if update_data['slippage'] == 0:
         caption = "X %"
     else:
@@ -366,14 +322,8 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
 
     keyboard.row(*buys[0:(buy_count // 2)])
     keyboard.row(*buys[(buy_count // 2):buy_count], buy_x)
-
+    keyboard.row(slippage_title,*slippages[0:(len(slippages))], slippage_x)
     if order_name == "Market Order":
-        keyboard.row(gas_amount_title)
-        keyboard.row(*gas_amounts[0:(len(gas_amounts))], gas_amount_x)
-        keyboard.row(gas_price_title)
-        keyboard.row(*gas_prices[0:(len(gas_prices))], gas_price_x)
-        keyboard.row(slippage_title)
-        keyboard.row(*slippages[0:(len(slippages))], slippage_x)
         keyboard.row(anti_mev, anti_rug)
     elif order_name == "Limit Order":
         keyboard.row(stop_loss_title)
