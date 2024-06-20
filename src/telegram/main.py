@@ -2,7 +2,7 @@ import os
 import telebot
 from telebot import types
 
-from src.telegram import start, sniper, buyer, orders, token_snipers, positions, bots, hots, seller, limit_order, dca_order
+from src.telegram import start, sniper, buyer, orders, token_snipers, positions, bots, hots, seller, limit_order, dca_order, lp_sniper
 from src.telegram.settings import main as settings, chains, wallets, keyboards, auto_order
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
@@ -81,6 +81,24 @@ def handle_callback_query(call):
         buyer.handle_input_token(bot, call.message)
     elif call.data == 'sniper':
         sniper.handle_sniper(bot, call.message)
+    elif call.data == 'lp sniper':
+        lp_sniper.handle_lp_sniper(bot, call.message)
+    elif call.data.startswith('lp_sniper_input '):
+        lp_sniper.handle_input_x(bot, call.message, call.data[16:])
+    elif call.data.startswith('lp sniper select buy wallet '):
+        lp_sniper.select_buy_wallet(bot, call.message, call.data[28:])
+  
+    elif call.data == 'lp sniper set auto_sell':
+        lp_sniper.handle_auto_sell(bot, call.message)
+    elif call.data == 'lp sniper add auto params':
+        lp_sniper.add_auto_param(bot, call.message)
+    elif call.data.startswith('lp sniper select auto amount '):
+        lp_sniper.handle_auto_amount_value(bot, call.message, call.data[29:])
+    elif call.data.startswith('lp sniper select auto price '):
+        lp_sniper.handle_auto_price_value(bot, call.message, call.data[28:])
+    elif call.data.startswith('lp sniper remove auto params '):
+        lp_sniper.handle_remove_auto_params(bot, call.message, call.data[29:])
+        
     elif call.data == 'buyer':
         buyer.handle_buyer(bot, call.message)
 

@@ -20,6 +20,8 @@ With Panda Bot, you can trade any token instantly, taking advantage of market op
     keyboard = types.InlineKeyboardMarkup()
     sniper = types.InlineKeyboardButton(
         '🎯 Token Sniper', callback_data='sniper')
+    lp_sniper = types.InlineKeyboardButton(
+        '🔫 LP Sniper', callback_data='lp sniper')
     hots = types.InlineKeyboardButton('🔥 Hot Tokens', callback_data='hots')
     swing = types.InlineKeyboardButton(
         '🪁 Swing Trading', callback_data='swing')
@@ -46,7 +48,7 @@ With Panda Bot, you can trade any token instantly, taking advantage of market op
         '📋 Copy Trading', callback_data='copytrades')
     bots = types.InlineKeyboardButton('🤖 Backup Bots', callback_data='bots')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
-    keyboard.row(sniper, swing)
+    keyboard.row(sniper, lp_sniper, swing)
     keyboard.row(buyer, seller)
     keyboard.row(positions, orders)
     keyboard.row(limit_order, dca_order)
