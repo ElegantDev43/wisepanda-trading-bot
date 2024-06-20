@@ -5,7 +5,7 @@ from telebot import types
 #from src.database import user as user_model
 #from src.engine import main as engine
 from src.engine.swing.data_extract import exportTestValues
-from src.database import swing as swing_model
+from src.database.swing import swing as swing_model
 from src.database import user as user_model
 from src.telegram.start import handle_start
 
@@ -106,8 +106,6 @@ def handle_autoorder(bot, message, address):
     text = f'''
 *{name}  (🔗{chain_name[chain]})*
 {token}
-
-
 
 [Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
     '''

@@ -27,6 +27,7 @@ class Swing(Base):
     total_profit = Column(Float)
     total_loss = Column(Float)
     original_amount = Column(Float)
+    original_trend = Column(Integer)
 
 
 def initialize():
@@ -69,13 +70,14 @@ def add_by_user_id(user_id, chain,wallet,durations,amount,token):
       total_count = 0,
       total_profit = 0,
       total_loss = 0,
-      original_amount = amount
+      original_amount = amount,
+      original_trend = -1,
     )
     session.add(newposition)
     session.commit()
     session.close()
 
-def update_by_user_id(id,amount,original_price,original_state,buy_count,sell_count,stop_count,total_count,total_profit,total_loss):
+def update_by_user_id(id,amount,original_price,original_state,buy_count,sell_count,stop_count,total_count,total_profit,total_loss,original_trend):
     session = Session()
     position = session.query(Swing).filter(Swing.id == id).first()
     print("Amounts::",amount,original_price)
@@ -89,6 +91,7 @@ def update_by_user_id(id,amount,original_price,original_state,buy_count,sell_cou
     position.date_current = position.date_current + 1
     position.total_profit += total_profit
     position.total_loss += total_loss
+    position.original_trend = original_trend
     session.commit()
     session.close()
 

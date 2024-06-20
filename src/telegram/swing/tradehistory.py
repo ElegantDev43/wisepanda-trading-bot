@@ -1,22 +1,21 @@
 from telebot import types
 
-from src.database import swing as swing_model
+from src.database.swing import swing as swing_model
 from src.telegram.start import handle_start
 # from src.database import user as user_model
 
 def handle_tradehistory(bot, message):
     # user_model.create_user_by_telegram(message.chat.id)
     positions = swing_model.get_by_user_id(message.chat.id)
-
+    
     trading_tokens = ['A','B','C','D','E','F']
     trading_buttons = []
 
-    print(positions)
     #token_count = len(trading_tokens)
     token_count = len(positions)
 
     for index in range(token_count):
-        trading_buttons.append(types.InlineKeyboardButton(positions[index].token, callback_data=f'history_{positions[index].id}'))
+      trading_buttons.append(types.InlineKeyboardButton(positions[index].token, callback_data=f'history_{positions[index].id}'))
 
     text = f'''
 *📊️ Trade History*
@@ -31,7 +30,7 @@ Here you can see your swing trading history
     keyboard = types.InlineKeyboardMarkup()
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     for index in range(token_count):
-        keyboard.row(trading_buttons[index])
+      keyboard.row(trading_buttons[index])
     keyboard.row(back)
 
     bot.delete_message(chat_id = message.chat.id, message_id = message.message_id, timeout = 0 )

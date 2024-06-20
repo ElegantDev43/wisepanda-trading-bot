@@ -7,10 +7,8 @@ from tti.indicators import MovingAverageConvergenceDivergence,OnBalanceVolume,Wi
 from tti.indicators import ChandeMomentumOscillator,DetrendedPriceOscillator,DirectionalMovementIndex
 from tti.indicators import LinearRegressionIndicator,LinearRegressionSlope,MedianPrice,Momentum
 from tti.indicators import PriceRateOfChange,StandardDeviation,StochasticMomentumIndex,WildersSmoothing
-
-from sklearn.ensemble import RandomForestClassifier,GradientBoostingClassifier
-from sklearn.model_selection import train_test_split,GridSearchCV
-from sklearn.preprocessing import StandardScaler
+from tti.indicators import IchimokuCloud,ParabolicSAR,CommodityChannelIndex,OnBalanceVolume,PriceAndVolumeTrend
+from tti.indicators import TimeSeriesForecast
 
 import pickle
 
@@ -110,6 +108,27 @@ def checkTrend(prices,predict_model):
 
   ws_indicator = WildersSmoothing(input_data=prices)
   ind_ws = ws_indicator.getTiValue()[0]
+  
+  ICloud_indicator = IchimokuCloud(input_data=prices)
+  ind_tenkan_sen = ICloud_indicator.getTiValue()[0]
+  ind_kijun_sen = ICloud_indicator.getTiValue()[1]
+  ind_senkou_a = ICloud_indicator.getTiValue()[2]
+  ind_senkou_b = ICloud_indicator.getTiValue()[3]
+
+  sar_indicator = ParabolicSAR(input_data=prices)
+  ind_sar = sar_indicator.getTiValue()[0]
+
+  cci_indicator = CommodityChannelIndex(input_data=prices)
+  ind_cci = cci_indicator.getTiValue()[0]
+
+  obv_indicator = OnBalanceVolume(input_data=prices)
+  ind_obv = obv_indicator.getTiValue()[0]
+
+  pvt_indicator = PriceAndVolumeTrend(input_data=prices)
+  ind_pvt = pvt_indicator.getTiValue()[0]
+
+  tsf_indicator = TimeSeriesForecast(input_data=prices)
+  ind_tsf = tsf_indicator.getTiValue()[0]
 
 #   eom_indicator = EaseOfMovement(input_data=prices)
 #   ind_emv = eom_indicator.getTiValue()[0]
@@ -166,23 +185,28 @@ def checkTrend(prices,predict_model):
   if(np.isnan(ind_ws)):
       ind_ws = 0
 
-  X_test = np.array([[ind_swing,ind_rsi,ind_sma_5,ind_sma_10,ind_sma_20,ind_sma_40,
-                      ind_ema_5,ind_ema_10,ind_ema_20,ind_ema_40,
-                      ind_tma,ind_macd,ind_signal,
-                     ind_bb_up,ind_bb_low,ind_william,ind_vol,ind_onvolume,ind_cmo,
-                     ind_dpo,ind_dmi_plusdi,ind_dmi_minusdi,ind_dmi_dx,ind_dmi_adx,ind_dmi_adxr,
-                     ind_lri,ind_lrs,ind_mp,ind_mom,ind_prc,ind_sd,ind_smi,ind_ws]])
+  X_test = np.array([[
+                     ind_sma_5,ind_ema_5,ind_tma,
+                     ind_swing,ind_rsi,ind_macd,ind_signal,
+                     ind_william,ind_vol,ind_onvolume,
+                     ind_cmo,ind_dpo,ind_dmi_plusdi,ind_dmi_minusdi,ind_dmi_dx,ind_dmi_adx,ind_dmi_adxr,
+                     ind_lrs,ind_mom,ind_prc,ind_sd,ind_smi,
+                     ind_tenkan_sen,ind_kijun_sen,ind_senkou_a,ind_senkou_b,ind_sar,ind_cci,ind_obv,ind_pvt,
+                     ind_tsf
+                     ]])
 
-  print(X_test)
+  X_test_scaled = X_test
 
-  y_result = predict_model.predict(X_test)
+  print(X_test_scaled)
+
+  y_result = predict_model.predict(X_test_scaled)
+
   print(y_result)
   return y_result[0]
 
-async def OrderSystem(token,prices,amount,original_price,original_state,buy_count,sell_count,stop_count,total_count,period):
+async def OrderSystem(token,prices,amount,original_price,original_state,buy_count,sell_count,stop_count,total_count,period,original_trend):
   profit = 0
   loss = 0
-  print("Hello-Order")
 
   if os.path.exists(f'src/engine/swing/model/model_{token}_{period}.pkl') != True:
     predict_model = pickle.load(open(f'src/engine/swing/model/model_{period}.pkl', 'rb'))
@@ -190,41 +214,33 @@ async def OrderSystem(token,prices,amount,original_price,original_state,buy_coun
     predict_model = pickle.load(open(f'src/engine/swing/model/model_{token}_{period}.pkl', 'rb'))
 
   if len(prices) < 40:
-      return amount,original_price,original_state,buy_count,sell_count,stop_count,total_count,0,profit,loss
+      return amount,original_price,original_state,buy_count,sell_count,stop_count,total_count,original_trend,profit,loss
 
   trend = checkTrend(prices,predict_model)
-
-  print("Mine",prices[['close'][0]][39])
 
   current_price = prices[['close'][0]].iloc[39]
   divergence = prices[['close'][0]].iloc[39] - prices[['close'][0]].iloc[38]
 
-  if trend == 1 or trend == -1:
-      total_count = total_count + 1
-
-  if trend == -1 and original_state == 'buy' and current_price > original_price:
+  if original_trend == 1 and trend == -1 and original_state == 'buy' and current_price > original_price:
       original_state = 'sell'
       profit = amount * (current_price / original_price - 1)
       amount = amount * (current_price / original_price)
       original_price = 0
       sell_count = sell_count + 1
+      total_count = total_count + 1
 
-      #amount = amount * 99/100
-  elif trend == 1 and original_state == 'sell':
+  elif original_trend == -1 and trend == 1 and original_state == 'sell':
       original_state = 'buy'
       original_price = current_price
       buy_count = buy_count + 1
+      total_count = total_count + 1
 
-      #amount = amount * 99/100
-
-  print('SEE',original_price, current_price)
-  if current_price < (original_price * 98 / 100):
+  if original_state == 'buy' and current_price < (original_price * 98.0 / 100):
       loss = amount * (current_price / original_price - 1)
       amount = amount *  (current_price / original_price)
       original_state = 'sell'
       original_price = 0
       stop_count = stop_count + 1
-
-      #amount = amount * 99/100
+      total_count = total_count + 1
 
   return amount,original_price,original_state,buy_count,sell_count,stop_count,total_count,trend , profit, loss

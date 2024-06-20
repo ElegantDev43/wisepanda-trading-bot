@@ -1,6 +1,6 @@
 from telebot import types
 
-from src.database import Htokens as HTokens_model
+from src.database.swing import Htokens as HTokens_model
 
 def handle_start(bot, message):
     limit = 2

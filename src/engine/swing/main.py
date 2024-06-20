@@ -1,3 +1,5 @@
+import threading
+import asyncio
 import os
 import numpy as np
 import pandas as pd
@@ -7,8 +9,8 @@ from src.engine.swing.data_extract import data_extract_main
 from src.engine.swing.predict_model import study_model
 from src.engine.swing.OrderSystem import OrderSystem,checkTrend
 from src.engine.swing.hot_tokens_extract import exportHotTokens
-from src.database import swing as swing_model
-from src.database import Htokens as HTokens_model
+from src.database.swing import swing as swing_model
+from src.database.swing import Htokens as HTokens_model
 
 async def Control():
 #   addresses = [
@@ -79,15 +81,35 @@ async def Control():
                 current_position.token,
                 first_data,current_position.amount,current_position.original_price,
                 current_position.original_state,current_position.buy_count,current_position.sell_count,
-                current_position.stop_count,current_position.total_count,'medium')
-    swing_model.update_by_user_id(id=current_position.id,
-                                  amount= amount,
-                                  original_price=original_price,
-                                  original_state=original_state,
-                                  buy_count=buy_count,
-                                  sell_count=sell_count,
-                                  stop_count=stop_count,
-                                  total_count=total_count,
-                                  total_profit=total_profit,
-                                  total_loss=total_loss)
+                current_position.stop_count,current_position.total_count,'medium',current_position.original_trend)
+    swing_model.update_by_user_id(id = current_position.id,
+                                  amount = amount,
+                                  original_price = original_price,
+                                  original_state = original_state,
+                                  buy_count = buy_count,
+                                  sell_count = sell_count,
+                                  stop_count = stop_count,
+                                  total_count = total_count,
+                                  total_profit = total_profit,
+                                  total_loss = total_loss,
+                                  original_trend = trend)
+    
+
+
+async def updateData():
+    while True:
+        await Control()
+    # await Control()
+
+
+def run_update_data_in_thread():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(updateData())
+    loop.close()
+
+def initialize():
+    print('Starting the engine...')
+    thread  = threading.Thread(target=run_update_data_in_thread)
+    thread.start()
 

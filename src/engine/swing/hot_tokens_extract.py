@@ -8,7 +8,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import dataframe_image as dfi
 
-from src.database import Htokens as HTokens_model
+from src.database.swing import Htokens as HTokens_model
 
 API_KEY = "e6e5d6ab4b3c415d9c691501ee505e06"
 X_CHAIN = "solana"

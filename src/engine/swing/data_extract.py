@@ -14,6 +14,8 @@ from tti.indicators import MovingAverageConvergenceDivergence,OnBalanceVolume,Wi
 from tti.indicators import ChandeMomentumOscillator,DetrendedPriceOscillator,DirectionalMovementIndex
 from tti.indicators import LinearRegressionIndicator,LinearRegressionSlope,MedianPrice,Momentum
 from tti.indicators import PriceRateOfChange,StandardDeviation,StochasticMomentumIndex,WildersSmoothing
+from tti.indicators import IchimokuCloud,ParabolicSAR,CommodityChannelIndex,OnBalanceVolume,PriceAndVolumeTrend
+from tti.indicators import TimeSeriesForecast
 
 import matplotlib
 matplotlib.use('Agg')
@@ -27,7 +29,7 @@ startAt = "2023-10-29 00:00:00"
 endAt = "2024-03-28 00:00:00"
 starttestAt = "2024-03-29 00:00:00"
 endtestAt = "2024-05-30 00:00:00"
-interval = "1H"
+interval = "15m"
 
 async def exportTechnicalIndicators(address):
   addressType = "token"
@@ -157,6 +159,27 @@ async def exportTechnicalIndicators(address):
   ws_indicator = WildersSmoothing(input_data=dataFrame)
   dataFrame['ws'] = ws_indicator.getTiData()[['ws'][0]]
 
+  ICloud_indicator = IchimokuCloud(input_data=dataFrame)
+  dataFrame['tenkan_sen'] = ICloud_indicator.getTiData()[['tenkan_sen'][0]]
+  dataFrame['kijun_sen'] = ICloud_indicator.getTiData()[['kijun_sen'][0]]
+  dataFrame['senkou_a'] = ICloud_indicator.getTiData()[['senkou_a'][0]]
+  dataFrame['senkou_b'] = ICloud_indicator.getTiData()[['senkou_b'][0]]
+
+  sar_indicator = ParabolicSAR(input_data=dataFrame)
+  dataFrame['sar'] = sar_indicator.getTiData()[['sar'][0]]
+
+  cci_indicator = CommodityChannelIndex(input_data=dataFrame)
+  dataFrame['cci'] = cci_indicator.getTiData()[['cci'][0]]
+
+  obv_indicator = OnBalanceVolume(input_data=dataFrame)
+  dataFrame['obv'] = obv_indicator.getTiData()[['obv'][0]]
+
+  pvt_indicator = PriceAndVolumeTrend(input_data=dataFrame)
+  dataFrame['pvt'] = pvt_indicator.getTiData()[['pvt'][0]]
+
+  tsf_indicator = TimeSeriesForecast(input_data=dataFrame)
+  dataFrame['tsf'] = tsf_indicator.getTiData()[['tsf'][0]]
+
   dmi_indicator = DirectionalMovementIndex(input_data=dataFrame)
   dmi_data = dmi_indicator.getTiData()
   dataFrame['+di'] = dmi_data['+di']
@@ -166,11 +189,6 @@ async def exportTechnicalIndicators(address):
   dataFrame['adxr'] = dmi_data['adxr']
 
   date_range = [2,5,10]
-#   for index in range(0,len(dataFrame[['close'][0]])):
-#     if ((dataFrame[['close'][0]][index] == np.max(dataFrame[['close'][0]][index-date_range:index+date_range])) or (dataFrame[['close'][0]][index] == np.min(dataFrame[['close'][0]][index-date_range:index+date_range]))):
-#         result.append(1)
-#     else:
-#         result.append(0)
 
 
   for date_num in range(0,len(date_range)):
@@ -178,16 +196,10 @@ async def exportTechnicalIndicators(address):
         dataFrame['id']
     ,0,1)
 
-    max_idx = argrelextrema(dataFrame['close'].values, np.greater, order=date_range[date_num])[0];
-    min_idx = argrelextrema(dataFrame['close'].values, np.less, order=date_range[date_num])[0];
+    # Add target variable for price direction
+    dataFrame[f'Target_{date_range[date_num]}'] = np.where(dataFrame['close'].shift(date_range[date_num]) > dataFrame['close'], -1, 1)
+    dataFrame[f'Target_{date_range[date_num]}'] = dataFrame[f'Target_{date_range[date_num]}'].shift(-date_range[date_num])
 
-    for index in range(0,len(max_idx)):
-        dataFrame[[f'Target_{date_range[date_num]}'][0]].iloc[max_idx[index]] = 1
-    for index in range(0,len(min_idx)):
-        dataFrame[[f'Target_{date_range[date_num]}'][0]].iloc[min_idx[index]] = -1
-
-  # Add target variable for price direction
-  #dataFrame['Target'] = np.where(dataFrame['close'].shift(-1) > dataFrame['close'], 1, 0)
 
   dataFrame = dataFrame.iloc[::-1]
 
