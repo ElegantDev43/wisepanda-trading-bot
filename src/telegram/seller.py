@@ -401,27 +401,6 @@ def select_gas_amount(bot, message, index):
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 
-def select_gas_price(bot, message, index):
-    # user = user_model.get_user_by_telegram(message.chat.id)
-   # chain = user.chain
-    #  wallets = user.wallets[chain]
-
-    index_list['gas_price'] = int(index)
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    result['gas_price'] = chain_gas_prices[int(index)]
-    x_value_list['gas-price'] = 0
-    order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    for order in order_list:
-        if order['active'] == True:
-            order_index = order['name']
-    keyboard = get_keyboard(order_index, x_value_list,
-                            message.chat.id, index_list)
-
-    bot.edit_message_reply_markup(
-        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
-
-
 def select_slip_page(bot, message, index):
    # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain

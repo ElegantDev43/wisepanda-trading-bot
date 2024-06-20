@@ -187,3 +187,9 @@ def set_dca_order(user_id, dca_order_id, dca_order):
 
 def remove_dca_order(user_id, dca_order_id):
   database.remove_dca_order(user_id, dca_order_id)
+  
+def set_auto_order(user_id):
+  database.set_auto_order(user_id)
+  
+def unset_auto_order(user_id):
+  database.unset_auto_order(user_id)

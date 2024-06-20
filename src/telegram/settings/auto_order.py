@@ -67,8 +67,10 @@ def handle_input_value(bot, message, item):
 def handle_status(bot, message):
     if auto_keyboard['status'] == 0:
       auto_keyboard['status'] = 1
+      main_api.set_auto_order(message.chat.id)
     elif auto_keyboard['status'] == 1:
       auto_keyboard['status'] = 0
+      main_api.unset_auto_order(message.chat.id)
     text = '''
       *Settings > Auto Order 🎮*
       

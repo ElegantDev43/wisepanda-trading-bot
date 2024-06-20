@@ -363,10 +363,7 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
 
     return keyboard
 
-
 def handle_input_token(bot, message):
-   # user = user_model.get_user_by_telegram(message.chat.id)
-
     result['token'] = message.text
     chain = 'ethereum'
     token = result['token']
@@ -389,15 +386,10 @@ def handle_input_token(bot, message):
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
 
-
 def select_buy_wallet(bot, message, index):
-   # user = user_model.get_user_by_telegram(message.chat.id)
-   # chain = user.chain
-    #  wallets = user.wallets[chain]'
     index_list['wallet'] = int(index)
     result['wallet'] = int(index)
     order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     for order in order_list:
         if order['active'] == True:
             order_index = order['name']
@@ -407,18 +399,11 @@ def select_buy_wallet(bot, message, index):
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
-
 def select_buy_amount(bot, message, index):
-   # user = user_model.get_user_by_telegram(message.chat.id)
-   # chain = user.chain
-    #  wallets = user.wallets[chain]
     index_list['buy_amount'] = int(index)
     result['buy_amount'] = chain_buy_amounts[int(index)]
     x_value_list['buy-amount'] = 0
-
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     for order in order_list:
         if order['active'] == True:
             order_index = order['name']
@@ -428,18 +413,11 @@ def select_buy_amount(bot, message, index):
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
-
 def select_gas_amount(bot, message, index):
-  #  user = user_model.get_user_by_telegram(message.chat.id)
-   # chain = user.chain
-    #  wallets = user.wallets[chain]
-
     index_list['gas_amount'] = int(index)
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     result['gas_amount'] = chain_gas_amounts[int(index)]
     x_value_list['gas-amount'] = 0
     order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     for order in order_list:
         if order['active'] == True:
             order_index = order['name']
@@ -448,217 +426,97 @@ def select_gas_amount(bot, message, index):
 
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
-
-
-def select_gas_price(bot, message, index):
-    # user = user_model.get_user_by_telegram(message.chat.id)
-   # chain = user.chain
-    #  wallets = user.wallets[chain]
-
-    index_list['gas_price'] = int(index)
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    result['gas_price'] = chain_gas_prices[int(index)]
-    x_value_list['gas-price'] = 0
-    order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    for order in order_list:
-        if order['active'] == True:
-            order_index = order['name']
-    keyboard = get_keyboard(order_index, x_value_list,
-                            message.chat.id, index_list)
-
-    bot.edit_message_reply_markup(
-        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
-
 
 def select_slip_page(bot, message, index):
-   # user = user_model.get_user_by_telegram(message.chat.id)
-   # chain = user.chain
-    #  wallets = user.wallets[chain]
-
     index_list['slippage'] = int(index)
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     result['slippage'] = chain_slippages[int(index)]
     x_value_list['slippage'] = 0
     order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     for order in order_list:
         if order['active'] == True:
             order_index = order['name']
     keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
-
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
-
 
 def select_limit_token_price(bot, message, index):
-    # user = user_model.get_user_by_telegram(message.chat.id)
-   # chain = user.chain
-    #  wallets = user.wallets[chain]
-
     index_list['limit_token_price'] = int(index)
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     result['limit_token_price'] = chain_limit_token_prices[int(index)]
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     x_value_list['limit-token-price'] = 0
     order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     for order in order_list:
         if order['active'] == True:
             order_index = order['name']
     keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
-
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
-
 
 def select_limit_tax(bot, message, index):
-  #  user = user_model.get_user_by_telegram(message.chat.id)
-   # chain = user.chain
-    #  wallets = user.wallets[chain]
     x_value_list['limit-tax'] = 0
     index_list['tax'] = int(index)
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     result['tax'] = chain_taxes[int(index)]
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     for order in order_list:
         if order['active'] == True:
             order_index = order['name']
     keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
-
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
-
 
 def select_market_capital(bot, message, index):
-  #  user = user_model.get_user_by_telegram(message.chat.id)
-   # chain = user.chain
-    #  wallets = user.wallets[chain]
     x_value_list['market-capital'] = 0
     index_list['market_cap'] = int(index)
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     result['market_cap'] = chain_market_caps[int(index)]
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     for order in order_list:
         if order['active'] == True:
             order_index = order['name']
     keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
-
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
-
 
 def select_liquidity(bot, message, index):
-   # user = user_model.get_user_by_telegram(message.chat.id)
-   # chain = user.chain
-    #  wallets = user.wallets[chain]
     x_value_list['liquidity'] = 0
     index_list['liquidity'] = int(index)
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     result['liquidity'] = chain_liquidities[int(index)]
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     for order in order_list:
         if order['active'] == True:
             order_index = order['name']
     keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
-
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
-
 
 def select_interval(bot, message, index):
-  #  user = user_model.get_user_by_telegram(message.chat.id)
-   # chain = user.chain
-    #  wallets = user.wallets[chain]
     x_value_list['interval'] = 0
     index_list['interval'] = int(index)
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     result['interval'] = chain_intervals[int(index)]
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     for order in order_list:
         if order['active'] == True:
             order_index = order['name']
     keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
-
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
-
 
 def select_duration(bot, message, index):
-  #  user = user_model.get_user_by_telegram(message.chat.id)
-   # chain = user.chain
-    #  wallets = user.wallets[chain]
     x_value_list['duration'] = 0
     index_list['duration'] = int(index)
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     result['duration'] = chain_durations[int(index)]
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     for order in order_list:
         if order['active'] == True:
             order_index = order['name']
     keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
-
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
-
-
-def select_max_price(bot, message, index):
-   # chain = user.chain
-    #  wallets = user.wallets[chain]
-    x_value_list['dca-max-price'] = 0
-    index_list['max_dca_price'] = int(index)
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)~
-    result['max_dca_price'] = chain_dca_max_prices[int(index)]
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    for order in order_list:
-        if order['active'] == True:
-            order_index = order['name']
-    keyboard = get_keyboard(order_index, x_value_list,
-                            message.chat.id, index_list)
-
-    bot.edit_message_reply_markup(
-        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
-
-
-def select_min_price(bot, message, index):
-    # user = user_model.get_user_by_telegram(message.chat.id)
-   # chain = user.chain
-    #  wallets = user.wallets[chain]
-    x_value_list['dca-min-price'] = 0
-    index_list['min_dca_price'] = int(index)
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    result['min_dca_price'] = chain_dca_min_prices[int(index)]
-    #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
-    for order in order_list:
-        if order['active'] == True:
-            order_index = order['name']
-    keyboard = get_keyboard(order_index, x_value_list,
-                            message.chat.id, index_list)
-
-    bot.edit_message_reply_markup(
-        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
-
 
 def handle_buy_amount_x(bot, message):
     text = '''
@@ -670,29 +528,15 @@ Enter the amount to buy:
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
 
-
 def handle_gas_amount_x(bot, message):
     text = '''
 *Token Buy > ⛽ X*
 Enter the gas amount to set:
 '''
-
     item = "Gas Amount"
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
-
-
-def handle_gas_price_x(bot, message):
-    text = '''
-*Token Buy > ⛽ X*
-Enter the gas price to set:
-'''
-    item = "Gas Price"
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
-    bot.register_next_step_handler_by_chat_id(
-        chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
-
 
 def handle_slippage_x(bot, message):
     text = '''
@@ -704,7 +548,6 @@ Enter the slippage to set:
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
 
-
 def handle_limit_token_price_x(bot, message):
     text = '''
 *Token Buy > 💰 X*
@@ -714,7 +557,6 @@ Enter the Token Price to set:
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
-
 
 def handle_market_capital_x(bot, message):
     text = '''
@@ -726,7 +568,6 @@ Enter the Maximum Market Capital to set:
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
 
-
 def handle_liquidity_x(bot, message):
     text = '''
 *Token Buy > 💰 X*
@@ -737,7 +578,6 @@ Enter the liquidity to set:
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
 
-
 def handle_limit_tax_x(bot, message):
     text = '''
 *Token Buy > 💰 X%*
@@ -747,7 +587,6 @@ Enter the tax to set:
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
-
 
 def handle_duration_x(bot, message):
     text = '''
@@ -770,7 +609,6 @@ Enter the interval to set:
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
 
-
 def handle_max_price_x(bot, message):
     text = '''
 *Token Buy > 💰 X*
@@ -781,7 +619,6 @@ Enter the max price to set:
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
 
-
 def handle_min_price_x(bot, message):
     text = '''
 *Token Buy > 💰 X*
@@ -791,7 +628,6 @@ Enter the min price to set:
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
-
 
 def handle_input_value(bot, message, item):
     if item == "Buy Amount":
@@ -855,16 +691,13 @@ def handle_input_value(bot, message, item):
         result['min_dca_price'] = slippage_x
         index_list['min_dca_price'] = 100
     order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     for order in order_list:
         if order['active'] == True:
             order_index = order['name']
     keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
     token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
-
     chain = 'ethereum'
-
     name = "elo"
     text = f'''
             *Token Buy*
@@ -879,11 +712,6 @@ def handle_input_value(bot, message, item):
           '''
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
-
-
-def handle_buy_amount(bot, message, amount):
-    order_amount = amount
-
 
 def handle_buy(bot, message):
     result['type'] = 0
@@ -910,7 +738,6 @@ def handle_buy(bot, message):
     bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Order')
 
-
 def handle_limit_order(bot, message):
     order_index = "Limit Order"
     keyboard = get_keyboard(order_index, x_value_list,
@@ -918,7 +745,6 @@ def handle_limit_order(bot, message):
 
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
-
 
 def handle_market_order(bot, message):
     order_index = "Market Order"
@@ -928,7 +754,6 @@ def handle_market_order(bot, message):
 
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
-
 
 def handle_dca_order(bot, message):
     order_index = "DCA Order"

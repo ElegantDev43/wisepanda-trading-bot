@@ -17,6 +17,7 @@ class User(Base):
   limit_orders = Column(JSON)
   dca_orders = Column(JSON)
   positions = Column(JSON)
+  auto_order = Column(Integer)
 
 def initialize():
 	Base.metadata.create_all(engine)
@@ -30,7 +31,8 @@ def add(user_id):
 		token_snipers=[],
 		limit_orders=[],
 		dca_orders=[],
-		positions=[]
+		positions=[],
+    auto_order = 0
 	)
 	session.add(user)
 	session.commit()
@@ -57,5 +59,7 @@ def set(user_id, key, value):
 		user.dca_orders = value
 	elif key == 'positions':
 		user.positions = value
+	elif key == 'auto_order':
+		user.auto_order = value
 	session.commit()
 	session.close()
