@@ -386,6 +386,9 @@ def handle_callback_query(call):
         if (amount == 'x'):
             seller.handle_min_price_x(bot, call.message)
         seller.select_min_price(bot, call.message, call.data[24:])
+    elif call.data.startswith('seller select position '):
+        amount = call.data[23:]
+        seller.select_position(bot, call.message, call.data[23:])
 # sniper
     elif call.data.startswith('sniper select buy wallet '):
         sniper.select_buy_wallet(bot, call.message, call.data[25:])

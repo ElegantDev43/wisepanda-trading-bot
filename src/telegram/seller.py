@@ -25,12 +25,12 @@ x_value_list = {"buy-amount": 0, "gas-amount": 0, "gas-price": 0, "limit-token-p
                 "slippage": 0, "market-capital": 0, "liquidity": 0, "limit-tax": 0, "stop-loss": 0, "interval": 0,
                 "duration": 0, "dca-max-price": 0, "dca-min-price": 0}
 
-index_list = {'wallet': 100, 'buy_amount': 100,
+index_list = {'position': 100, 'buy_amount': 100,
               'gas_price': 100, 'gas_amount': 100, 'slippage': 100, 'limit_token_price': 100, 'liquidity': 100,
               'tax': 100, 'market_cap': 100, 'stop-loss': 0, 'interval': 100, 'duration': 100, 'max_dca_price': 100,
               'min_dca_price': 100, 'order_index': 0}
 
-result = {'wallet': 0, 'buy_amount': 0,
+result = {'position': 0, 'buy_amount': 0,
           'gas_price': 0, 'gas_amount': 0, 'slippage': 0, 'type': 0, 'token': "",
           'limit_token_price': 0, 'liquidity': 0, 'tax': 0, 'market_cap': 0, 'stop-loss': 0,
           'interval': 0, 'duration': 0, 'max_dca_price': 0,
@@ -116,6 +116,17 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
         '🔴 Anti-Mev', callback_data=f'anti mev')
     anti_rug = types.InlineKeyboardButton(
         '🔴 Anti-Rug', callback_data=f'anti Rug')
+
+
+    positions = []
+    chain_positions = main_api.get_positions(chat_id)
+    position_count = len(chain_positions)
+    for index in range(position_count):
+        caption = f'{"🟢" if index == index_data['position'] else ""}{chain_positions[index]['Amount']}'
+        button = types.InlineKeyboardButton(
+            text=caption, callback_data=f"seller select position {index}")
+        positions.append(button)
+
 
     buys = []
     buy_count = len(chain_buy_amounts)
@@ -320,6 +331,8 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
 
+    for button in positions:
+      keyboard.row(button)
     keyboard.row(*buys[0:(buy_count // 2)])
     keyboard.row(*buys[(buy_count // 2):buy_count], buy_x)
     keyboard.row(slippage_title,*slippages[0:(len(slippages))], slippage_x)
@@ -865,4 +878,18 @@ def handle_dca_order(bot, message):
                             message.chat.id, index_list)
 
     bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+
+def select_position(bot, message, item):
+  index = int(item)
+  index_list['position'] = index
+  order_index = ''
+   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
+  for order in order_list:
+        if order['active'] == True:
+            order_index = order['name']
+  keyboard = get_keyboard(order_index, x_value_list,
+                            message.chat.id, index_list)
+
+  bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
