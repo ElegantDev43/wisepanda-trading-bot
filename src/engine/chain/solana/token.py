@@ -26,7 +26,7 @@ def get_metadata(token):
   return {
     'name': name,
     'symbol': symbol,
-    'decimals': decimals
+    'decimals': int(decimals)
   }
 
 def check_liveness(token):

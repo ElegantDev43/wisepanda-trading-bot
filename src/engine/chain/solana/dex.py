@@ -10,7 +10,10 @@ from solders.message import to_bytes_versioned # type: ignore
 from solders.keypair import Keypair # type: ignore
 from solders.transaction import VersionedTransaction # type: ignore
 
+from src.engine.chain.solana.solana_tracker import main as solana_tracker
+
 def swap(type, token, amount, slippage, wallet):
+  return solana_tracker.swap(type, token, amount, slippage, wallet)
   try:
     sol = 'So11111111111111111111111111111111111111112'
     if type == 'buy':
