@@ -83,31 +83,33 @@ def get_positions(user_id):
 def market_buy(user_id, token, amount, slippage, wallet_id):
   chain = get_chain(user_id)
   wallet = database.get_wallet(user_id, chain, wallet_id)
-  result = dex_engine.swap(chain, 'buy', token, amount, slippage, wallet)
+  txid, output = dex_engine.swap(chain, 'buy', token, amount, slippage, wallet)
   position = {
     'chain': chain,
     'token': token,
     'amount': {
       'in': amount,
-      'out': result
+      'out': output
     },
     'wallet_id': wallet_id
   }
   database.add_position(user_id, position)
-  return position
+  return txid, output
 
 def market_sell(user_id, position_id, amount, slippage):
   position = database.get_position(position_id)
   wallet = database.get_wallet(user_id, position['chain'], position['wallet_id'])
-  result = dex_engine.swap(position['chain'], 'sell', position['token'], amount, slippage, wallet)
+  amount = int(position['amount']['out'] * amount / 100)
+  txid, output = dex_engine.swap(position['chain'], 'sell', position['token'], amount, slippage, wallet)
   if amount != position['amount']['out']:
     position['amount'] = {
-      'in': position['amount']['in'] - result,
+      'in': position['amount']['in'] - output,
       'out': position['amount']['out'] - amount
     }
     database.set_position(user_id, position_id, position)
   else:
     database.remove_position(user_id, position_id)
+  return txid, output
 
 def get_token_snipers(user_id):
   chain = get_chain(user_id)
@@ -140,16 +142,28 @@ def get_limit_orders(user_id):
   chain = get_chain(user_id)
   return database.get_limit_orders(user_id, chain)
 
-def add_limit_order(user_id, type, token, amount, slippage, wallet_id, criteria):
+def add_limit_buy(user_id, token, amount, slippage, wallet_id, criteria):
   chain = get_chain(user_id)
   limit_order = {
     'id': time.time(),
+    'type': 'buy',
     'chain': chain,
-    'type': type,
     'token': token,
     'amount': amount,
     'slippage': slippage,
     'wallet_id': wallet_id,
+    'criteria': criteria
+  }
+  database.add_limit_order(user_id, limit_order)
+  Thread(target=limit_order_engine.start, args=(user_id, limit_order['id'])).start()
+
+def add_limit_sell(user_id, position_id, amount, slippage, criteria):
+  limit_order = {
+    'id': time.time(),
+    'type': 'sell',
+    'position_id': position_id,
+    'amount': amount,
+    'slippage': slippage,
     'criteria': criteria
   }
   database.add_limit_order(user_id, limit_order)
@@ -165,16 +179,30 @@ def get_dca_orders(user_id):
   chain = get_chain(user_id)
   return database.get_dca_orders(user_id, chain)
 
-def add_dca_order(user_id, type, token, amount, slippage, wallet_id, criteria, interval, count):
+def add_dca_buy(user_id, token, amount, slippage, wallet_id, criteria, interval, count):
   chain = get_chain(user_id)
   dca_order = {
     'id': time.time(),
+    'type': 'sell',
     'chain': chain,
-    'type': type,
     'token': token,
     'amount': amount,
     'slippage': slippage,
     'wallet_id': wallet_id,
+    'criteria': criteria,
+    'interval': interval,
+    'count': count
+  }
+  database.add_dca_order(user_id, dca_order)
+  Thread(target=dca_order_engine.start, args=(user_id, dca_order['id'])).start()
+
+def add_dca_sell(user_id, position_id, amount, slippage, criteria, interval, count):
+  dca_order = {
+    'id': time.time(),
+    'type': 'sell',
+    'position_id': position_id,
+    'amount': amount,
+    'slippage': slippage,
     'criteria': criteria,
     'interval': interval,
     'count': count
@@ -188,8 +216,10 @@ def set_dca_order(user_id, dca_order_id, dca_order):
 def remove_dca_order(user_id, dca_order_id):
   database.remove_dca_order(user_id, dca_order_id)
   
-def set_auto_order(user_id):
-  database.set_auto_order(user_id)
-  
-def unset_auto_order(user_id):
-  database.unset_auto_order(user_id)
+def get_auto_order(user_id):
+  chain = get_chain(user_id)
+  return database.get_auto_order(user_id, chain)
+
+def set_auto_order(user_id, auto_order):
+  chain = get_chain(user_id)
+  database.set_auto_order(user_id, chain, auto_order)

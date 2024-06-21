@@ -13,11 +13,13 @@ class User(Base):
   chain = Column(Integer)
   wallets = Column(JSON)
 
+  positions = Column(JSON)
+
   token_snipers = Column(JSON)
   limit_orders = Column(JSON)
   dca_orders = Column(JSON)
-  positions = Column(JSON)
-  auto_order = Column(Integer)
+
+  auto_order = Column(JSON)
 
 def initialize():
 	Base.metadata.create_all(engine)
@@ -32,7 +34,7 @@ def add(user_id):
 		limit_orders=[],
 		dca_orders=[],
 		positions=[],
-    auto_order = 0
+    auto_order = [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}]
 	)
 	session.add(user)
 	session.commit()

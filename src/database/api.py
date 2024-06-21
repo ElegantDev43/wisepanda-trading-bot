@@ -164,10 +164,12 @@ def remove_position(user_id, position_id):
       user.positions.pop(index)
       break
   user_model.set(user_id, 'positions', user.positions)
-  
-  
-def set_auto_order(user_id):
-  user_model.set(user_id, 'auto_order', 1)
 
-def unset_auto_order(user_id):
-  user_model.set(user_id, 'auto_order', 0)
+def get_auto_order(user_id, chain):
+  user = get_user(user_id)
+  return user.auto_order[chain]
+
+def set_auto_order(user_id, chain, auto_order):
+  user = get_user(user_id)
+  user.auto_order[chain] = auto_order
+  user_model.set(user_id, 'auto_order', user.auto_order)
