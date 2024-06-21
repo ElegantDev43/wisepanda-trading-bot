@@ -207,6 +207,7 @@ def checkTrend(prices,predict_model):
 async def OrderSystem(token,prices,amount,original_price,original_state,buy_count,sell_count,stop_count,total_count,period,original_trend):
   profit = 0
   loss = 0
+  action = 'hold'
 
   if os.path.exists(f'src/engine/swing/model/model_{token}_{period}.pkl') != True:
     predict_model = pickle.load(open(f'src/engine/swing/model/model_{period}.pkl', 'rb'))
@@ -228,12 +229,14 @@ async def OrderSystem(token,prices,amount,original_price,original_state,buy_coun
       original_price = 0
       sell_count = sell_count + 1
       total_count = total_count + 1
+      action = 'sell'
 
   elif original_trend == -1 and trend == 1 and original_state == 'sell':
       original_state = 'buy'
       original_price = current_price
       buy_count = buy_count + 1
       total_count = total_count + 1
+      action = 'buy'
 
   if original_state == 'buy' and current_price < (original_price * 98.0 / 100):
       loss = amount * (current_price / original_price - 1)
@@ -242,5 +245,6 @@ async def OrderSystem(token,prices,amount,original_price,original_state,buy_coun
       original_price = 0
       stop_count = stop_count + 1
       total_count = total_count + 1
+      action = 'sell'
 
-  return amount,original_price,original_state,buy_count,sell_count,stop_count,total_count,trend , profit, loss
+  return action,amount,original_price,original_state,buy_count,sell_count,stop_count,total_count,trend , profit, loss

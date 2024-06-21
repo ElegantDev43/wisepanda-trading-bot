@@ -12,6 +12,9 @@ from src.engine.swing.hot_tokens_extract import exportHotTokens
 from src.database.swing import swing as swing_model
 from src.database.swing import Htokens as HTokens_model
 
+from src.engine import swap as swap_engine
+from src.engine.chain import dex as dex_engine
+
 async def Control():
 #   addresses = [
 #       "So11111111111111111111111111111111111111112",  #Sol
@@ -77,11 +80,21 @@ async def Control():
     dataFrame = dataFrame.iloc[::-1]
 
     first_data = dataFrame.iloc[-40:]
-    amount,original_price,original_state,buy_count,sell_count,stop_count,total_count ,trend, total_profit, total_loss = await OrderSystem(
+    action,amount,original_price,original_state,buy_count,sell_count,stop_count,total_count ,trend, total_profit, total_loss = await OrderSystem(
                 current_position.token,
                 first_data,current_position.amount,current_position.original_price,
                 current_position.original_state,current_position.buy_count,current_position.sell_count,
                 current_position.stop_count,current_position.total_count,'medium',current_position.original_trend)
+  
+    userid = current_position.userid
+    chain = current_position.chain
+    token = current_position.token
+    amount = current_position.amount
+    wallet = current_position.wallet
+    slippage = 5
+    stop_loss = 10
+    dex_engine.swap(chain, action, token, amount, slippage, wallet)
+  
     swing_model.update_by_user_id(id = current_position.id,
                                   amount = amount,
                                   original_price = original_price,
