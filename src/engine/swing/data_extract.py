@@ -17,6 +17,8 @@ from tti.indicators import PriceRateOfChange,StandardDeviation,StochasticMomentu
 from tti.indicators import IchimokuCloud,ParabolicSAR,CommodityChannelIndex,OnBalanceVolume,PriceAndVolumeTrend
 from tti.indicators import TimeSeriesForecast
 
+from src.engine.swing.lstm_model import study_lstm
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -273,6 +275,7 @@ async def exportTestValues(address):
 
   # Save the DataFrame as a PNG image
   await SaveAsGraph(dataFrame,address)
+  await study_lstm(address)
 
 async def data_extract_main(addresses):
 

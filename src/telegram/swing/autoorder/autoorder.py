@@ -80,10 +80,10 @@ def handle_autoorder(bot, message, address):
 
     # user_model.create_user_by_telegram(message.chat.id)
     global default_duration,default_amount,default_buy_index,default_wallet_index,default_token_address
-    if os.path.exists(f'src/engine/swing/data_png/prices_{address}.png') != True:
+    if os.path.exists(f'src/engine/swing/data_png/prices_{address}_predict.png') != True:
         asyncio.run(exportTestValues(address))
 
-    image_path = f'src/engine/swing/data_png/prices_{address}.png'  # Local image file path
+    image_path = f'src/engine/swing/data_png/prices_{address}_predict.png'  # Local image file path
     default_token_address = address
 
     user = user_model.get(message.chat.id)
