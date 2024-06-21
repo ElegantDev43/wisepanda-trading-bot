@@ -1,4 +1,4 @@
-from src.database import main as database
+from src.database import api as database
 from src.engine.chain import dex as dex_engine
 
 def buy(user_id, chain, token, amount, slippage, wallet_id, stop_loss):
