@@ -5,8 +5,6 @@ from telebot import types
 from src.telegram import start, sniper, buyer, orders, token_snipers, positions, bots, hots, seller, limit_order, dca_order, lp_sniper
 from src.telegram.settings import main as settings, chains, wallets, keyboards, auto_order
 
-from src.telegram.swing import swing , tradehistory
-from src.telegram.swing.autoorder import autoorder
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
 
@@ -355,7 +353,7 @@ def handle_callback_query(call):
         amount = call.data[32:]
         if (amount == 'x'):
             seller.handle_limit_token_price_x(bot, call.message)
-        seller.select_limit_token_price(bot, call.message, call.data[32:])
+            
     elif call.data.startswith('seller select stop loss '):
         amount = call.data[24:]
         if (amount == 'x'):
@@ -462,41 +460,6 @@ def handle_callback_query(call):
         amount = call.data[26:]
         sniper.handle_remove_auto_params(bot, call.message, call.data[26:])
         
-    #swing
-    if call.data == 'swing':
-        swing.handle_start(bot, call.message)
-    elif call.data == 'select_token':
-        autoorder.handle_token_selection(bot, call.message)
-    # elif call.data.startswith('auto -'):
-    #     autoorder.handle_autoorder(bot, call.message)
-    elif call.data.startswith('auto_buy'):
-        index = int(call.data[8:])
-        if index < 4:
-            autoorder.handle_toggle(bot, call.message,'toggle_buy',0, index, 0, 0)
-        elif index == 4:
-            autoorder.handle_buy_x(bot,call.message)
-    elif call.data.startswith('auto_token_'):
-        address = call.data[11:]
-        autoorder.handle_autoorder(bot, call.message, address)
-    elif call.data.startswith('auto_wallet'):
-        index = int(call.data[12:])
-        autoorder.handle_toggle(bot, call.message,'toggle_wallet', index, 0, 0, 0)
-    elif call.data == 'auto_period':
-        autoorder.handle_duration_x(bot, call.message)
-    elif call.data == 'auto_start':
-        autoorder.handle_autostart(bot, call.message)
-    elif call.data == 'trade_history':
-        tradehistory.handle_tradehistory(bot, call.message)
-    elif call.data.startswith('history_'):
-        swing_token = int(call.data[8:])
-        tradehistory.handle_token_tradehistory(bot, call.message,swing_token)
-    elif call.data.startswith('stop_'):
-        swing_token = int(call.data[5:])
-        tradehistory.handle_check_stop_trading(bot, call.message,swing_token)
-    elif call.data.startswith('real_stop_'):
-        swing_token = int(call.data[10:])
-        tradehistory.handle_remove_swing_token(bot, call.message,swing_token)
-        
 def initialize():
     print('Starting the bot...')
-    bot.infinity_polling(restart_on_change=False)
+    bot.infinity_polling(restart_on_change=True)

@@ -758,8 +758,7 @@ def handle_buy(bot, message):
     print(result['token'])
     
     if order_name == "Market Order":
-        tx_hash = main_api.market_buy(message.chat.id, result['token'], buy_amount, result['slippage'], buy_wallet, result['stop-loss'])
-        print(tx_hash)
+        tx_hash, out_amount = main_api.market_buy(message.chat.id, result['token'], buy_amount, result['slippage'], buy_wallet, result['stop-loss'])
     elif order_name == "Limit Order":
         main_api.add_limit_order(message.chat.id, result['type'], result['token'], result['buy_amount'], result['slippage'], result['wallet'], result['limit_token_price'])
     elif order_name == "DCA Order":
