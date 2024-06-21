@@ -20,13 +20,13 @@ order_list = [
     {"name": "Limit Order", "active": False},
     {"name": "DCA Order", "active": False}
 ]
-x_value_list = {"buy-amount": 0, "gas-amount": 0, "gas-price": 0, "limit-token-price": 0,
+x_value_list = {"buy-amount": 0, "gas-amount": 0, "gas-price": 0, "limit-token-price": 0,"stop-loss":0,
                 "slippage": 0, "market-capital": 0, "liquidity": 0, "limit-tax": 0, "interval": 0, "duration": 0, "dca-max-price": 0, "dca-min-price": 0}
 
 index_list = {'wallet': 100, 'buy_amount': 100,
               'gas_price': 100, 'gas_amount': 100, 'slippage': 100, 'limit_token_price': 100, 'liquidity': 100,
               'tax': 100, 'market_cap': 100, 'interval': 100, 'duration': 100, 'max_dca_price': 100,
-              'min_dca_price': 100, 'order_index': 0, 'stop-loss': 0}
+              'min_dca_price': 100, 'order_index': 0, 'stop-loss': 100}
 
 result = {'wallet': 0, 'buy_amount': 0,
           'gas_price': 0, 'gas_amount': 0, 'slippage': 0, 'type': 0, 'token':'',
@@ -49,7 +49,7 @@ def initialize_x_value():
 def handle_buyer(bot, message):
    # user_model.create_user_by_telegram(message.chat.id)
     text = '''
-🛒 * Token Sniper*
+🛒 * Token Buy*
 
 Enter a token symbol or address to buy.
     '''
@@ -205,6 +205,16 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
     limit_token_price_x = types.InlineKeyboardButton(
         text=caption, callback_data='select limit token price x')
 
+    stop_loss_title = types.InlineKeyboardButton(
+        '----- Stop Loss -----', callback_data='set title')
+    if update_data['stop-loss'] == 0:
+        caption = "X"
+    else:
+        caption = f"{update_data['stop-loss']}"
+    stop_loss_x = types.InlineKeyboardButton(
+        text=caption, callback_data='select stop loss x')
+
+
     limit_taxes = []
     limit_tax_count = len(chain_taxes)
     for index in range(limit_tax_count):
@@ -358,6 +368,7 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
         keyboard.row(dca_min_price_title, dca_min_price_x,dca_max_price_title,dca_max_price_x)
     keyboard.row(slippage_title, *
                      slippages[0:(len(slippages))], slippage_x)
+    keyboard.row(stop_loss_title, stop_loss_x)
     keyboard.row(create_order)
     keyboard.row(back, close)
 
@@ -365,20 +376,24 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
 
 def handle_input_token(bot, message):
     result['token'] = message.text
-    chain = 'ethereum'
+    
+    chain_index = main_api.get_chain(message.chat.id)
+    chains = main_api.get_chains()
+    current_chain = chains[chain_index]
     token = result['token']
-    name = "elo"
-
+    token_data = main_api.get_token_market_data(message.chat.id, token)
+#meta_data = main_api.get_token_metadata(message.chat.id, token)
     text = f'''
             *Token Buy*
 
     Sell your tokens here.
 
-  *{name}  (🔗{chain})*
-  {message.text}
-  ❌ Snipe not set
+    *{'fwfwe'}  (🔗{current_chain})*
+    {token}
+    
+    💰 {token_data['price']}$
 
-  [Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
+    [Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
       '''
     order_index = order_list[0]['name']
     keyboard = get_keyboard(order_index, x_value_list,
@@ -548,6 +563,16 @@ Enter the slippage to set:
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
 
+def handle_stop_loss_x(bot, message):
+    text = '''
+*Token Buy > 💧 X%*
+Enter the slippage to set:
+'''
+    item = "Stop Loss"
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
+    bot.register_next_step_handler_by_chat_id(
+        chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
+ 
 def handle_limit_token_price_x(bot, message):
     text = '''
 *Token Buy > 💰 X*
@@ -655,6 +680,11 @@ def handle_input_value(bot, message, item):
         x_value_list['limit-token-price'] = token_price_x
         result['limit_token_price'] = token_price_x
         index_list['limit_token_price'] = 100
+    elif item == "Stop Loss":
+        token_price_x = float(message.text)
+        x_value_list['stop-loss'] = token_price_x
+        result['stop-loss'] = token_price_x
+        index_list['stop-loss'] = 100
     elif item == "Market Capital":
         market_capital_x = float(message.text)
         x_value_list['market-capital'] = market_capital_x
@@ -728,7 +758,7 @@ def handle_buy(bot, message):
     print(result['token'])
     
     if order_name == "Market Order":
-        tx_hash = main_api.market_buy(message.chat.id, result['token'], buy_amount, result['slippage'], buy_wallet)
+        tx_hash = main_api.market_buy(message.chat.id, result['token'], buy_amount, result['slippage'], buy_wallet, result['stop-loss'])
         print(tx_hash)
     elif order_name == "Limit Order":
         main_api.add_limit_order(message.chat.id, result['type'], result['token'], result['buy_amount'], result['slippage'], result['wallet'], result['limit_token_price'])

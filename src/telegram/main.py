@@ -130,7 +130,8 @@ def handle_callback_query(call):
     elif call.data.startswith('handle_input_auto_order '):
         item = call.data[24:]
         auto_order.handle_input(bot, call.message, item)
-
+    elif call.data == 'handle update auto order':
+        auto_order.handle_update(bot, call.message)
     elif call.data == 'wallets':
         wallets.handle_wallets(bot, call.message)
   #  elif call.data in config.BUY_AMOUNT:
@@ -267,7 +268,10 @@ def handle_callback_query(call):
         if (amount == 'x'):
             buyer.handle_slippage_x(bot, call.message)
         buyer.select_slip_page(bot, call.message, call.data[16:])
-
+    elif call.data.startswith('select stop loss '):
+        amount = call.data[17:]
+        if (amount == 'x'):
+            buyer.handle_stop_loss_x(bot, call.message)
     elif call.data.startswith('select limit token price '):
         amount = call.data[25:]
         if (amount == 'x'):

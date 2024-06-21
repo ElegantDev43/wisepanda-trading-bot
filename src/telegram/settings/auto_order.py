@@ -24,9 +24,12 @@ def get_keyboard(current_keyboard):
       caption = '🔴 Disabled'
     enable_order = types.InlineKeyboardButton(
         text=caption, callback_data='aut_order_status_change')
+
+    update_btn = types.InlineKeyboardButton(
+        text="Update", callback_data='handle update auto order')
     
     keyboard.row(amount_title, amount, slippage_title, slippage)
-    keyboard.row(enable_order)
+    keyboard.row(enable_order, update_btn)
     keyboard.row(back)
     return keyboard
 
@@ -36,8 +39,8 @@ def handle_auto_orders(bot, message):
     
     You can set criterias for auto order here.
     '''
-
-    keyboard = get_keyboard(auto_keyboard)
+    value_keyboard = main_api.get_auto_order(message.chat.id)
+    keyboard = get_keyboard(value_keyboard)
 
     bot.send_message(chat_id=message.chat.id, text=text,
                      parse_mode='Markdown', reply_markup=keyboard)
@@ -67,15 +70,17 @@ def handle_input_value(bot, message, item):
 def handle_status(bot, message):
     if auto_keyboard['status'] == 0:
       auto_keyboard['status'] = 1
-      main_api.set_auto_order(message.chat.id)
     elif auto_keyboard['status'] == 1:
       auto_keyboard['status'] = 0
-      main_api.unset_auto_order(message.chat.id)
     text = '''
-      *Settings > Auto Order 🎮*
-      
-      You can set criterias for auto order here.
-      '''
+    *Settings > Auto Order 🎮*
+    
+    You can set criterias for auto order here.
+    '''
     keyboard = get_keyboard(auto_keyboard)
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                      reply_markup=keyboard, disable_web_page_preview=True)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+    
+def handle_update(bot, message):
+    print(auto_keyboard)
+    main_api.set_auto_order(message.chat.id, auto_keyboard)
