@@ -46,13 +46,16 @@ async def study_lstm(token):
   
   if os.path.exists(f'src/engine/swing/price_data/price_data_{token}.csv') != True:
     return
-  data = pd.read_csv(f"src/engine/swing/price_data/price_data_{token}.csv")
 
   # fix random seed for reproducibility
   np.random.seed(5)
 
   # Load the history and convert it for training
   data = pd.read_csv(f"src/engine/swing/price_data/price_data_{token}.csv")
+  
+  if data.empty:
+    return
+  
   data = pd.DataFrame(data)
   data = data.set_index('date')
   data.index = pd.to_datetime(data.index, unit='ns')
@@ -86,6 +89,6 @@ async def study_lstm(token):
       trainX, trainY, validation_data=(testX, testY), epochs=32, batch_size=32, verbose=1, shuffle=True)
 
   # Save the trained model
-  model.save(f"LSTM_{token}.h5")
+  model.save(f"src/engine/swing/model/LSTM_{token}.h5")
   
   await predict_lstm(token)

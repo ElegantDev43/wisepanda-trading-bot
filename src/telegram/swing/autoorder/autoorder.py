@@ -4,7 +4,7 @@ from telebot import types
 
 #from src.database import user as user_model
 #from src.engine import main as engine
-from src.engine.swing.data_extract import exportTestValues
+from src.engine.swing.data_extract import exportTestValues,data_extract_main
 from src.database.swing import swing as swing_model
 from src.database import user as user_model
 from src.telegram.start import handle_start
@@ -80,10 +80,13 @@ def handle_autoorder(bot, message, address):
 
     # user_model.create_user_by_telegram(message.chat.id)
     global default_duration,default_amount,default_buy_index,default_wallet_index,default_token_address
-    if os.path.exists(f'src/engine/swing/data_png/prices_{address}_predict.png') != True:
-        asyncio.run(exportTestValues(address))
-
+    
     image_path = f'src/engine/swing/data_png/prices_{address}_predict.png'  # Local image file path
+    
+    if os.path.exists(f'src/engine/swing/data_png/prices_{address}_predict.png') != True:
+        asyncio.run(data_extract_main([address]))
+        image_path = f'src/engine/swing/data_png/prices_{address}.png'
+
     default_token_address = address
 
     user = user_model.get(message.chat.id)
