@@ -7,9 +7,10 @@ from src.engine import token_sniper as token_sniper_engine
 from src.engine import limit_order as limit_order_engine
 from src.engine import dca_order as dca_order_engine
 
+from src.engine import swap as swap_engine
+
 from src.engine.chain import wallet as wallet_engine
 from src.engine.chain import token as token_engine
-from src.engine.chain import dex as dex_engine
 
 def add_user(user_id):
   database.add_user(user_id)
@@ -80,36 +81,12 @@ def get_positions(user_id):
   chain = get_chain(user_id)
   return database.get_positions(user_id, chain)
 
-def market_buy(user_id, token, amount, slippage, wallet_id):
+def market_buy(user_id, token, amount, slippage, wallet_id, stop_loss):
   chain = get_chain(user_id)
-  wallet = database.get_wallet(user_id, chain, wallet_id)
-  txid, output = dex_engine.swap(chain, 'buy', token, amount, slippage, wallet)
-  position = {
-    'chain': chain,
-    'token': token,
-    'amount': {
-      'in': amount,
-      'out': output
-    },
-    'wallet_id': wallet_id
-  }
-  database.add_position(user_id, position)
-  return txid, output
+  return swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id, stop_loss)
 
 def market_sell(user_id, position_id, amount, slippage):
-  position = database.get_position(position_id)
-  wallet = database.get_wallet(user_id, position['chain'], position['wallet_id'])
-  amount = int(position['amount']['out'] * amount / 100)
-  txid, output = dex_engine.swap(position['chain'], 'sell', position['token'], amount, slippage, wallet)
-  if amount != position['amount']['out']:
-    position['amount'] = {
-      'in': position['amount']['in'] - output,
-      'out': position['amount']['out'] - amount
-    }
-    database.set_position(user_id, position_id, position)
-  else:
-    database.remove_position(user_id, position_id)
-  return txid, output
+  return swap_engine.sell(user_id, position_id, amount, slippage)
 
 def get_token_snipers(user_id):
   chain = get_chain(user_id)
@@ -142,7 +119,7 @@ def get_limit_orders(user_id):
   chain = get_chain(user_id)
   return database.get_limit_orders(user_id, chain)
 
-def add_limit_buy(user_id, token, amount, slippage, wallet_id, criteria):
+def add_limit_buy(user_id, token, amount, slippage, wallet_id, stop_loss, criteria):
   chain = get_chain(user_id)
   limit_order = {
     'id': time.time(),
@@ -152,6 +129,7 @@ def add_limit_buy(user_id, token, amount, slippage, wallet_id, criteria):
     'amount': amount,
     'slippage': slippage,
     'wallet_id': wallet_id,
+    'stop_loss': stop_loss,
     'criteria': criteria
   }
   database.add_limit_order(user_id, limit_order)
@@ -179,7 +157,7 @@ def get_dca_orders(user_id):
   chain = get_chain(user_id)
   return database.get_dca_orders(user_id, chain)
 
-def add_dca_buy(user_id, token, amount, slippage, wallet_id, criteria, interval, count):
+def add_dca_buy(user_id, token, amount, slippage, wallet_id, criteria, interval, count, stop_loss):
   chain = get_chain(user_id)
   dca_order = {
     'id': time.time(),
@@ -191,7 +169,8 @@ def add_dca_buy(user_id, token, amount, slippage, wallet_id, criteria, interval,
     'wallet_id': wallet_id,
     'criteria': criteria,
     'interval': interval,
-    'count': count
+    'count': count,
+    'stop_loss': stop_loss
   }
   database.add_dca_order(user_id, dca_order)
   Thread(target=dca_order_engine.start, args=(user_id, dca_order['id'])).start()

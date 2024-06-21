@@ -1,25 +1,20 @@
 import time
 
 from src.database import api as database
-
-from src.engine.chain import token as token_engine
-from src.engine.chain import dex as dex_engine
+from src.engine import criteria as criteria_engine
+from src.engine import swap as swap_engine
 
 def start(user_id, limit_order_id):
   while True:
     limit_order = database.get_limit_order(user_id, limit_order_id)
     if limit_order:
-      chain, type, token, amount, slippage, wallet_id, criteria = limit_order
-      price = token_engine.get_market_data(chain, token)
-      if type == 'buy':
-        max_price = criteria
-        valid = price < max_price
-      else:
-        min_price = criteria
-        valid = price > min_price
-      if valid:
-        wallet = database.get_wallet(user_id, chain, wallet_id)
-        dex_engine.swap(chain, type, token, amount, slippage, wallet)
+      if criteria_engine.check(limit_order['criteria']):
+        if limit_order['type'] == 'buy':
+          id, type, chain, token, amount, slippage, wallet_id, stop_loss, criteria = limit_order
+          swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id, stop_loss)
+        else:
+          id, type, position_id, amount, slippage, criteria = limit_order
+          swap_engine.sell(user_id, position_id, amount, slippage)
         database.remove_limit_order(user_id, limit_order_id)
     else:
       break
