@@ -125,11 +125,16 @@ def handle_callback_query(call):
         # New api
     elif call.data == 'auto-orders':
         auto_order.handle_auto_orders(bot, call.message)
-    elif call.data == 'aut_order_status_change':
-        auto_order.handle_status(bot, call.message)
-    elif call.data.startswith('handle_input_auto_order '):
-        item = call.data[24:]
-        auto_order.handle_input(bot, call.message, item)
+    elif call.data == 'auto_buy_order_status_change':
+        auto_order.handle_buy_status(bot, call.message)
+    elif call.data == 'auto_sell_order_status_change':
+        auto_order.handle_sell_status(bot, call.message)
+    elif call.data.startswith('handle_input_auto_buy_order '):
+        item = call.data[28:]
+        auto_order.handle_buy_input(bot, call.message, item)
+    elif call.data.startswith('handle_input_auto_sell_order '):
+        item = call.data[29:]
+        auto_order.handle_sell_input(bot, call.message, item)
     elif call.data == 'handle update auto order':
         auto_order.handle_update(bot, call.message)
     elif call.data == 'wallets':

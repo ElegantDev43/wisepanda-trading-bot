@@ -34,7 +34,8 @@ def add(user_id):
 		limit_orders=[],
 		dca_orders=[],
 		positions=[],
-    auto_order = [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}]
+    auto_order = [{'buy':{'status':0, 'amount':0.1, 'slippage':5, 'stop_loss':10},
+                   'sell':{'status':0, 'amount':0.1, 'slippage':5}}, {}, {}, {}, {}, {}, {}, {}, {}, {}]
 	)
 	session.add(user)
 	session.commit()

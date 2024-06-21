@@ -54,7 +54,7 @@ With Panda Bot, you can trade any token instantly, taking advantage of market op
     keyboard.row(limit_order, dca_order)
     keyboard.row(copy_trading)
     keyboard.row(bridge, referral, weekly)
-    keyboard.row(bots,  hots, settings)
+    keyboard.row(bots,  settings)
     keyboard.row(close)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
