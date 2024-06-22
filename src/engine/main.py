@@ -7,6 +7,6 @@ from src.engine.swing import main as swing_engine
 def initialize():
   print('Initialize Engine')
   
-  swing_engine.initialize()
+  #swing_engine.initialize()
   
-  Thread(target=lp_sniper.initialize).start()
+  #Thread(target=lp_sniper.initialize).start()

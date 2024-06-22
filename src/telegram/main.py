@@ -84,11 +84,22 @@ def handle_callback_query(call):
         sniper.handle_sniper(bot, call.message)
     elif call.data == 'lp sniper':
         lp_sniper.handle_lp_sniper(bot, call.message)
-    elif call.data.startswith('lp_sniper_input '):
-        lp_sniper.handle_input_x(bot, call.message, call.data[16:])
+    elif call.data.startswith('lp_sniper_input tk_count'):
+        lp_sniper.handle_count_input(bot, call.message)
     elif call.data.startswith('lp sniper select buy wallet '):
         lp_sniper.select_buy_wallet(bot, call.message, call.data[28:])
-  
+    elif call.data.startswith('lp sniper select buy amount '):
+        amount = call.data[28:]
+        if (amount == 'x'):
+            lp_sniper.handle_buy_amount_x(bot, call.message)
+        else:
+            lp_sniper.select_buy_amount(bot, call.message, call.data[28:])
+    elif call.data.startswith('lp sniper select slippage '):
+        amount = call.data[26:]
+        if (amount == 'x'):
+            lp_sniper.handle_slippage_x(bot, call.message)
+        else:
+            lp_sniper.select_slip_page(bot, call.message, call.data[26:])
     elif call.data == 'lp sniper set auto_sell':
         lp_sniper.handle_auto_sell(bot, call.message)
     elif call.data == 'lp sniper add auto params':
@@ -403,9 +414,12 @@ def handle_callback_query(call):
     elif call.data.startswith('sniper select buy wallet '):
         sniper.select_buy_wallet(bot, call.message, call.data[25:])
 
+    elif call.data == 'sniper select auto mode':
+        sniper.handle_select_mode(bot, call.message)
+    elif call.data == 'sniper select manual mode':
+        sniper.handle_manual_mode(bot, call.message) 
     elif call.data == 'make sniper order':
         sniper.handle_set_sniper(bot, call.message)
-
     elif call.data == 'sniper set auto_sell':
         sniper.handle_auto_sell(bot, call.message)
     elif call.data == 'sniper add auto params':
@@ -416,39 +430,18 @@ def handle_callback_query(call):
             sniper.handle_buy_amount_x(bot, call.message)
         else:
             sniper.select_buy_amount(bot, call.message, call.data[25:])
-    elif call.data.startswith('sniper select gas price '):
-        amount = call.data[24:]
-        if (amount == 'x'):
-            sniper.handle_gas_price_x(bot, call.message)
-        sniper.select_gas_price(bot, call.message, call.data[24:])
     elif call.data.startswith('sniper select slippage '):
         amount = call.data[23:]
         if (amount == 'x'):
             sniper.handle_slippage_x(bot, call.message)
         sniper.select_slip_page(bot, call.message, call.data[23:])
-    elif call.data.startswith('sniper select limit token price '):
-        amount = call.data[32:]
-        if (amount == 'x'):
-            sniper.handle_limit_token_price_x(bot, call.message)
-    elif call.data.startswith('sniper select limit tax '):
-        amount = call.data[24:]
-        if (amount == 'x'):
-            sniper.handle_limit_tax_x(bot, call.message)
-        sniper.select_limit_tax(bot, call.message, call.data[24:])
     elif call.data.startswith('sniper select stop-loss '):
         amount = call.data[24:]
         if (amount == 'x'):
             sniper.handle_stop_loss_x(bot, call.message)
-    elif call.data.startswith('sniper select market capital '):
-        amount = call.data[29:]
-        if (amount == 'x'):
-            sniper.handle_market_capital_x(bot, call.message)
-        sniper.select_market_capital(bot, call.message, call.data[29:])
-    elif call.data.startswith('sniper select liquidity '):
-        amount = call.data[24:]
-        if (amount == 'x'):
-            sniper.handle_liquidity_x(bot, call.message)
-        sniper.select_liquidity(bot, call.message, call.data[24:])
+    elif call.data.startswith('sniper input market capital '):
+        amount = call.data[28:]
+        sniper.input_market_cap(bot, call.message, amount)
 
     elif call.data.startswith('sniper select auto amount '):
         amount = call.data[26:]
@@ -462,4 +455,4 @@ def handle_callback_query(call):
         
 def initialize():
     print('Starting the bot...')
-    bot.infinity_polling(restart_on_change=True)
+    bot.infinity_polling(restart_on_change=False)

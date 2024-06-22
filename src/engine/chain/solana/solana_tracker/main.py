@@ -2,11 +2,11 @@ from solders.keypair import Keypair # type: ignore
 from solders.signature import Signature # type: ignore
 from solana.rpc.api import Client
 import json
-
+import requests
 from src.engine.chain.solana.solana_tracker.solanatracker import SolanaTracker
 
 from src.engine.chain import token as token_engine
-
+from src.engine import api as main_api
 client = Client("https://rpc.solanatracker.io/public?advancedTx=true")
 
 def swap(type, token, amount, slippage, wallet):
@@ -18,7 +18,7 @@ def swap(type, token, amount, slippage, wallet):
   else:
     inputMint = token
     outputMint = sol
-    decimals = token_engine.get_metadata(token)['decimals']
+    decimals = token_engine.get_metadata(0, token)['decimals']
   
   amount = float(amount / 10**decimals)
   keypair = Keypair.from_base58_string(wallet['private_key'])
@@ -42,26 +42,31 @@ def swap(type, token, amount, slippage, wallet):
 
   print("Transaction ID:", txid)
   print("Transaction URL:", f"https://explorer.solana.com/tx/{txid}")
-
-  signature = Signature.from_string(txid)
-  transaction_json = client.get_transaction(signature).to_json()
-
-  transaction_data = json.loads(transaction_json)
-
-  pre_token_balances = transaction_data['result']['meta']['preTokenBalances']
-  post_token_balances = transaction_data['result']['meta']['postTokenBalances']
-
-  def find_balance_difference(pre_balances, post_balances, account_index):
-    pre_balance = next((item for item in pre_balances if item['accountIndex'] == account_index), None)
-    post_balance = next((item for item in post_balances if item['accountIndex'] == account_index), None)
-
-    if pre_balance and post_balance:
-      pre_amount = float(pre_balance['uiTokenAmount']['uiAmount'])
-      post_amount = float(post_balance['uiTokenAmount']['uiAmount'])
-      return post_amount - pre_amount
-    return None
   
-  account_index = 5
-  exact_amount = find_balance_difference(pre_token_balances, post_token_balances, account_index)
-  print(exact_amount)
+  
+  api_key = "IbPGi3HgfdZdUcM7"
+  txn_signature = txid
+  network = "mainnet-beta"
+
+  url = f"https://api.shyft.to/sol/v1/transaction/parsed?network={network}&txn_signature={txn_signature}"
+
+  headers = {
+      "x-api-key": api_key
+  }
+  response = requests.get(url, headers=headers)
+  exact_amount = 0
+  if response.status_code == 200:
+      result = response.json()
+      # Extract the 'out' amount from the JSON response
+      try:
+          actions = result['result']['actions']
+          for action in actions:
+              if 'info' in action and 'tokens_swapped' in action['info']:
+                  out_amount = action['info']['tokens_swapped']['out']['amount']
+                  exact_amount = out_amount
+                  break
+      except KeyError as e:
+          print(f"KeyError: {e} - The key was not found in the JSON response.")
+  else:
+      print("Error:", response.status_code, response.text)
   return txid, exact_amount

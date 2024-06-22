@@ -4,10 +4,10 @@ from src.database import user as user_model
 from src.engine import api as main_api
 import threading
 
-chain_buy_amounts = [0.01, 0.03, 0.05, 0.1]
+chain_buy_amounts = [0.1]
 chain_gas_amounts = [0.1, 0.2, 0.3]
 chain_gas_prices = [0.1, 0.2, 0.3]
-chain_slippages = [0.5, 3, 5]
+chain_slippages = [10]
 chain_limit_token_prices = [171, 173, 175]
 chain_market_caps = [10000, 200000, 50000]
 chain_liquidities = [10000, 200000, 50000]
@@ -33,6 +33,18 @@ result = {'wallet': 0, 'buy_amount': 0,
           'limit_token_price': 0, 'liquidity': 0, 'tax': 0, 'market_cap': 0,
           'interval': 0, 'duration': 0, 'max_dca_price': 0,
           'min_dca_price': 0, 'stop-loss': 0}
+
+
+def format_number(num):
+    if num >= 1_000_000_000:
+        formatted_num = f"{num / 1_000_000_000:.3f}B"
+    elif num >= 1_000_000:
+        formatted_num = f"{num / 1_000_000:.3f}M"
+    elif num >= 1_000:
+        formatted_num = f"{num / 1_000:.3f}K"
+    else:
+        formatted_num = f"{num:.18f}"
+    return formatted_num
 
 
 def initialize_x_value():
@@ -120,18 +132,18 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
     buy_count = len(chain_buy_amounts)
     for index in range(buy_count):
         if index_data['buy_amount'] == 100:
-            caption = f'💰{chain_buy_amounts[index]}Ξ'
+            caption = f'{chain_buy_amounts[index]}sol'
         else:
-            caption = f'{"🟢" if index == index_data['buy_amount'] else ""} 💰{
-                chain_buy_amounts[index]}Ξ'
+            caption = f'{"🟢" if index == index_data['buy_amount'] else ""}{
+                chain_buy_amounts[index]}sol'
         button = types.InlineKeyboardButton(
             text=caption, callback_data=f"select buy amount {index}")
         buys.append(button)
 
     if update_data['buy-amount'] == 0:
-        caption = "💰 XΞ"
+        caption = "X sol"
     else:
-        caption = f"🟢 💰 {update_data['buy-amount']}Ξ"
+        caption = f"🟢{update_data['buy-amount']}sol"
     buy_x = types.InlineKeyboardButton(
         text=caption, callback_data='select buy amount x')
 
@@ -338,8 +350,7 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
     keyboard.row(*wallets[0:(wallet_count)])
 
-    keyboard.row(*buys[0:(buy_count // 2)])
-    keyboard.row(*buys[(buy_count // 2):buy_count], buy_x)
+    keyboard.row(*buys[0:buy_count],buy_x)
 
     current_chain_index = main_api.get_chain(chat_id)
     chains = main_api.get_chains()
@@ -352,12 +363,12 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
             keyboard.row(*gas_prices[0:(len(gas_prices))], gas_price_x)
     elif order_name == "Limit Order":
         keyboard.row(limit_token_price_title, limit_token_price_x)
-        keyboard.row(market_capital_title)
-        keyboard.row(
-            *market_capitals[0:(len(market_capitals))], market_capital_x)
-        keyboard.row(liquidity_title)
-        keyboard.row(
-            *liquidities[0:(len(liquidities))], liquidity_x)
+      #  keyboard.row(market_capital_title)
+      #  keyboard.row(
+     #       *market_capitals[0:(len(market_capitals))], market_capital_x)
+      #  keyboard.row(liquidity_title)
+      #  keyboard.row(
+      #      *liquidities[0:(len(liquidities))], liquidity_x)
     elif order_name == "DCA Order":
         keyboard.row(interval_title)
         keyboard.row(
@@ -368,7 +379,7 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
         keyboard.row(dca_min_price_title, dca_min_price_x,dca_max_price_title,dca_max_price_x)
     keyboard.row(slippage_title, *
                      slippages[0:(len(slippages))], slippage_x)
-    keyboard.row(stop_loss_title, stop_loss_x)
+    #keyboard.row(stop_loss_title, stop_loss_x)
     keyboard.row(create_order)
     keyboard.row(back, close)
 
@@ -382,19 +393,25 @@ def handle_input_token(bot, message):
     current_chain = chains[chain_index]
     token = result['token']
     token_data = main_api.get_token_market_data(message.chat.id, token)
-#meta_data = main_api.get_token_metadata(message.chat.id, token)
-    text = f'''
-            *Token Buy*
-
-    Sell your tokens here.
-
-    *{'fwfwe'}  (🔗{current_chain})*
-    {token}
+    meta_data = main_api.get_token_metadata(message.chat.id, token)
     
-    💰 {token_data['price']}$
+    token_price = format_number(token_data['price'])
+    token_liquidity = format_number(token_data['liquidity'])
+    token_market_cap = format_number(token_data['market_cap'])
+    text = f'''
+    *🛒 Token Buy*
 
-    [Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
-      '''
+Sell your tokens here.
+
+*{meta_data['name']}  (🔗{current_chain})  *
+{token}
+    
+💲 *Price:* {token_price}$
+💧 *Liquidity:* {token_liquidity}$
+📊 *Market Cap:* {token_market_cap}$
+
+[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
+'''
     order_index = order_list[0]['name']
     keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
@@ -535,7 +552,7 @@ def select_duration(bot, message, index):
 
 def handle_buy_amount_x(bot, message):
     text = '''
-*Token Buy > 💰 XΞ*
+*Token Buy > 💰 X*
 Enter the amount to buy:
 '''
     item = "Buy Amount"
@@ -726,20 +743,31 @@ def handle_input_value(bot, message, item):
             order_index = order['name']
     keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
-    token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
-    chain = 'ethereum'
-    name = "elo"
+    
+    chain_index = main_api.get_chain(message.chat.id)
+    chains = main_api.get_chains()
+    current_chain = chains[chain_index]
+    token = result['token']
+    token_data = main_api.get_token_market_data(message.chat.id, token)
+    meta_data = main_api.get_token_metadata(message.chat.id, token)
+    
+    token_price = format_number(token_data['price'])
+    token_liquidity = format_number(token_data['liquidity'])
+    token_market_cap = format_number(token_data['market_cap'])
     text = f'''
-            *Token Buy*
+    *🛒 Token Buy*
 
-    Sell your tokens here.
+Sell your tokens here.
 
-     *{name}  (🔗{chain})*
-      {token}
-      ❌ Snipe not set
+*{meta_data['name']}  (🔗{current_chain})  *
+{token}
+    
+💲 *Price:* {token_price}$
+💧 *Liquidity:* {token_liquidity}$
+📊 *Market Cap:* {token_market_cap}$
 
-      [Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
-          '''
+[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
+'''
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
 

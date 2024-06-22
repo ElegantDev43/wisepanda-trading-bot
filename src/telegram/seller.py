@@ -4,8 +4,8 @@ from src.database import user as user_model
 from src.engine import api as main_api
 import threading
 
-chain_buy_amounts = [25,50,75,100]
-chain_slippages = [10, 15]
+chain_buy_amounts = [50]
+chain_slippages = [10]
 chain_limit_token_prices = [500, 1000, 2000]
 chain_market_caps = [10000, 200000, 50000]
 chain_liquidities = [10000, 200000, 50000]
@@ -36,7 +36,17 @@ result = {'position': 0, 'buy_amount': 0,
           'interval': 0, 'duration': 0, 'max_dca_price': 0,
           'min_dca_price': 0}
 
-
+def format_number(num):
+    if num >= 1_000_000_000:
+        formatted_num = f"{num / 1_000_000_000:.3f}B"
+    elif num >= 1_000_000:
+        formatted_num = f"{num / 1_000_000:.3f}M"
+    elif num >= 1_000:
+        formatted_num = f"{num / 1_000:.3f}K"
+    else:
+        formatted_num = f"{num:.3f}"
+    return formatted_num
+  
 def initialize_x_value():
     x_value_list['buy-amount'] = 0
     x_value_list['gas-amount'] = 0
@@ -49,23 +59,14 @@ def initialize_x_value():
 
 
 def handle_seller(bot, message):
-    token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
-
-    chain = 'ethereum'
-
-    name = "elo"
-
+    chain_positions = main_api.get_positions(message.chat.id)
     text = f'''
-            *Token Sell*
+            *🛒 Token Sell*
+            
+You currently have {len(chain_positions)} positions.
 
-    Sell your tokens here.
-
-  *{name}  (🔗{chain})*
-  {token}
-  ❌ Snipe not set
-
-  [Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
-      '''
+Select position to sell tokens.
+'''
     order_index = order_list[0]['name']
     keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
@@ -488,8 +489,8 @@ def select_min_price(bot, message, index):
 
 def handle_buy_amount_x(bot, message):
     text = '''
-*Token Buy > 💰 XΞ*
-Enter the amount to buy:
+*Token Sell > 💰 X*
+Enter the amount to sell:
 '''
     item = "Buy Amount"
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
@@ -499,7 +500,7 @@ Enter the amount to buy:
 
 def handle_gas_amount_x(bot, message):
     text = '''
-*Token Buy > ⛽ X*
+*Token Sell > ⛽ X*
 Enter the gas amount to set:
 '''
 
@@ -511,7 +512,7 @@ Enter the gas amount to set:
 
 def handle_gas_price_x(bot, message):
     text = '''
-*Token Buy > ⛽ X*
+*Token Sell > ⛽ X*
 Enter the gas price to set:
 '''
     item = "Gas Price"
@@ -522,7 +523,7 @@ Enter the gas price to set:
 
 def handle_slippage_x(bot, message):
     text = '''
-*Token Buy > 💧 X%*
+*Token Sell > 💧 X%*
 Enter the slippage to set:
 '''
     item = "Slippage"
@@ -533,7 +534,7 @@ Enter the slippage to set:
 
 def handle_stop_loss_x(bot, message):
     text = '''
-*Token Buy > 💰 X*
+*Token Sell > 💰 X*
 Enter the Stop Loss to set:
 '''
     item = "Token Price"
@@ -544,7 +545,7 @@ Enter the Stop Loss to set:
 
 def handle_market_capital_x(bot, message):
     text = '''
-*Token Buy > 💰 X*
+*Token Sell > 💰 X*
 Enter the Maximum Market Capital to set:
 '''
     item = "Market Capital"
@@ -555,7 +556,7 @@ Enter the Maximum Market Capital to set:
 
 def handle_liquidity_x(bot, message):
     text = '''
-*Token Buy > 💰 X*
+*Token Sell > 💰 X*
 Enter the liquidity to set:
 '''
     item = "Liquidity"
@@ -566,7 +567,7 @@ Enter the liquidity to set:
 
 def handle_limit_tax_x(bot, message):
     text = '''
-*Token Buy > 💰 X%*
+*Token Sell > 💰 X%*
 Enter the tax to set:
 '''
     item = "Tax"
@@ -576,7 +577,7 @@ Enter the tax to set:
 
 def handle_limit_token_price_x(bot, message):
     text = '''
-*Token Buy > 💰 X*
+*Token Sell > 💰 X*
 Enter the limit price to set:
 '''
     item = "Token Price"
@@ -586,7 +587,7 @@ Enter the limit price to set:
     
 def handle_duration_x(bot, message):
     text = '''
-*Token Buy > 🕞 X*
+*Token Sell > 🕞 X*
 Enter the duration to set:
 '''
     item = "Duration"
@@ -597,7 +598,7 @@ Enter the duration to set:
 
 def handle_interval_x(bot, message):
     text = '''
-*Token Buy > 🕞 X*
+*Token Sell > 🕞 X*
 Enter the interval to set:
 '''
     item = "Interval"
@@ -608,7 +609,7 @@ Enter the interval to set:
 
 def handle_max_price_x(bot, message):
     text = '''
-*Token Buy > 💰 X*
+*Token Sell > 💰 X*
 Enter the max price to set:
 '''
     item = "Max Price"
@@ -619,7 +620,7 @@ Enter the max price to set:
 
 def handle_min_price_x(bot, message):
     text = '''
-*Token Buy > 💰 X*
+*Token Sell > 💰 X*
 Enter the min price to set:
 '''
     item = "Min Price"
@@ -671,22 +672,35 @@ def handle_input_value(bot, message, item):
             order_index = order['name']
     keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
-    token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
 
-    chain = 'ethereum'
-
-    name = "elo"
+    chain_index = main_api.get_chain(message.chat.id)
+    chains = main_api.get_chains()
+    current_chain = chains[chain_index]
+    
+    chain_positions = main_api.get_positions(message.chat.id)
+    index = index_list['position']
+    token = chain_positions[index]['token']
+    token_data = main_api.get_token_market_data(message.chat.id, token)
+    meta_data = main_api.get_token_metadata(message.chat.id, token)
+      
+    token_price = format_number(token_data['price'])
+    token_liquidity = format_number(token_data['liquidity'])
+    token_market_cap = format_number(token_data['market_cap'])
     text = f'''
-            *Token Buy*
+      *🛒 Token Sell*
 
-    Sell your tokens here.
+  Sell your tokens here.
 
-     *{name}  (🔗{chain})*
-      {token}
-      ❌ Snie not set
+  *{meta_data['name']}  (🔗{current_chain})  *
+  {token}
+      
+  💲 *Price:* {token_price}$
+  💧 *Liquidity:* {token_liquidity}$
+  📊 *Market Cap:* {token_market_cap}$
 
-      [Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
-          '''
+  [Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
+  '''
+
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
 
@@ -751,8 +765,40 @@ def select_position(bot, message, item):
   for order in order_list:
         if order['active'] == True:
             order_index = order['name']
+  
+  
+  
+  chain_index = main_api.get_chain(message.chat.id)
+  chains = main_api.get_chains()
+  current_chain = chains[chain_index]
+  
+  chain_positions = main_api.get_positions(message.chat.id)
+  token = chain_positions[index]['token']
+  token_data = main_api.get_token_market_data(message.chat.id, token)
+  meta_data = main_api.get_token_metadata(message.chat.id, token)
+    
+  token_price = format_number(token_data['price'])
+  token_liquidity = format_number(token_data['liquidity'])
+  token_market_cap = format_number(token_data['market_cap'])
+  text = f'''
+    *🛒 Token Sell*
+
+Sell your tokens here.
+
+*{meta_data['name']}  (🔗{current_chain})  *
+{token}
+    
+💲 *Price:* {token_price}$
+💧 *Liquidity:* {token_liquidity}$
+📊 *Market Cap:* {token_market_cap}$
+
+[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
+'''
+
   keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
 
+  bot.edit_message_text(chat_id=message.chat.id,
+                          message_id=message.message_id, text=text, parse_mode='Markdown')
   bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)

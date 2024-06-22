@@ -3,18 +3,18 @@ from telebot import types
 from src.database import user as user_model
 from src.engine import api as main_api
 import threading
-chain_buy_amounts = [0.01, 0.03, 0.05, 0.1]
+chain_buy_amounts = [0.1]
 chain_gas_prices = [0.1, 0.2, 0.3]
-chain_slippages = [5, 10, 20]
+chain_slippages = [50]
 chain_limit_token_prices = [500, 1000, 2000]
 
 chain_auto_sell_params = [{'amount': 100, 'price': 0}, {'amount': 50, 'price': 0}]
 x_value_list = {"buy-amount": 0, "token_price": 0, 'slippage': 0, "liquidity":0,"market_cap":0, "tk_count":0,"auto_amount":0, "auto_price":0}
 
-index_list = {'wallet': 100}
+index_list = {'wallet': 100, 'buy_amount':100, 'slippage':100}
 
 result = {'wallet': 0, 'token': '', 'buy_amount': 0, 'slippage': 0,
-          'limit_token_price': 0, 'stop-loss':0}
+          'limit_token_price': 0, 'stop-loss':0, 'count':0}
 
 auto_sell_status = {'index':0}
 
@@ -46,21 +46,45 @@ def get_keyboard(update_data, chat_id, index_data):
         
     amount_title = types.InlineKeyboardButton(
         'Amount:', callback_data='set title')
-    if update_data['buy-amount'] == 0:
-        caption = "💰 XΞ"
-    else:
-        caption = f"💰 {update_data['buy-amount']}Ξ"
-    buy_x = types.InlineKeyboardButton(
-        text=caption, callback_data='lp_sniper_input buy-amount')
+   
+    buys = []
+    buy_count = len(chain_buy_amounts)
+    for index in range(buy_count):
+        if index_data['buy_amount'] == 100:
+            caption = f'{chain_buy_amounts[index]}sol'
+        else:
+            caption = f'{"🟢" if index == index_data['buy_amount'] else ""}{
+                chain_buy_amounts[index]}sol'
+        button = types.InlineKeyboardButton(
+            text=caption, callback_data=f"lp sniper select buy amount {index}")
+        buys.append(button)
 
+    if update_data['buy-amount'] == 0:
+        caption = "X sol"
+    else:
+        caption = f"🟢{update_data['buy-amount']}sol"
+    buy_x = types.InlineKeyboardButton(
+        text=caption, callback_data='lp sniper select buy amount x')
+
+    slippages = []
+    slip_page_count = len(chain_slippages)
+    for index in range(slip_page_count):
+        if index_data['slippage'] == 100:
+            caption = f'{chain_slippages[index]}%'
+        else:
+            caption = f'{" 🟢" if index == index_data['slippage'] else ""} {
+                chain_slippages[index]}%'
+        button = types.InlineKeyboardButton(
+            text=caption, callback_data=f"lp sniper select slippage {index}")
+        slippages.append(button)
     slippage_title = types.InlineKeyboardButton(
         'Slippage:', callback_data='set title')
     if update_data['slippage'] == 0:
         caption = "X %"
     else:
-        caption = f"{update_data['slippage']}%"
+        caption = f"🟢 {update_data['slippage']}%"
     slippage_x = types.InlineKeyboardButton(
-        text=caption, callback_data='lp_sniper_input slippage')
+        text=caption, callback_data='lp sniper select slippage x')
     
     tk_count_title = types.InlineKeyboardButton(
         'Count:', callback_data='set title')
@@ -132,10 +156,11 @@ def get_keyboard(update_data, chat_id, index_data):
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
 
-    keyboard.row(amount_title, buy_x, slippage_title, slippage_x)
+    
     keyboard.row(*wallets[0:(wallet_count)])
+    keyboard.row(amount_title, *buys[0:buy_count],buy_x)
+    keyboard.row(*slippages[0:(len(slippages))], slippage_x)
     keyboard.row(tk_count_title, tk_count_x)
-    keyboard.row(limit_token_price_title, limit_token_price_x, liquidity_title, liquidity_x, market_cap_title, market_cap_x)
     keyboard.row(auto_sell)
     if auto_sell_status['index'] == 1:
       for index in range(len(chain_auto_sell_params)):
@@ -194,29 +219,77 @@ def select_buy_wallet(bot, message, index):
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
+def select_buy_amount(bot, message, index):
+    index_list['buy_amount'] = int(index)
+    result['buy_amount'] = chain_buy_amounts[int(index)]
+    x_value_list['buy-amount'] = 0
+    keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
 
-def handle_input_x(bot, message, item):
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+
+
+def select_slip_page(bot, message, index):
+    index_list['slippage'] = int(index)
+    result['slippage'] = chain_slippages[int(index)]
+    x_value_list['slippage'] = 0
+    keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+    
+def handle_buy_amount_x(bot, message):
     text = '''
-*LP Sniper > X*
-Enter the value to set:
+*LP Sniper > 💰 X*
+Enter the amount to buy:
 '''
+    item = "Buy Amount"
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
 
-def handle_input_value(bot, message, item):
-    x_value_list[item] = message.text
-    result[item] = message.text
+def handle_slippage_x(bot, message):
+    text = '''
+*LP Sniper > 💧 X%*
+Enter the slippage to set:
+'''
+    item = "Slippage"
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
+    bot.register_next_step_handler_by_chat_id(
+        chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
 
+
+
+def handle_input_value(bot, message, item):
+    if item == "Buy Amount":
+        buy_amount_x = float(message.text)
+        x_value_list['buy-amount'] = buy_amount_x
+        result['buy_amount'] = buy_amount_x
+        index_list['buy_amount'] = 100
+    elif item == "Gas Amount":
+        gas_amount_x = float(message.text)
+        x_value_list['gas-amount'] = gas_amount_x
+        result['gas_amount'] = gas_amount_x
+        index_list['gas_amount'] = 100
+    elif item == "Count":
+        gas_price_x = float(message.text)
+        x_value_list['tk_count'] = gas_price_x
+        result['count'] = gas_price_x
+    elif item == "Slippage":
+        slippage_x = float(message.text)
+        x_value_list['slippage'] = slippage_x
+        result['slippage'] = slippage_x
+        index_list['slippage'] = 100
+    
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
-
     text = f'''
     *LP Sniper*
-    Introducing our LP Sniper function: a powerful tool designed
-    to automatically and accurately snipe liquidity pools,
-    providing you with the best entry points to maximize your
-    trading efficiency and returns.
+Introducing our LP Sniper function: a powerful tool designed
+to automatically and accurately snipe liquidity pools,
+providing you with the best entry points to maximize your
+trading efficiency and returns.
     '''
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
@@ -225,7 +298,7 @@ def handle_input_value(bot, message, item):
 
 def handle_auto_amount_value(bot, message,index):
     text = '''
-*Token Sniper > 💰 X*
+*LP Sniper > 💰 X*
 Enter the Amount to set:
 '''
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
@@ -234,7 +307,7 @@ Enter the Amount to set:
 
 def handle_auto_price_value(bot, message,index):
     text = '''
-*Token Sniper > 💰 X*
+*LP Sniper > 💰 X*
 Enter the Price to set:
 '''
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
@@ -304,3 +377,13 @@ def handle_set_sniper(bot, message):
     main_api.add_token_sniper(message.chat.id, result['token'], result['buy_amount'], result['slippage'], result['wallet'], result['limit_token_price'], result['stop-loss'], chain_auto_sell_params)
     bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Sniper')
+
+def handle_count_input(bot, message):
+    text = '''
+*LP Sniper > 💰 X*
+Enter the amount to set:
+'''
+    item = "Count"
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
+    bot.register_next_step_handler_by_chat_id(
+        chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))

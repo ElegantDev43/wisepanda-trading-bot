@@ -23,6 +23,7 @@ def buy(user_id, chain, token, amount, slippage, wallet_id, stop_loss):
 def sell(user_id, position_id, amount, slippage):
   position = database.get_position(user_id,position_id)
   wallet = database.get_wallet(user_id, position['chain'], position['wallet_id'])
+  print(amount)
   amount = int(position['amount']['out'] * amount / 100)
   txid, output = dex_engine.swap(position['chain'], 'sell', position['token'], amount, slippage, wallet)
   if amount != position['amount']['out']:

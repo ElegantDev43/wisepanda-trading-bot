@@ -48,11 +48,28 @@ def check_liveness(token):
     print("Error fetching quote:", e)
 
 def get_market_data(token):
-  price = get_token_price(token)
-  return {
-    'price': price
-  }
+  api_url = f"https://gmgn.ai/defi/quotation/v1/tokens/sol/{token}"
 
+  response = requests.get(api_url)
+
+  if response.status_code == 200:
+      data = response.json()
+      if data['msg'] == "invalid argument: invalid token address":
+        return 999
+      elif not data['data']['token']:
+        return 999
+      else:
+        token_price = data['data']['token']['price']
+        liquidity = data['data']['token']['liquidity']
+        market_cap = data['data']['token']['market_cap']
+        print(f"Token Price: {token_price:.18f}")
+        print(f"Liquidity: {liquidity}")
+        print(f"Market Cap: {market_cap}")
+        return {'price':token_price, 'liquidity':liquidity, 'market_cap':market_cap}
+  else:
+      print(f"Failed to fetch data. Status code: {response.status_code}")
+      
+    
 def get_token_price(token):
   url = 'https://quote-api.jup.ag/v6/quote'
   params = {
