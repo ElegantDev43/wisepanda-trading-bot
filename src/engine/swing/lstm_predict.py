@@ -24,7 +24,7 @@ async def predict_lstm(token):
     look_back = 1
     target = 'value'
     # Load the model
-    model = load_model(f'LSTM_{token}.h5', custom_objects={'custom_mse': custom_mse})
+    model = load_model(f'src/engine/swing/model/LSTM_{token}.h5', custom_objects={'custom_mse': custom_mse})
     # fix random seed for reproducibility
     np.random.seed(170)
     # Load the CSV file

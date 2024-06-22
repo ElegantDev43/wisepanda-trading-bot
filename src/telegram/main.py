@@ -6,7 +6,7 @@ from src.telegram import start, sniper, buyer, orders, token_snipers, positions,
 from src.telegram.settings import main as settings, chains, wallets, keyboards
 
 from src.telegram.swing import swing , tradehistory
-from src.telegram.swing.autoorder import autoorder
+from src.telegram.swing.autoorder import autoorder , manualorder
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
 
@@ -401,6 +401,9 @@ def handle_callback_query(call):
 #swing
     if call.data == 'swing':
         swing.handle_start(bot, call.message)
+    
+    if call.data == 'auto_token':
+        autoorder.set_auto_address(bot,call.message)
     elif call.data == 'select_token':
         autoorder.handle_token_selection(bot, call.message)
     # elif call.data.startswith('auto -'):
@@ -411,16 +414,52 @@ def handle_callback_query(call):
             autoorder.handle_toggle(bot, call.message,'toggle_buy',0, index, 0, 0)
         elif index == 4:
             autoorder.handle_buy_x(bot,call.message)
+    elif call.data.startswith('auto_sell'):
+        index = int(call.data[8:])
+        if index < 4:
+            manualorder.handle_toggle(bot, call.message,'toggle_sell',0, index, 0, 0)
+        elif index == 4:
+            manualorder.handle_sell_x(bot,call.message)
     elif call.data.startswith('auto_token_'):
         address = call.data[11:]
         autoorder.handle_autoorder(bot, call.message, address)
     elif call.data.startswith('auto_wallet'):
         index = int(call.data[12:])
         autoorder.handle_toggle(bot, call.message,'toggle_wallet', index, 0, 0, 0)
-    elif call.data == 'auto_period':
-        autoorder.handle_duration_x(bot, call.message)
+    elif call.data == 'auto_slip':
+        autoorder.handle_slip_x(bot, call.message)
     elif call.data == 'auto_start':
         autoorder.handle_autostart(bot, call.message)
+   
+    elif call.data == 'manual_swing':
+        manualorder.handle_token_selection(bot, call.message)
+    elif call.data.startswith('manual_buy'):
+        index = int(call.data[11:])
+        if index < 4:
+            manualorder.handle_toggle(bot, call.message,'toggle_buy',0, index, 0, 0)
+        elif index == 4:
+            manualorder.handle_buy_x(bot,call.message)
+    elif call.data.startswith('manual_sell'):
+        index = int(call.data[12:])
+        if index < 4:
+            manualorder.handle_toggle(bot, call.message,'toggle_sell',0, index, 0, 0)
+        elif index == 4:
+            manualorder.handle_sell_x(bot,call.message)
+    elif call.data.startswith('manual_token_'):
+        address = call.data[13:]
+        manualorder.handle_autoorder(bot, call.message, address)
+    elif call.data.startswith('manual_wallet'):
+        index = int(call.data[14:])
+        manualorder.handle_toggle(bot, call.message,'toggle_wallet', index, 0, 0, 0)
+    elif call.data == 'manual_slip':
+        manualorder.handle_slip_x(bot, call.message)
+    elif call.data == 'manual_start':
+        manualorder.handle_autostart(bot, call.message)
+    elif call.data == 'manual_amounts_buy':
+        manualorder.handle_buy(bot, call.message)
+    elif call.data == 'manual_amounts_sell':
+        manualorder.handle_sell(bot, call.message)
+        
     elif call.data == 'trade_history':
         tradehistory.handle_tradehistory(bot, call.message)
     elif call.data.startswith('history_'):

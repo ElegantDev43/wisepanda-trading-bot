@@ -275,7 +275,7 @@ async def exportTestValues(address):
 
   # Save the DataFrame as a PNG image
   await SaveAsGraph(dataFrame,address)
-  await study_lstm(address)
+#  await study_lstm(address)
 
 async def data_extract_main(addresses):
 

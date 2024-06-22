@@ -86,6 +86,6 @@ async def study_lstm(token):
       trainX, trainY, validation_data=(testX, testY), epochs=32, batch_size=32, verbose=1, shuffle=True)
 
   # Save the trained model
-  model.save(f"LSTM_{token}.h5")
+  model.save(f"src/engine/swing/model/LSTM_{token}.h5")
   
   await predict_lstm(token)
