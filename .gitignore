@@ -1,3 +1,12 @@
 venv/
 __pycache__
 .env
+
+app.log
+messages.json
+transactions.json
+
+src/engine/swing/data_png/
+src/engine/swing/model/
+src/engine/swing/price_data/
+src/engine/swing/test_data/
