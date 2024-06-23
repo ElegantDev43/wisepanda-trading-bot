@@ -2,9 +2,10 @@ import os
 import telebot
 from telebot import types
 
-from src.telegram import start, sniper, buyer, orders, token_snipers, positions, bots, hots, seller, limit_order, dca_order, lp_sniper
+from src.telegram import start, sniper, buyer, orders, token_snipers, positions, bots, hots,seller, limit_order, dca_order
 from src.telegram.settings import main as settings, chains, wallets, keyboards, auto_order
-
+from src.telegram.swing import swing as main_swing, fully_auto, token_mode, manual_mode
+from src.telegram.lp_sniper import lp_sniper, lp_auto, lp_manual
 
 bot = telebot.TeleBot(os.getenv('TELEGRAM_BOT_TOKEN'))
 
@@ -84,25 +85,29 @@ def handle_callback_query(call):
         sniper.handle_sniper(bot, call.message)
     elif call.data == 'lp sniper':
         lp_sniper.handle_lp_sniper(bot, call.message)
+    elif call.data == 'lp sniper select auto mode':
+        lp_auto.handle_start(bot, call.message)
+    elif call.data == 'lp sniper select manual mode':
+        lp_auto.handle_start(bot, call.message)
         
-    elif call.data.startswith('lp sniper select buy wallet '):
-        lp_sniper.select_buy_wallet(bot, call.message, call.data[28:])
-    elif call.data.startswith('lp sniper select buy amount '):
-        amount = call.data[28:]
-        if (amount == 'x'):
-            lp_sniper.handle_buy_amount_x(bot, call.message)
-        else:
-            lp_sniper.select_buy_amount(bot, call.message, call.data[28:])
-    elif call.data.startswith('lp sniper select slippage '):
+    elif call.data.startswith('lp auto select buy wallet '):
+        lp_auto.select_buy_wallet(bot, call.message, call.data[26:])
+    elif call.data.startswith('lp auto select buy amount '):
         amount = call.data[26:]
         if (amount == 'x'):
-            lp_sniper.handle_slippage_x(bot, call.message)
+            lp_auto.handle_buy_amount_x(bot, call.message)
         else:
-            lp_sniper.handle_select_auto_slippage(bot, call.message, call.data[26:])
-    elif call.data.startswith('lp sniper confirm select slippage '):
-        lp_sniper.select_slip_page(bot, call.message, call.data[34:])
-    elif call.data == 'make lp sniper order':
-        lp_sniper.handle_set_sniper(bot, call.message)    
+            lp_auto.select_buy_amount(bot, call.message, call.data[26:])
+    elif call.data.startswith('lp auto select slippage '):
+        amount = call.data[24:]
+        if (amount == 'x'):
+            lp_auto.handle_slippage_x(bot, call.message)
+        else:
+            lp_auto.handle_select_auto_slippage(bot, call.message, call.data[24:])
+    elif call.data.startswith('lp auto confirm select slippage '):
+        lp_auto.select_slip_page(bot, call.message, call.data[32:])
+    elif call.data == 'make lp auto order':
+        lp_auto.handle_set_sniper(bot, call.message)    
     
     elif call.data == 'buyer':
         buyer.handle_buyer(bot, call.message)
@@ -263,21 +268,14 @@ def handle_callback_query(call):
             buyer.handle_buy_amount_x(bot, call.message)
         else:
             buyer.select_buy_amount(bot, call.message, call.data[18:])
-    elif call.data.startswith('select gas amount '):
-        amount = call.data[18:]
-        if (amount == 'x'):
-            buyer.handle_gas_amount_x(bot, call.message)
-        buyer.select_gas_amount(bot, call.message, call.data[18:])
-    elif call.data.startswith('select gas price '):
-        amount = call.data[17:]
-        if (amount == 'x'):
-            buyer.handle_gas_price_x(bot, call.message)
-        buyer.select_gas_price(bot, call.message, call.data[17:])
     elif call.data.startswith('select slippage '):
         amount = call.data[16:]
         if (amount == 'x'):
             buyer.handle_slippage_x(bot, call.message)
-        buyer.select_slip_page(bot, call.message, call.data[16:])
+        else:
+            buyer.handle_select_auto_slippage(bot, call.message, call.data[16:])
+    elif call.data.startswith('confirm select slippage '):
+        buyer.select_slip_page(bot, call.message, call.data[24:])
     elif call.data.startswith('select stop loss '):
         amount = call.data[17:]
         if (amount == 'x'):
@@ -458,7 +456,59 @@ def handle_callback_query(call):
     elif call.data.startswith('sniper remove auto params '):
         amount = call.data[26:]
         sniper.handle_remove_auto_params(bot, call.message, call.data[26:])
+    
+    elif call.data == 'swing':
+        main_swing.handle_start(bot, call.message)
+    elif call.data == 'swing mode auto':
+        fully_auto.handle_start(bot, call.message)
+    elif call.data == 'swing mode manual':
+        manual_mode.handle_start(bot, call.message)
+    elif call.data.startswith('fully_auto swing select buy amount '):
+        amount = call.data[35:]
+        if (amount == 'x'):
+            fully_auto.handle_buy_amount_x(bot, call.message)
+        else:
+            fully_auto.select_buy_amount(bot, call.message, call.data[35:])
+    elif call.data.startswith('fully_auto swing select buy wallet '):
+        fully_auto.select_buy_wallet(bot, call.message, call.data[35:])
+    elif call.data == 'start swing auto mode':
+        fully_auto.start_trading(bot, call.message)
+
+    elif call.data == 'swing mode select_token':
+        token_mode.handle_start(bot, call.message)
+    elif call.data.startswith('token_mode swing select buy amount '):
+        amount = call.data[35:]
+        if (amount == 'x'):
+            token_mode.handle_buy_amount_x(bot, call.message)
+        else:
+            token_mode.select_buy_amount(bot, call.message, call.data[35:])
+    elif call.data.startswith('token_mode swing select buy wallet '):
+        token_mode.select_buy_wallet(bot, call.message, call.data[35:])
+    elif call.data == 'start swing token_mode':
+        token_mode.start_trading(bot, call.message)
         
+    elif call.data == 'swing mode manual':
+        manual_mode.handle_start(bot, call.message)
+    elif call.data.startswith('manual swing select buy amount '):
+        amount = call.data[31:]
+        if (amount == 'x'):
+            manual_mode.handle_buy_amount_x(bot, call.message)
+        else:
+            manual_mode.select_buy_amount(bot, call.message, call.data[31:])
+    elif call.data.startswith('manual swing select buy wallet '):
+        manual_mode.select_buy_wallet(bot, call.message, call.data[31:])
+        
+    elif call.data.startswith('manual swing select slippage '):
+        amount = call.data[29:]
+        if (amount == 'x'):
+            manual_mode.handle_slippage_x(bot, call.message)
+        else:
+            manual_mode.handle_select_auto_slippage(bot, call.message, call.data[23:])
+    elif call.data.startswith('manual swing confirm select slippage '):
+        manual_mode.select_slip_page(bot, call.message, call.data[43:])
+        
+    elif call.data == 'start swing manual':
+        manual_mode.start_trading(bot, call.message)
 def initialize():
     print('Starting the bot...')
     bot.infinity_polling(restart_on_change=False)

@@ -21,7 +21,7 @@ result = {'wallet': 0, 'token': '', 'buy_amount': 0, 'slippage': 0,
 auto_sell_status = {'index':0}
 
 global_text =  '''
-*🎯 LP Sniper*
+*🎯 LP Sniper* >> Auto Mode
 
 Introducing our LP Sniper function: a powerful tool designed
 to automatically and accurately snipe liquidity pools,
@@ -35,16 +35,9 @@ def initialize_x_value():
     x_value_list['limit-token-price'] = 0
     x_value_list['slippage'] = 0
 
-def handle_lp_sniper(bot, message):
+def handle_start(bot, message):
    # user_model.create_user_by_telegram(message.chat.id)
-    text = '''
-*🎯 LP Sniper*
-
-Introducing our LP Sniper function: a powerful tool designed
-to automatically and accurately snipe liquidity pools,
-providing you with the best entry points to maximize your
-trading efficiency and returns.
-    '''
+    text = global_text
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
@@ -61,7 +54,7 @@ def get_keyboard(update_data, chat_id, index_data):
         caption = f'{"🟢" if index == index_data['wallet'] else ""} W{
             index + 1}'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"lp sniper select buy wallet {index}")
+            text=caption, callback_data=f"lp auto select buy wallet {index}")
         wallets.append(button)
     more_wallet_btn = types.InlineKeyboardButton('🔽', callback_data='show more wallets')
     buys = []
@@ -75,7 +68,7 @@ def get_keyboard(update_data, chat_id, index_data):
             caption = f'{"🟢" if index == index_data['buy_amount'] else ""} {
                 chain_buy_amounts[index]} SOL'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"lp sniper select buy amount {index}")
+            text=caption, callback_data=f"lp auto select buy amount {index}")
         buys.append(button)
 
     if update_data['buy-amount'] == 0:
@@ -83,7 +76,7 @@ def get_keyboard(update_data, chat_id, index_data):
     else:
         caption = f"🟢 {update_data['buy-amount']} SOL"
     buy_x = types.InlineKeyboardButton(
-        text=caption, callback_data='lp sniper select buy amount x')
+        text=caption, callback_data='lp auto select buy amount x')
 
     slippage_title = types.InlineKeyboardButton(
         'Slippage:', callback_data='set title')
@@ -95,14 +88,14 @@ def get_keyboard(update_data, chat_id, index_data):
         else:
             caption = f'{"🟢" if index == index_data['slippage'] else ""} Auto Slippage'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"lp sniper select slippage {index}")
+            text=caption, callback_data=f"lp auto select slippage {index}")
         slippages.append(button)
     if update_data['slippage'] == 0:
         caption = "X% Slippage"
     else:
         caption = f"🟢 {update_data['slippage']}% Slippage"
     slippage_x = types.InlineKeyboardButton(
-        text=caption, callback_data='lp sniper select slippage x')
+        text=caption, callback_data='lp auto select slippage x')
 
     
     max_mc_title = types.InlineKeyboardButton(text='Max MC:', callback_data='set title')
@@ -203,8 +196,8 @@ def handle_select_auto_slippage(bot, message, index):
  Do you confirm 50% slippage as Auto Slippage?.
 '''
   keyboard = types.InlineKeyboardMarkup()
-  cancel = types.InlineKeyboardButton('Cancel', callback_data='lp sniper select slippage x')
-  confirm = types.InlineKeyboardButton('Confirm', callback_data=f'lp sniper confirm select slippage {index}')
+  cancel = types.InlineKeyboardButton('Cancel', callback_data='lp auto select slippage x')
+  confirm = types.InlineKeyboardButton('Confirm', callback_data=f'lp auto confirm select slippage {index}')
   keyboard.row(cancel, confirm)
   bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                     reply_markup=keyboard, disable_web_page_preview=True)
