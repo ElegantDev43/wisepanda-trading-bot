@@ -49,11 +49,11 @@ Select position to sell tokens.
     
     position_btns = []
 
-    for position in sample_positions:
-      position_btns.append(types.InlineKeyboardButton(position['token'], callback_data=f'swing_position_{position['id']}'))  
-
-    # for position in chain_positions:
+    # for position in sample_positions:
     #   position_btns.append(types.InlineKeyboardButton(position['token'], callback_data=f'swing_position_{position['id']}'))  
+
+    for position in chain_positions:
+      position_btns.append(types.InlineKeyboardButton(position['token'], callback_data=f'swing_position_{position['id']}'))  
 
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     
