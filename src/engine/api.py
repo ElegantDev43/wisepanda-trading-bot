@@ -202,3 +202,7 @@ def get_auto_order(user_id):
 def set_auto_order(user_id, auto_order):
   chain = get_chain(user_id)
   database.set_auto_order(user_id, chain, auto_order)
+  
+def check_liveness(user_id, token):
+  chain = get_chain(user_id)
+  return token_engine.check_liveness(chain, token)

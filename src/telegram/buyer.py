@@ -111,7 +111,7 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
     keyboard.row(market_order, limit_order, dca_order)
 
     wallets = []
-
+    more_wallet_btn = types.InlineKeyboardButton('🔽', callback_data='show more wallets')
     chain_wallets = main_api.get_wallets(chat_id)
     wallet_count = len(chain_wallets)
     for index in range(wallet_count):
@@ -348,7 +348,10 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
         '✔️ Buy', callback_data='make buy order')
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
-    keyboard.row(*wallets[0:(wallet_count)])
+    if wallet_count <= 3:
+      keyboard.row(*wallets[0:(wallet_count)])
+    else:
+      keyboard.row(*wallets[0:3], more_wallet_btn)
 
     keyboard.row(*buys[0:buy_count],buy_x)
 

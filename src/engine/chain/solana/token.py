@@ -47,6 +47,7 @@ def check_liveness(token):
   except Exception as e:
     print("Error fetching quote:", e)
 
+  
 def get_market_data(token):
   api_url = f"https://gmgn.ai/defi/quotation/v1/tokens/sol/{token}"
 

@@ -415,7 +415,7 @@ def handle_callback_query(call):
         sniper.select_buy_wallet(bot, call.message, call.data[25:])
 
     elif call.data == 'sniper select auto mode':
-        sniper.handle_select_mode(bot, call.message)
+        sniper.handle_auto_mode(bot, call.message)
     elif call.data == 'sniper select manual mode':
         sniper.handle_manual_mode(bot, call.message) 
     elif call.data == 'make sniper order':
@@ -434,7 +434,20 @@ def handle_callback_query(call):
         amount = call.data[23:]
         if (amount == 'x'):
             sniper.handle_slippage_x(bot, call.message)
-        sniper.select_slip_page(bot, call.message, call.data[23:])
+        else:
+            sniper.handle_select_auto_slippage(bot, call.message, call.data[23:])
+    elif call.data.startswith('sniper confirm select slippage '):
+        sniper.select_slip_page(bot, call.message, call.data[31:])
+    elif call.data.startswith('sniper select profit '):
+        amount = call.data[21:]
+        if (amount == 'x'):
+            sniper.handle_profit_x(bot, call.message)
+        sniper.select_profit(bot, call.message, call.data[21:])
+    elif call.data.startswith('sniper select token count '):
+        amount = call.data[26:]
+        if (amount == 'x'):
+            sniper.handle_token_count_x(bot, call.message)
+        sniper.select_token_count(bot, call.message, call.data[26:])
     elif call.data.startswith('sniper select stop-loss '):
         amount = call.data[24:]
         if (amount == 'x'):
