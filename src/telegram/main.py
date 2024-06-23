@@ -84,8 +84,7 @@ def handle_callback_query(call):
         sniper.handle_sniper(bot, call.message)
     elif call.data == 'lp sniper':
         lp_sniper.handle_lp_sniper(bot, call.message)
-    elif call.data.startswith('lp_sniper_input tk_count'):
-        lp_sniper.handle_count_input(bot, call.message)
+        
     elif call.data.startswith('lp sniper select buy wallet '):
         lp_sniper.select_buy_wallet(bot, call.message, call.data[28:])
     elif call.data.startswith('lp sniper select buy amount '):
@@ -99,18 +98,12 @@ def handle_callback_query(call):
         if (amount == 'x'):
             lp_sniper.handle_slippage_x(bot, call.message)
         else:
-            lp_sniper.select_slip_page(bot, call.message, call.data[26:])
-    elif call.data == 'lp sniper set auto_sell':
-        lp_sniper.handle_auto_sell(bot, call.message)
-    elif call.data == 'lp sniper add auto params':
-        lp_sniper.add_auto_param(bot, call.message)
-    elif call.data.startswith('lp sniper select auto amount '):
-        lp_sniper.handle_auto_amount_value(bot, call.message, call.data[29:])
-    elif call.data.startswith('lp sniper select auto price '):
-        lp_sniper.handle_auto_price_value(bot, call.message, call.data[28:])
-    elif call.data.startswith('lp sniper remove auto params '):
-        lp_sniper.handle_remove_auto_params(bot, call.message, call.data[29:])
-        
+            lp_sniper.handle_select_auto_slippage(bot, call.message, call.data[26:])
+    elif call.data.startswith('lp sniper confirm select slippage '):
+        lp_sniper.select_slip_page(bot, call.message, call.data[34:])
+    elif call.data == 'make lp sniper order':
+        lp_sniper.handle_set_sniper(bot, call.message)    
+    
     elif call.data == 'buyer':
         buyer.handle_buyer(bot, call.message)
 
