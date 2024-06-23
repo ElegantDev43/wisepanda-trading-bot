@@ -23,7 +23,7 @@ import pickle
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.preprocessing import LabelEncoder
 
-async def prepare_model(token,period):
+async def prepare_model(token):
   # Define parameter grid
   param_grid = {
       'n_estimators': [50, 100, 200, 300],
@@ -49,12 +49,7 @@ async def prepare_model(token,period):
             ]
 
   X = dataFrame[features]
-  if period == 'short':
-    Y = dataFrame['Target_2']
-  elif period == 'medium':
-    Y = dataFrame['Target_5']
-  elif period == 'long':
-    Y = dataFrame['Target_10']
+  Y = dataFrame['Target_2']
   print(X)
 
   scaler = StandardScaler()
@@ -74,10 +69,10 @@ async def prepare_model(token,period):
   model = GradientBoostingClassifier(n_estimators=100, random_state=42)
   model.fit(X_train_scaled, y_train)
 
-  with open(f'src/engine/swing/model/model_{token}_{period}.pkl', 'wb') as f:
+  with open(f'src/engine/swing/model/model_{token}.pkl', 'wb') as f:
       pickle.dump(model, f)
 
-  with open(f'src/engine/swing/model/model_{period}.pkl', 'wb') as f:
+  with open(f'src/engine/swing/model/model.pkl', 'wb') as f:
       pickle.dump(model, f)
 
   # Predict on test set
@@ -90,6 +85,4 @@ async def prepare_model(token,period):
 
 
 async def study_model(token):
-    await prepare_model(token,'short')
-    await prepare_model(token,'medium')
-    await prepare_model(token,'long')
+    await prepare_model(token)

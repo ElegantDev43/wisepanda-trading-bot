@@ -2,6 +2,8 @@ import os
 from sqlalchemy import create_engine, Column, Integer, BigInteger, String, JSON
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.sql.expression import func
+import random
+
 
 
 engine = create_engine(os.getenv('DATABASE_URL'))
@@ -9,29 +11,21 @@ Session = sessionmaker(bind=engine)
 Base = declarative_base()
 
 tokenlist= [
-  { 'name': 'COBRA','address':'ny1koxaJ7hYdZk5KGgbCL4DiUWpmpr5aQH5NJwKpump'},
-  { 'name': 'SOLLY','address':'36CEGUfsUU6XXPHPXi62NKXoQ438qN8o1EZM1dgm6DFP'},
   { 'name': '$WIF','address':'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm'},
   { 'name': 'JitoSOL','address':'J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn'},
-  { 'name': 'GME','address':'8wXtPeU6557ETkp9WHFY1n1EcU6NxDvbAggHGsMYiHsB'},
   { 'name': 'INF','address':'5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm'},
-  { 'name': 'JUP','address':'JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN'},
-  { 'name': 'SLERF','address':'7BgBvyjrZX1YKz4oh9mjb8ZScatkkwb8DzFx7LoiVkM3'},
   { 'name': 'USDT','address':'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB'},
   { 'name': 'SOL','address':'So11111111111111111111111111111111111111112'},
   { 'name': 'JLP','address':'27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4'},
   { 'name': 'USDC','address':'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'},
-  { 'name': 'DADDY','address':'4Cnk9EPnW5ixfLZatCPJjDB1PUtcRpVVgTQukm9epump'},
   { 'name': 'PONKE','address':'5z3EqYQo9HiCEs3R84RCDMu2n7anpDMxRhdK8PSWmrRC'},
-  { 'name': 'Sphynx','address':'5t4EVfkb5QU8NZXmTzcSK2bQsNWUr2HL64rRb8i6wpat'},
-  { 'name': '$DTJR','address':'7G7SMGV9nSG316ykk6iobjMZWa8GZb15Wd25kgaZGTaZ'},
-  { 'name': 'DOXXED','address':'BXEapawFFdP9iRv3LGhXC9kfRY91pevzpZnUqsmZpump'},
-  { 'name': 'BENDOG','address':'AHW5N8iqZobTcBepkSJzZ61XtAuSzBDcpxtrLG6KUKPk'},
-  { 'name': 'BOME','address':'ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82'},
   { 'name': 'WETH','address':'7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs'},
   { 'name': 'bSOL','address':'bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1'},
-  { 'name': 'MEW','address':'MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5'},
-  { 'name': '$michi','address':'5mbK36SZ7J19An8jFochhQS4of8g6BwUjbeCSxBSoWdp'},
+  { 'name': 'Trump','address':'Cmg4dyhnnUcWmakmyKQZ7MHEdcuCgoKa8iXKE8Nknjiv'},
+  { 'name': 'FTX','address':'5raTruYd7sCnoGvb8t8V8H6rWpT9eFVm9NhQoqu3nb6E'},
+  { 'name': 'ADOGE','address':'6SEJ69LQNmE7ZErThw2dSh1mUvAdwMrb6BzEQSCb5NTt'},
+  { 'name': 'SEEDS','address':'BtRNWtzHLetGSL6XS2s2d1vH1wYE8LcEq4fvSWTnVDBD'},
+  { 'name': 'POGBA','address':'sBm8ykqoGQKtE72vXCKf4oCU9zsGcM6NJZa4xZjMM58'},
 ]
 
 class HTokens(Base):
@@ -65,6 +59,19 @@ def add_hot_tokens(name, address):
       session.add(newtoken)
     session.commit()
     session.close()
+
+def get_top_hot_token():
+  random_integer = random.randint(1, len(tokenlist))
+  
+  return tokenlist[random_integer]['address']
+
+def get_token_name_by_address(address):
+  for token in tokenlist:
+    if token['address'] == address:
+      return token['name']
+  
+  default = 'Null'
+  return default
 
 def get_hot_tokens(limit):
     session = Session()

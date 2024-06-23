@@ -18,9 +18,9 @@ def handle_tradehistory(bot, message):
       trading_buttons.append(types.InlineKeyboardButton(positions[index].token, callback_data=f'history_{positions[index].id}'))
 
     text = f'''
-*📊️ Trade History*
+*📊️ Manage Tokens*
 
-Here you can see your swing trading history
+Here you can see your swing trading tokens
 
 💬 [Visit our Official Chat](https://t.me/wisepandaofficial)
 
@@ -47,7 +47,7 @@ def handle_token_tradehistory(bot, message,swing_token):
       winrate = position.sell_count/(position.sell_count + position.stop_count) * 100
 
     text = f'''
-*📊️ Trade History*
+*📊️ Token Status*
 
 Total Trades: {position.sell_count + position.buy_count + position.stop_count}
 Total Winning Trades: {position.sell_count}

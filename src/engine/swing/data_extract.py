@@ -221,6 +221,9 @@ async def SaveAsGraph(dataFrame,address):
     plt.ylabel('Value')
     plt.title('Sample DataFrame Plot')
 
+
+    if not os.path.exists('src/engine/swing/data_png'):
+        os.makedirs('src/engine/swing/data_png')
     # Save the plot as a PNG file
     plt.savefig(f'src/engine/swing/data_png/prices_{address}.png')
 
@@ -271,11 +274,14 @@ async def exportTestValues(address):
 
   dataFrame = dataFrame.dropna()
 
+
+  if not os.path.exists('src/engine/swing/test_data'):
+        os.makedirs('src/engine/swing/test_data')
   dataFrame.to_csv(f"src/engine/swing/test_data/test_data_{address}.csv", index=False)
 
   # Save the DataFrame as a PNG image
   await SaveAsGraph(dataFrame,address)
-  await study_lstm(address)
+  #await study_lstm(address)
 
 async def data_extract_main(addresses):
 
