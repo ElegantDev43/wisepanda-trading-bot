@@ -9,8 +9,8 @@ import asyncio
 from typing import List, AsyncIterator, Tuple, Iterator
 from asyncstdlib import enumerate
 
-from solders.pubkey import Pubkey
-from solders.rpc.config import RpcTransactionLogsFilterMentions
+from solders.pubkey import Pubkey # type: ignore
+from solders.rpc.config import RpcTransactionLogsFilterMentions # type: ignore
 
 from solana.rpc.websocket_api import connect
 from solana.rpc.commitment import Finalized
@@ -21,9 +21,9 @@ from websockets.exceptions import ConnectionClosedError, ProtocolError
 # Type hinting imports
 from solana.rpc.commitment import Commitment
 from solana.rpc.websocket_api import SolanaWsClientProtocol
-from solders.rpc.responses import RpcLogsResponse, SubscriptionResult, LogsNotification, GetTransactionResp
-from solders.signature import Signature
-from solders.transaction_status import UiPartiallyDecodedInstruction, ParsedInstruction
+from solders.rpc.responses import RpcLogsResponse, SubscriptionResult, LogsNotification, GetTransactionResp # type: ignore
+from solders.signature import Signature # type: ignore
+from solders.transaction_status import UiPartiallyDecodedInstruction, ParsedInstruction # type: ignore
 
 # Raydium Liquidity Pool V4
 RaydiumLPV4 = "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8"
