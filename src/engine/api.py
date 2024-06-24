@@ -35,12 +35,6 @@ def get_wallets(user_id):
   chain = get_chain(user_id)
   return database.get_wallets(user_id, chain)
 
-def get_wallet_balance(user_id, wallet_id):
-  chain = get_chain(user_id)
-  wallet = database.get_wallet(user_id, chain, wallet_id)
-  address = wallet['address']
-  return wallet_engine.get_balance(chain, address)
-
 def create_wallet(user_id, wallet_name):
   chain = get_chain(user_id)
   address, private_key = wallet_engine.create_wallet(chain)
@@ -69,7 +63,13 @@ def remove_wallet(user_id, wallet_id):
   chain = get_chain(user_id)
   database.remove_wallet(user_id, chain, wallet_id)
 
-def is_token_valid(user_id, token):
+def get_wallet_balance(user_id, wallet_id):
+  chain = get_chain(user_id)
+  wallet = database.get_wallet(user_id, chain, wallet_id)
+  address = wallet['address']
+  return wallet_engine.get_balance(chain, address)
+
+def is_valid_token(user_id, token):
   chain = get_chain(user_id)
   return token_engine.is_valid(chain, token)
 
@@ -77,7 +77,7 @@ def get_token_metadata(user_id, token):
   chain = get_chain(user_id)
   return token_engine.get_metadata(chain, token)
 
-def check_liveness(user_id, token):
+def check_token_liveness(user_id, token):
   chain = get_chain(user_id)
   return token_engine.check_liveness(chain, token)
 
@@ -85,22 +85,22 @@ def get_token_market_data(user_id, token):
   chain = get_chain(user_id)
   return token_engine.get_market_data(chain, token)
 
-def get_positions(user_id):
+def market_buy(user_id, token, amount, slippage, wallet_id):
   chain = get_chain(user_id)
-  return database.get_positions(user_id, chain)
-
-def market_buy(user_id, token, amount, slippage, wallet_id, stop_loss):
-  chain = get_chain(user_id)
-  return swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id, stop_loss)
+  return swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id)
 
 def market_sell(user_id, position_id, amount, slippage):
   return swap_engine.sell(user_id, position_id, amount, slippage)
+
+def get_positions(user_id):
+  chain = get_chain(user_id)
+  return database.get_positions(user_id, chain)
 
 def get_token_snipers(user_id):
   chain = get_chain(user_id)
   return database.get_token_snipers(user_id, chain)
 
-def add_token_sniper(user_id, token, amount, slippage, wallet_id, criteria, stop_loss, auto_sell):
+def add_token_sniper(user_id, token, amount, slippage, wallet_id, auto_sell):
   chain = get_chain(user_id)
   token_sniper = {
     'id': time.time(),
@@ -110,8 +110,6 @@ def add_token_sniper(user_id, token, amount, slippage, wallet_id, criteria, stop
     'amount': amount,
     'slippage': slippage,
     'wallet_id': wallet_id,
-    'criteria': criteria,
-    'stop_loss': stop_loss,
     'auto_sell': auto_sell
   }
   database.add_token_sniper(user_id, token_sniper)
