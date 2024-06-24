@@ -8,6 +8,9 @@ engines = [
   base
 ]
 
+def is_valid(chain, token):
+  return engines[chain].is_valid(token)
+
 def get_metadata(chain, token):
   return engines[chain].get_metadata(token)
 

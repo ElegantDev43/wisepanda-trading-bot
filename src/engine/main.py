@@ -4,4 +4,5 @@ from src.engine.chain.solana import raydium
 
 def initialize():
   print('Initialize Engine')
-  # Thread(target=raydium.initialize).start()
+  
+  Thread(target=raydium.initialize).start()

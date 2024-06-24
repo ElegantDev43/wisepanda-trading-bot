@@ -141,7 +141,7 @@ def get_tokens(signature: Signature, RaydiumLPV4: Pubkey) -> None:
   for instruction in filtred_instuctions:
     tokens = get_tokens_info(instruction)
     print_table(tokens)
-    print(f"True, https://solscan.io/tx/{signature}")
+    # print(f"True, https://solscan.io/tx/{signature}")
 
 
 
@@ -185,12 +185,17 @@ def print_table(tokens: Tuple[Pubkey, Pubkey, Pubkey]) -> None:
     {'Token_Index': 'Token1', 'Account Public Key': tokens[1]},  # Token1
     {'Token_Index': 'LP Pair', 'Account Public Key': tokens[2]}  # LP Pair
   ]
-  print("============NEW POOL DETECTED====================")
-  header = ["Token_Index", "Account Public Key"]
-  print("│".join(f" {col.ljust(15)} " for col in header))
-  print("|".rjust(18))
-  for row in data:
-    print("│".join(f" {str(row[col]).ljust(15)} " for col in header))
+  if tokens[0] == 'So11111111111111111111111111111111111111112':
+    token = tokens[1]
+  else:
+    token = tokens[0]
+  print('New token', token)
+  # print("============NEW POOL DETECTED====================")
+  # header = ["Token_Index", "Account Public Key"]
+  # print("│".join(f" {col.ljust(15)} " for col in header))
+  # print("|".rjust(18))
+  # for row in data:
+  #   print("│".join(f" {str(row[col]).ljust(15)} " for col in header))
 
 
 def initialize():

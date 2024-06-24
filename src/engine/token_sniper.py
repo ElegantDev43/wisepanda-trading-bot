@@ -13,16 +13,25 @@ def start(user_id, token_sniper_id):
       if stage == 'buy':
         if token_engine.check_liveness(chain, token):
           if criteria_engine.check(chain, token, criteria):
-            swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id, stop_loss)
+            _, amount, position_id = swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id, stop_loss)
             if len(auto_sell) == 0:
               database.remove_token_sniper(user_id, token_sniper_id)
             else:
               token_sniper['stage'] = 'sell'
+              token_sniper['position_id'] = position_id
               database.set_token_sniper(user_id, token_sniper_id, token_sniper)
           else:
-            print('Cancel token sniper because of criteria')
+            database.remove_token_sniper(user_id, token_sniper_id)
       else:
-        print('Auto Sell')
+        sell = auto_sell[0]
+        auto_sell.pop(0)
+        position = database.get_position(user_id, token_sniper['position_id'])
+        # market_capital = 
+        if len(auto_sell) == 0:
+          database.remove_token_sniper(user_id, token_sniper_id)
+        else:
+          token_sniper['auto_sell'] = auto_sell
+          database.set_token_sniper(user_id, token_sniper_id, token_sniper)
     else:
       break
     time.sleep(10)
