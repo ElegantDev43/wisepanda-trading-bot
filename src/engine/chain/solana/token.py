@@ -95,21 +95,6 @@ def get_market_data(token):
   else:
     print(f"Failed to fetch data. Status code: {response.status_code}")
 
-def get_token_price(token):
-  url = 'https://quote-api.jup.ag/v6/quote'
-  params = {
-    'inputMint': 'So11111111111111111111111111111111111111112',
-    'outputMint': token,
-    'amount': '100000',
-    'slippageBps': '50'
-  }
-  try:
-    response = requests.get(url, params=params)
-    quoteResponse = response.json()
-    return float(quoteResponse['outAmount']) / 100.0
-  except Exception as e:
-    print("Error fetching quote:", e)
-
 def get_jupiter_price(token):
   try:
     symbol = get_metadata(token)
