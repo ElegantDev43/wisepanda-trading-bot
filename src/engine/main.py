@@ -1,6 +1,6 @@
 from threading import Thread
 
-from src.engine.chain.solana import raydium
+from src.engine import raydium
 
 def initialize():
   print('Initialize Engine')

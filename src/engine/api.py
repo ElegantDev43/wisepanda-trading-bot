@@ -69,9 +69,17 @@ def remove_wallet(user_id, wallet_id):
   chain = get_chain(user_id)
   database.remove_wallet(user_id, chain, wallet_id)
 
+def is_token_valid(user_id, token):
+  chain = get_chain(user_id)
+  return token_engine.is_valid(chain, token)
+
 def get_token_metadata(user_id, token):
   chain = get_chain(user_id)
   return token_engine.get_metadata(chain, token)
+
+def check_liveness(user_id, token):
+  chain = get_chain(user_id)
+  return token_engine.check_liveness(chain, token)
 
 def get_token_market_data(user_id, token):
   chain = get_chain(user_id)
@@ -202,7 +210,3 @@ def get_auto_order(user_id):
 def set_auto_order(user_id, auto_order):
   chain = get_chain(user_id)
   database.set_auto_order(user_id, chain, auto_order)
-  
-def check_liveness(user_id, token):
-  chain = get_chain(user_id)
-  return token_engine.check_liveness(chain, token)

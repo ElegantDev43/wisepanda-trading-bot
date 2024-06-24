@@ -91,7 +91,7 @@ def get_market_data(token):
       print(f"Token Price: {token_price:.18f}")
       print(f"Liquidity: {liquidity}")
       print(f"Market Cap: {market_cap}")
-      return {'price':token_price, 'liquidity':liquidity, 'market_cap':market_cap}
+      return {'price':token_price, 'liquidity':liquidity, 'market_capital':market_cap}
   else:
     print(f"Failed to fetch data. Status code: {response.status_code}")
 
