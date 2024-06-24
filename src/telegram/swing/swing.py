@@ -9,7 +9,7 @@ def handle_start(bot, message):
 
 Discover and engage with the newest tokens as they launch. Gain a competitive edge with early investment opportunities.
 
-Select mode for Swing Trading.
+Select mode for swing trading.
     '''
 
     keyboard = types.InlineKeyboardMarkup()

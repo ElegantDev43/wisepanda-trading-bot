@@ -6,6 +6,7 @@ from telebot import types
 #from src.engine import main as engine
 from src.engine.swing.data_extract import exportTestValues
 from src.engine import api as main_api
+from src.engine.swing import api as swing_api
 
 from src.database.swing import swing as swing_model
 from src.database.swing import Htokens as htokens_model
@@ -21,6 +22,7 @@ default_amount = 100
 default_buy_index = 0
 default_wallet_index = 0
 default_token_address = ''
+default_Type = 'Start'
 
 chain_name = ['solana','ethereum']
 
@@ -58,6 +60,8 @@ def set_auto_address(bot,message):
   handle_autoorder(bot,message,address)
 
 def get_keyboard(message,wallet_index , buy_index , buyer_amount,trade_slip):
+    global default_Type
+  
     user = user_model.get(message.chat.id)
     chain = user.chain
     wallets = user.wallets[chain]
@@ -77,6 +81,8 @@ def get_keyboard(message,wallet_index , buy_index , buyer_amount,trade_slip):
         btn_wallets.append(types.InlineKeyboardButton(f'{"🟢 " if wallet_index == index else ""} W{index + 1}', callback_data=f'auto_wallet {index}'))
 
     buy = types.InlineKeyboardButton('▶️  Start', callback_data='auto_start')
+    if default_Type == 'Stop':
+      buy = types.InlineKeyboardButton('▶️  Stop', callback_data='auto_start')
     #slip = types.InlineKeyboardButton(f'📉 Slip ({trade_slip})', callback_data='auto_slip')
     token_wallet = types.InlineKeyboardButton('💳 Wallet', callback_data='token_wallet')
     wallet_expand = types.InlineKeyboardButton('Expand', callback_data='token_wallet_expand')
@@ -98,17 +104,21 @@ def get_keyboard(message,wallet_index , buy_index , buyer_amount,trade_slip):
 def handle_autoorder(bot, message, address):
 
     # user_model.create_user_by_telegram(message.chat.id)
-    global default_slip,default_amount,default_buy_index,default_wallet_index,default_token_address
-    if os.path.exists(f'src/engine/swing/data_png/prices_{address}.png') != True:
-        asyncio.run(exportTestValues(address))
+    global default_slip,default_amount,default_buy_index,default_wallet_index,default_token_address,default_Type
 
-    image_path = f'src/engine/swing/data_png/prices_{address}.png'  # Local image file path
+    # if os.path.exists(f'src/engine/swing/data_png/prices_{address}.png') != True:
+    #     asyncio.run(exportTestValues(address))
+
+    # image_path = f'src/engine/swing/data_png/prices_{address}.png'  # Local image file path
+    image_path = swing_api.getTokenImage(address)
     default_token_address = address
 
     user = user_model.get(message.chat.id)
     chain = user.chain
     wallets = user.wallets[chain]
     walletinfo = ''
+    
+    default_Type = swing_api.SetFullyAutoTokens('Auto Status',message.chat.id,0,wallets[0])
     # for index in range(0,len(wallets)):
     #     if index > 0:
     #         walletinfo += '|'
@@ -124,11 +134,16 @@ def handle_autoorder(bot, message, address):
 
     token_data = main_api.get_token_market_data(message.chat.id, token)
     meta_data = main_api.get_token_metadata(message.chat.id, token)
-    
+        
     token_price = format_number(token_data['price'])
     token_liquidity = format_number(token_data['liquidity'])
     token_market_cap = format_number(token_data['market_cap'])
 
+    status = ''
+    if(default_Type == 'Stop'):
+      amount, original_amount = swing_api.SetFullyAutoTokens('Market Status',message.chat.id,0,wallets[0])
+      status = f'Amount:{amount} Original Amount:{original_amount}'
+      
     text = f'''
 *{name}  (🔗{chain_name[chain]})*
 {token}
@@ -136,6 +151,8 @@ def handle_autoorder(bot, message, address):
 💲 *Price:* {token_price}$
 💧 *Liquidity:* {token_liquidity}$
 📊 *Market Cap:* {token_market_cap}$
+
+  {status}
 
 [Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
     '''
@@ -203,14 +220,21 @@ def handle_input_slip_x(bot, message,prev_message,new_message):
 
 
 def handle_autostart(bot, message):
-  global default_token_address
+  global default_token_address , default_Type
 
   user = user_model.get(message.chat.id)
   chain = user.chain
   wallets = user.wallets[chain]
 
-  swing_model.add_by_user_id(message.chat.id,'solana',wallets[default_wallet_index],
-                             default_slip,default_amount,default_token_address)
 
+  # swing_model.add_by_user_id(message.chat.id,'solana',wallets[default_wallet_index],
+  #                            default_slip,default_amount,default_token_address)
+
+  if default_Type == 'Start':
+    result = swing_api.SetFullyAutoTokens('Start',message.chat.id,default_amount,wallets[default_wallet_index])
+    default_Type = 'Stop'
+  elif default_Type == 'Stop':
+    result = swing_api.SetFullyAutoTokens('Stop',message.chat.id,0,wallets[default_wallet_index])
+    default_Type = 'Start'
   # bot.delete_message(chat_id = message.chat.id, message_id = message.message_id, timeout = 0 )
   handle_start(bot, message)

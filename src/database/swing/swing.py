@@ -29,7 +29,6 @@ class Swing(Base):
     original_amount = Column(Float)
     original_trend = Column(Integer)
 
-
 def initialize():
     Base.metadata.create_all(engine)
 
@@ -49,6 +48,12 @@ def get_by_swing_id(id):
 def get_by_user_id(user_id):
     session = Session()
     positions = session.query(Swing).filter(Swing.userid == user_id).all()
+    session.close()
+    return positions
+
+def get_by_user_id_and_token(user_id , address):
+    session = Session()
+    positions = session.query(Swing).filter(Swing.userid == user_id and Swing.token == address).first()
     session.close()
     return positions
 
@@ -98,6 +103,13 @@ def update_by_user_id(id,amount,original_price,original_state,buy_count,sell_cou
 def remove_by_swing_id(id):
     session = Session()
     position = session.query(Swing).filter(Swing.id == id).first()
+    session.delete(position)
+    session.commit()
+    session.close()
+    
+def remove_by_userid_and_token(userid,token):
+    session = Session()
+    position = session.query(Swing).filter(Swing.userid == userid and Swing.token == token).first()
     session.delete(position)
     session.commit()
     session.close()
