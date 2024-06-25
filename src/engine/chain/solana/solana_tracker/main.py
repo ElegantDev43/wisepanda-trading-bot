@@ -4,6 +4,7 @@ from solana.rpc.api import Client
 import json
 import requests
 from src.engine.chain.solana.solana_tracker.solanatracker import SolanaTracker
+from src.engine.chain.solana.token import get_metadata
 
 from src.engine.chain import token as token_engine
 from src.engine import api as main_api
@@ -63,7 +64,7 @@ def swap(type, token, amount, slippage, wallet):
           for action in actions:
               if 'info' in action and 'tokens_swapped' in action['info']:
                   out_amount = action['info']['tokens_swapped']['out']['amount']
-                  exact_amount = out_amount
+                  exact_amount = out_amount * 10 ** get_metadata(outputMint)['decimals']
                   break
       except KeyError as e:
           print(f"KeyError: {e} - The key was not found in the JSON response.")

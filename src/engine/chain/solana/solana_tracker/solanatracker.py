@@ -51,7 +51,7 @@ class SolanaTracker:
     url = f"{self.base_url}/swap"
     try:
       response = requests.get(url, params=params)
-      print(response.json())
+      # print(response.json())
       return response.json()
     except Exception as error:
       print("Error fetching swap instructions:", error)
