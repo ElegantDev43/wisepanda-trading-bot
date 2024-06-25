@@ -16,6 +16,7 @@ class User(Base):
   positions = Column(JSON)
   auto_sniper = Column(JSON)
   token_snipers = Column(JSON)
+  lp_snipers = Column(JSON)
   limit_orders = Column(JSON)
   dca_orders = Column(JSON)
   auto_order = Column(JSON)
@@ -50,6 +51,9 @@ def add(user_id):
       },
       'lp': {
         'active': False,
+        'amount': 1,
+        'slippage': 50,
+        'wallet_id': 0
       }
     })
     auto_order.append({
@@ -71,6 +75,7 @@ def add(user_id):
     positions=[],
     auto_sniper=auto_sniper,
     token_snipers=[],
+    lp_snipers=[],
     limit_orders=[],
     dca_orders=[],
     auto_order=auto_order
@@ -98,6 +103,8 @@ def set(user_id, key, value):
     user.auto_sniper = value
   elif key == 'token_snipers':
     user.token_snipers = value
+  elif key == 'lp_snipers':
+    user.lp_snipers = value
   elif key == 'limit_orders':
     user.limit_orders = value
   elif key == 'dca_orders':

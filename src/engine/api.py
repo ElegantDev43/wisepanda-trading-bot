@@ -4,6 +4,7 @@ from threading import Thread
 from src.database import api as database
 
 from src.engine import token_sniper as token_sniper_engine
+from src.engine import lp_sniper as lp_sniper_engine
 from src.engine import limit_order as limit_order_engine
 from src.engine import dca_order as dca_order_engine
 
@@ -119,7 +120,6 @@ def add_token_sniper(user_id, token, amount, slippage, wallet_id, auto_sell):
     'slippage': slippage,
     'wallet_id': wallet_id,
     'auto_sell': auto_sell
-    
   }
   database.add_token_sniper(user_id, token_sniper)
   Thread(target=token_sniper_engine.start, args=(user_id, token_sniper['id'])).start()
@@ -129,6 +129,30 @@ def set_token_sniper(user_id, token_sniper_id, token_sniper):
 
 def remove_token_sniper(user_id, token_sniper_id):
   database.remove_token_sniper(user_id, token_sniper_id)
+
+def get_lp_snipers(user_id):
+  chain = get_chain(user_id)
+  return database.get_lp_snipers(user_id, chain)
+
+def add_lp_sniper(user_id, token, amount, slippage, wallet_id):
+  chain = get_chain(user_id)
+  lp_sniper = {
+    'id': time.time(),
+    'stage': 'buy',
+    'chain': chain,
+    'token': token,
+    'amount': amount,
+    'slippage': slippage,
+    'wallet_id': wallet_id
+  }
+  database.add_lp_sniper(user_id, lp_sniper)
+  Thread(target=lp_sniper_engine.start, args=(user_id, lp_sniper['id'])).start()
+
+def set_lp_sniper(user_id, lp_sniper_id, lp_sniper):
+  database.set_lp_sniper(user_id, lp_sniper_id, lp_sniper)
+
+def remove_lp_sniper(user_id, lp_sniper_id):
+  database.remove_lp_sniper(user_id, lp_sniper_id)
 
 def get_limit_orders(user_id):
   chain = get_chain(user_id)

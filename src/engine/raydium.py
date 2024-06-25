@@ -202,6 +202,7 @@ def print_table(tokens: Tuple[Pubkey, Pubkey, Pubkey]) -> None:
   from src.database import api as database
   from src.engine.chain import token as token_engine
   from src.engine import token_sniper as token_sniper_engine
+  from src.engine import lp_sniper as lp_sniper_engine
   
   users = database.get_users()
   for user in users:
@@ -224,8 +225,9 @@ def print_table(tokens: Tuple[Pubkey, Pubkey, Pubkey]) -> None:
       market_captial = token_engine.get_market_data(chain, token)
       if market_captial > min_market_captial and market_captial < max_market_captial:
         if limit != 0 and count != limit:
+          token_sniper_id = time.time()
           database.add_token_sniper(user.id, {
-            'id': time.time(),
+            'id': token_sniper_id,
             'stage': 'buy',
             'chain': chain,
             'token': token,
@@ -234,7 +236,7 @@ def print_table(tokens: Tuple[Pubkey, Pubkey, Pubkey]) -> None:
             'wallet_id': wallet_id,
             'auto_sell': auto_sell
           })
-          Thread(target=token_sniper_engine.start, args=(user.id, token_sniper['id'])).start()
+          Thread(target=token_sniper_engine.start, args=(user.id, token_sniper_id)).start()
           
           count += 1
           token_sniper['count'] = count
@@ -244,11 +246,24 @@ def print_table(tokens: Tuple[Pubkey, Pubkey, Pubkey]) -> None:
           database.set_auto_sniper(user.id, chain, auto_sniper)
     
     lp_sniper = auto_sniper['lp']
-    active = (
-      lp_sniper['active']
+    active, amount, slippage, wallet_id = (
+      lp_sniper['active'],
+      lp_sniper['amount'],
+      lp_sniper['slippage'],
+      lp_sniper['wallet_id']
     )
     if active:
-      print('LP')
+      lp_sniper_id = time.time()
+      database.add_lp_sniper(user.id, {
+        'id': lp_sniper_id,
+        'stage': 'buy',
+        'chain': chain,
+        'token': token,
+        'amount': amount,
+        'slippage': slippage,
+        'wallet_id': wallet_id
+      })
+      Thread(target=lp_sniper_engine.start, args=(user.id, lp_sniper_id)).start()
 
 def initialize():
   global RaydiumLPV4

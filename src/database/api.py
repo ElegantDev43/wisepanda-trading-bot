@@ -113,6 +113,38 @@ def remove_token_sniper(user_id, token_sniper_id):
       break
   user_model.set(user_id, 'token_snipers', user.token_snipers)
 
+def get_lp_snipers(user_id, chain):
+  user = get_user(user_id)
+  return list(filter(lambda lp_sniper: lp_sniper['chain'] == chain, user.lp_snipers))
+
+def add_lp_sniper(user_id, lp_sniper):
+  user = get_user(user_id)
+  user.lp_snipers.append(lp_sniper)
+  user_model.set(user_id, 'lp_snipers', user.lp_snipers)
+
+def get_lp_sniper(user_id, lp_sniper_id):
+  user = get_user(user_id)
+  for lp_sniper in user.lp_snipers:
+    if lp_sniper['id'] == lp_sniper_id:
+      return lp_sniper
+  return None
+
+def set_lp_sniper(user_id, lp_sniper_id, lp_sniper):
+  user = get_user(user_id)
+  for index in range(len(user.lp_snipers)):
+    if user.lp_snipers[index]['id'] == lp_sniper_id:
+      user.lp_snipers[index] = lp_sniper
+      break
+  user_model.set(user_id, 'lp_snipers', user.lp_snipers)
+
+def remove_lp_sniper(user_id, lp_sniper_id):
+  user = get_user(user_id)
+  for index, lp_sniper in enumerate(user.lp_snipers):
+    if lp_sniper['id'] == lp_sniper_id:
+      user.lp_snipers.pop(index)
+      break
+  user_model.set(user_id, 'lp_snipers', user.lp_snipers)
+
 def get_limit_orders(user_id, chain):
   user = get_user(user_id)
   return list(filter(lambda limit_order: limit_order['chain'] == chain, user.limit_orders))

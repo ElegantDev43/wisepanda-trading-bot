@@ -1,7 +1,6 @@
 import time
 
 from src.database import api as database
-from src.engine import criteria as criteria_engine
 from src.engine import swap as swap_engine
 from src.engine.chain import token as token_engine
 

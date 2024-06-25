@@ -1,7 +1,6 @@
 import time
 
 from src.database import api as database
-from src.engine import criteria as criteria_engine
 from src.engine import swap as swap_engine
 from src.engine.chain import token as token_engine
 
@@ -9,7 +8,7 @@ def start(user_id, dca_order_id):
   while True:
     dca_order = database.get_dca_order(user_id, dca_order_id)
     if dca_order:
-      if criteria_engine.check(dca_order['criteria']):
+      if 'criteria':
         if dca_order['type'] == 'buy':
           id, type, chain, token, amount, slippage, wallet_id, criteria, interval, count, stop_loss = dca_order
           swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id, stop_loss)
