@@ -17,11 +17,7 @@ tokenlist= [
   { 'name': 'PONKE','address':'5z3EqYQo9HiCEs3R84RCDMu2n7anpDMxRhdK8PSWmrRC'},
   { 'name': 'WETH','address':'7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs'},
   { 'name': 'bSOL','address':'bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1'},
-  { 'name': 'Trump','address':'Cmg4dyhnnUcWmakmyKQZ7MHEdcuCgoKa8iXKE8Nknjiv'},
-  { 'name': 'FTX','address':'5raTruYd7sCnoGvb8t8V8H6rWpT9eFVm9NhQoqu3nb6E'},
-  { 'name': 'ADOGE','address':'6SEJ69LQNmE7ZErThw2dSh1mUvAdwMrb6BzEQSCb5NTt'},
-  { 'name': 'SEEDS','address':'BtRNWtzHLetGSL6XS2s2d1vH1wYE8LcEq4fvSWTnVDBD'},
-  { 'name': 'POGBA','address':'sBm8ykqoGQKtE72vXCKf4oCU9zsGcM6NJZa4xZjMM58'},
+  #{ 'name': 'Trump','address':'Cmg4dyhnnUcWmakmyKQZ7MHEdcuCgoKa8iXKE8Nknjiv'},
 ]
 
 def getTokenImage(token):

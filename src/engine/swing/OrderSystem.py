@@ -210,6 +210,8 @@ async def OrderSystem(token,prices,amount,original_price,original_state,buy_coun
   action = 'hold'
 
   if os.path.exists(f'src/engine/swing/model/model_{token}.pkl') != True:
+    if os.path.exists(f'src/engine/swing/model/model.pkl') != True:
+      return    
     predict_model = pickle.load(open(f'src/engine/swing/model/model.pkl', 'rb'))
   else:
     predict_model = pickle.load(open(f'src/engine/swing/model/model_{token}.pkl', 'rb'))

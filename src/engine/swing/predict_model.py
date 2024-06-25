@@ -34,7 +34,7 @@ async def prepare_model(token):
   if os.path.exists(f'src/engine/swing/price_data/price_data_{token}.csv') != True:
     return
 
-  dataFrame = pd.read_csv(f'src/engine/swing/price_data/price_data_{token}.csv', parse_dates=True, index_col= 2)
+  dataFrame = pd.read_csv(f'src/engine/swing/price_data/price_data_{token}.csv', parse_dates=True, index_col= 3)
   dataFrame = dataFrame.iloc[::-1]
 
   if dataFrame.empty:
@@ -50,7 +50,6 @@ async def prepare_model(token):
 
   X = dataFrame[features]
   Y = dataFrame['Target_2']
-  print(X)
 
   scaler = StandardScaler()
   X = scaler.fit_transform(X)

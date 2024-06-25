@@ -15,6 +15,9 @@ from src.database.swing import Htokens as HTokens_model
 from src.engine import swap as swap_engine
 from src.engine.chain import dex as dex_engine
 
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 async def Control():
 #   addresses = [
 #       "So11111111111111111111111111111111111111112",  #Sol
@@ -28,12 +31,12 @@ async def Control():
 
 #   await exportHotTokens()
 
-  hot_addresses = HTokens_model.get_all_tokens()
+  # hot_addresses = HTokens_model.get_all_tokens()
 
-  await data_extract_main(hot_addresses)
-  for index in range(0, len(hot_addresses)):
-    await study_model(hot_addresses[index])
-    print("From Two::Hot Tokens!!!!!")
+  # await data_extract_main(hot_addresses)
+  # for index in range(0, len(hot_addresses)):
+  #   await study_model(hot_addresses[index])
+  #   print("From Two::Hot Tokens!!!!!")
 
   await data_extract_main(addresses)
   print("From One::")
@@ -63,7 +66,8 @@ async def Control():
     wallet = current_position.wallet
     slippage = 5
     stop_loss = 10
-    dex_engine.swap(chain, action, token, amount, slippage, wallet)
+    
+    #dex_engine.swap(chain, action, token, amount, slippage, wallet)
   
     swing_model.update_by_user_id(id = current_position.id,
                                   amount = amount,

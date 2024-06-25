@@ -16,6 +16,7 @@ from tti.indicators import LinearRegressionIndicator,LinearRegressionSlope,Media
 from tti.indicators import PriceRateOfChange,StandardDeviation,StochasticMomentumIndex,WildersSmoothing
 from tti.indicators import IchimokuCloud,ParabolicSAR,CommodityChannelIndex,OnBalanceVolume,PriceAndVolumeTrend
 from tti.indicators import TimeSeriesForecast
+import warnings
 
 from src.engine.swing.lstm_model import study_lstm
 
@@ -32,6 +33,8 @@ endAt = "2024-03-28 00:00:00"
 starttestAt = "2024-03-29 00:00:00"
 endtestAt = "2024-05-30 00:00:00"
 interval = "15m"
+
+warnings.filterwarnings("ignore", category=FutureWarning, module='tti')
 
 async def exportTechnicalIndicators(address):
   addressType = "token"
@@ -226,6 +229,8 @@ async def SaveAsGraph(dataFrame,address):
         os.makedirs('src/engine/swing/data_png')
     # Save the plot as a PNG file
     plt.savefig(f'src/engine/swing/data_png/prices_{address}.png')
+    
+    plt.close()
 
 async def exportTestValues(address):
 #   address = "So11111111111111111111111111111111111111112"
@@ -269,6 +274,9 @@ async def exportTestValues(address):
   dataFrame.index = pd.DatetimeIndex(dataFrame['unixTime'])
 
   dataFrame = dataFrame.drop(columns=['unixTime'])
+  
+  if 'address' in dataFrame.columns:
+    dataFrame = dataFrame.drop(columns=['address'])
 
   dataFrame = dataFrame.iloc[::-1]
 
