@@ -41,8 +41,7 @@ def get_keyboard(update_data, chat_id, index_data):
             text=caption, callback_data=f"fully_auto swing select buy amount {index}")
         buys.append(button)
 
-    start_btn = types.InlineKeyboardButton('Start', callback_data='start swing auto mode')
-    stop_btn = types.InlineKeyboardButton('Stop', callback_data='stop swing auto mode')
+    status_btn = types.InlineKeyboardButton('Start', callback_data='handle swing auto mode status')
     back = types.InlineKeyboardButton('🔙 Back', callback_data='swing')
     if update_data['buy-amount'] == 0:
         caption = "X SOL"
@@ -56,7 +55,7 @@ def get_keyboard(update_data, chat_id, index_data):
     else:
       keyboard.row(*wallets[0:3], more_wallet_btn)
     keyboard.row(amount_title, *buys[0:buy_count], buy_x)
-    keyboard.row(start_btn, stop_btn)
+    keyboard.row(status_btn)
     keyboard.row(back)
     return keyboard
 

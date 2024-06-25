@@ -58,7 +58,7 @@ def initialize_x_value():
     x_value_list['limit-tax'] = 0
 
 
-def handle_seller(bot, message):
+def handle_positions(bot, message):
     chain_positions = main_api.get_positions(message.chat.id)
     text = f'''
             *🛒 Token Sell*
@@ -67,9 +67,20 @@ You currently have {len(chain_positions)} positions.
 
 Select position to sell tokens.
 '''
-    order_index = order_list[0]['name']
-    keyboard = get_keyboard(order_index, x_value_list,
-                            message.chat.id, index_list)
+    keyboard = types.InlineKeyboardMarkup()
+    positions = []
+    chain_positions = main_api.get_positions(message.chat.id)
+    position_count = len(chain_positions)
+    wallets = main_api.get_wallets(message.chat.id)
+    for index in range(position_count):
+      for item in range(len(wallets)):
+        if wallets[item]['id'] == chain_positions[index]['wallet_id']:
+          caption = f'Token: {chain_positions[index]['token']}, Amount:{chain_positions[index]['amount']}, W{item}'
+      button = types.InlineKeyboardButton(
+            text=caption, callback_data=f"seller select position {index}")
+      positions.append(button)
+    for item in positions:
+      keyboard.row(item)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
 
@@ -119,17 +130,7 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
         '🔴 Anti-Rug', callback_data=f'anti Rug')
 
 
-    positions = []
-    chain_positions = main_api.get_positions(chat_id)
-    position_count = len(chain_positions)
-    wallets = main_api.get_wallets(chat_id)
-    for index in range(position_count):
-      for item in range(len(wallets)):
-        if wallets[item]['id'] == chain_positions[index]['wallet_id']:
-          caption = f'{"🟢" if index == index_data['position'] else ""} Token: {chain_positions[index]['token']}, Amount:{chain_positions[index]['amount']['out']}, W{item}'
-        button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"seller select position {index}")
-        positions.append(button)
+
 
 
     buys = []
@@ -235,8 +236,6 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
 
-    for button in positions:
-      keyboard.row(button)
     keyboard.row(*buys[0:(buy_count // 2)])
     keyboard.row(*buys[(buy_count // 2):buy_count], buy_x)
     keyboard.row(slippage_title,*slippages[0:(len(slippages))], slippage_x)
@@ -685,7 +684,7 @@ def handle_input_value(bot, message, item):
       
     token_price = format_number(token_data['price'])
     token_liquidity = format_number(token_data['liquidity'])
-    token_market_cap = format_number(token_data['market_cap'])
+    token_market_cap = format_number(token_data['market_capital'])
     text = f'''
       *🛒 Token Sell*
 
@@ -720,7 +719,9 @@ def handle_sell(bot, message):
     sell_position = positions[result['position']]['id']
     print(sell_position)
     if order_name == "Market Order":
-        main_api.market_sell(message.chat.id, sell_position,result['buy_amount'], result['slippage'])
+        print(result['buy_amount'], result['slippage'])
+        tx_id, amount = main_api.market_sell(message.chat.id, sell_position,result['buy_amount'], result['slippage'])
+        print(tx_id)
     elif order_name == "Limit Order":
         main_api.limit_order(message.chat.id, result)
     elif order_name == "DCA Order":
@@ -766,8 +767,6 @@ def select_position(bot, message, item):
         if order['active'] == True:
             order_index = order['name']
   
-  
-  
   chain_index = main_api.get_chain(message.chat.id)
   chains = main_api.get_chains()
   current_chain = chains[chain_index]
@@ -779,7 +778,7 @@ def select_position(bot, message, item):
     
   token_price = format_number(token_data['price'])
   token_liquidity = format_number(token_data['liquidity'])
-  token_market_cap = format_number(token_data['market_cap'])
+  token_market_cap = format_number(token_data['market_capital'])
   text = f'''
     *🛒 Token Sell*
 
@@ -797,8 +796,5 @@ Sell your tokens here.
 
   keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
-
-  bot.edit_message_text(chat_id=message.chat.id,
-                          message_id=message.message_id, text=text, parse_mode='Markdown')
-  bot.edit_message_reply_markup(
-        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+  bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                     reply_markup=keyboard, disable_web_page_preview=True)

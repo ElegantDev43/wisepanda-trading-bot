@@ -88,7 +88,7 @@ def handle_callback_query(call):
     elif call.data == 'lp sniper select auto mode':
         lp_auto.handle_start(bot, call.message)
     elif call.data == 'lp sniper select manual mode':
-        lp_auto.handle_start(bot, call.message)
+        lp_manual.handle_start(bot, call.message)
         
     elif call.data.startswith('lp auto select buy wallet '):
         lp_auto.select_buy_wallet(bot, call.message, call.data[26:])
@@ -108,7 +108,26 @@ def handle_callback_query(call):
         lp_auto.select_slip_page(bot, call.message, call.data[32:])
     elif call.data == 'make lp auto order':
         lp_auto.handle_set_sniper(bot, call.message)    
-    
+
+    elif call.data.startswith('lp manual select buy wallet '):
+        lp_manual.select_buy_wallet(bot, call.message, call.data[28:])
+    elif call.data.startswith('lp manual select buy amount '):
+        amount = call.data[28:]
+        if (amount == 'x'):
+            lp_manual.handle_buy_amount_x(bot, call.message)
+        else:
+            lp_manual.select_buy_amount(bot, call.message, call.data[28:])
+    elif call.data.startswith('lp manual select slippage '):
+        amount = call.data[26:]
+        if (amount == 'x'):
+            lp_manual.handle_slippage_x(bot, call.message)
+        else:
+            lp_manual.handle_select_auto_slippage(bot, call.message, call.data[26:])
+    elif call.data.startswith('lp manual confirm select slippage '):
+        lp_manual.select_slip_page(bot, call.message, call.data[34:])
+    elif call.data == 'make lp manual order':
+        lp_manual.handle_set_sniper(bot, call.message)   
+        
     elif call.data == 'buyer':
         buyer.handle_buyer(bot, call.message)
 
@@ -168,7 +187,7 @@ def handle_callback_query(call):
             bot, call.message, call.data[16:20], call.data[28:])
 
     elif call.data == 'seller':
-        seller.handle_seller(bot, call.message)
+        seller.handle_positions(bot, call.message)
     elif call.data == 'seller-limit-orders':
         seller.handle_limit_order(bot, call.message)
     elif call.data == 'seller-market-orders':

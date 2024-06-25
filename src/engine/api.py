@@ -119,6 +119,7 @@ def add_token_sniper(user_id, token, amount, slippage, wallet_id, auto_sell):
     'slippage': slippage,
     'wallet_id': wallet_id,
     'auto_sell': auto_sell
+    
   }
   database.add_token_sniper(user_id, token_sniper)
   Thread(target=token_sniper_engine.start, args=(user_id, token_sniper['id'])).start()

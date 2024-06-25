@@ -148,7 +148,7 @@ def handle_input_token(bot, message):
     
     token_price = format_number(token_data['price'])
     token_liquidity = format_number(token_data['liquidity'])
-    token_market_cap = format_number(token_data['market_cap'])
+    token_market_cap = format_number(token_data['market_capital'])
     text = f'''
     *🪁 Swing Trading*
 
@@ -203,7 +203,7 @@ def select_slip_page(bot, message, index):
       
     token_price = format_number(token_data['price'])
     token_liquidity = format_number(token_data['liquidity'])
-    token_market_cap = format_number(token_data['market_cap'])
+    token_market_cap = format_number(token_data['market_capital'])
     text = f'''
       *🪁 Swing Trading*
 
@@ -279,7 +279,7 @@ def handle_input_value(bot, message, item):
     
     token_price = format_number(token_data['price'])
     token_liquidity = format_number(token_data['liquidity'])
-    token_market_cap = format_number(token_data['market_cap'])
+    token_market_cap = format_number(token_data['market_capital'])
     text = f'''
     *🪁 Swing Trading* >> Manual Mode
 

@@ -7,7 +7,7 @@ import threading
 chain_buy_amounts = [0.1]
 chain_gas_amounts = [0.1, 0.2, 0.3]
 chain_gas_prices = [0.1, 0.2, 0.3]
-chain_slippages = [10]
+chain_slippages = [50]
 chain_limit_token_prices = [171, 173, 175]
 chain_market_caps = [10000, 200000, 50000]
 chain_liquidities = [10000, 200000, 50000]
@@ -358,11 +358,11 @@ def handle_input_token(bot, message):
     
     token_price = format_number(token_data['price'])
     token_liquidity = format_number(token_data['liquidity'])
-    token_market_cap = format_number(token_data['market_cap'])
+    token_market_cap = format_number(token_data['market_capital'])
     text = f'''
     *🛒 Token Buy*
 
-Sell your tokens here.
+Buy your tokens here.
 
 *{meta_data['name']}  (🔗{current_chain})  *
 {token}
@@ -436,11 +436,11 @@ def select_slip_page(bot, message, index):
       
     token_price = format_number(token_data['price'])
     token_liquidity = format_number(token_data['liquidity'])
-    token_market_cap = format_number(token_data['market_cap'])
+    token_market_cap = format_number(token_data['market_capital'])
     text = f'''
       *🛒 Token Buy*
 
-  Sell your tokens here.
+  Buy your tokens here.
 
   *{meta_data['name']}  (🔗{current_chain})  *
   {token}
@@ -542,7 +542,7 @@ def select_duration(bot, message, index):
 
 def handle_select_auto_slippage(bot, message, index):
   text = '''
-      *🎯 Token Sniper*
+      *🛒 Token Buy*
  Do you confirm 50% slippage as Auto Slippage?.
 '''
   keyboard = types.InlineKeyboardMarkup()
@@ -755,11 +755,11 @@ def handle_input_value(bot, message, item):
     
     token_price = format_number(token_data['price'])
     token_liquidity = format_number(token_data['liquidity'])
-    token_market_cap = format_number(token_data['market_cap'])
+    token_market_cap = format_number(token_data['market_capital'])
     text = f'''
     *🛒 Token Buy*
 
-Sell your tokens here.
+Buy your tokens here.
 
 *{meta_data['name']}  (🔗{current_chain})  *
 {token}
@@ -788,7 +788,7 @@ def handle_buy(bot, message):
     print(result['token'])
     
     if order_name == "Market Order":
-        tx_hash, out_amount = main_api.market_buy(message.chat.id, result['token'], buy_amount, result['slippage'], buy_wallet, result['stop-loss'])
+        position_id = main_api.market_buy(message.chat.id, result['token'], buy_amount, result['slippage'], buy_wallet)
     elif order_name == "Limit Order":
         main_api.add_limit_order(message.chat.id, result['type'], result['token'], result['buy_amount'], result['slippage'], result['wallet'], result['limit_token_price'])
     elif order_name == "DCA Order":

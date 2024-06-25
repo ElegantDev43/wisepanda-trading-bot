@@ -109,7 +109,7 @@ def handle_input_token(bot, message):
       
       token_price = format_number(token_data['price'])
       token_liquidity = format_number(token_data['liquidity'])
-      token_market_cap = format_number(token_data['market_cap'])
+      token_market_cap = format_number(token_data['market_capital'])
       text = f'''
       *🪁 Swing Trading* >> Select Token Mode
 
@@ -183,7 +183,7 @@ def handle_input_value(bot, message, item):
     
     token_price = format_number(token_data['price'])
     token_liquidity = format_number(token_data['liquidity'])
-    token_market_cap = format_number(token_data['market_cap'])
+    token_market_cap = format_number(token_data['market_capital'])
     text = f'''
       *🪁 Swing Trading* >> Select Token Mode
 
