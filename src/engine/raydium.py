@@ -185,18 +185,70 @@ def print_table(tokens: Tuple[Pubkey, Pubkey, Pubkey]) -> None:
     {'Token_Index': 'Token1', 'Account Public Key': tokens[1]},  # Token1
     {'Token_Index': 'LP Pair', 'Account Public Key': tokens[2]}  # LP Pair
   ]
-  if tokens[0] == 'So11111111111111111111111111111111111111112':
-    token = tokens[1]
-  else:
-    token = tokens[0]
-  print('New token', token)
   # print("============NEW POOL DETECTED====================")
   # header = ["Token_Index", "Account Public Key"]
   # print("│".join(f" {col.ljust(15)} " for col in header))
   # print("|".rjust(18))
   # for row in data:
   #   print("│".join(f" {str(row[col]).ljust(15)} " for col in header))
+  if tokens[0] == 'So11111111111111111111111111111111111111112':
+    token = tokens[1]
+  else:
+    token = tokens[0]
+  
+  import time
+  from threading import Thread
+  
+  from src.database import api as database
+  from src.engine.chain import token as token_engine
+  from src.engine import token_sniper as token_sniper_engine
+  
+  users = database.get_users()
+  for user in users:
+    chain = 0
+    auto_sniper = user.auto_sniper[chain]
 
+    token_sniper = auto_sniper['token']
+    active, amount, slippage, wallet_id, auto_sell, min_market_captial, max_market_captial, limit, count = (
+      token_sniper['active'],
+      token_sniper['amount'],
+      token_sniper['slippage'],
+      token_sniper['wallet_id'],
+      token_sniper['auto_sell'],
+      token_sniper['min_market_capital'],
+      token_sniper['max_market_captial'],
+      token_sniper['limit'],
+      token_sniper['count']
+    )
+    if active:
+      market_captial = token_engine.get_market_data(chain, token)
+      if market_captial > min_market_captial and market_captial < max_market_captial:
+        if limit != 0 and count != limit:
+          database.add_token_sniper(user.id, {
+            'id': time.time(),
+            'stage': 'buy',
+            'chain': chain,
+            'token': token,
+            'amount': amount,
+            'slippage': slippage,
+            'wallet_id': wallet_id,
+            'auto_sell': auto_sell
+          })
+          Thread(target=token_sniper_engine.start, args=(user.id, token_sniper['id'])).start()
+          
+          count += 1
+          token_sniper['count'] = count
+          if count == limit:
+            token_sniper['active'] = False
+          auto_sniper['token'] = token_sniper
+          database.set_auto_sniper(user.id, chain, auto_sniper)
+    
+    lp_sniper = auto_sniper['lp']
+    active = (
+      lp_sniper['active']
+    )
+    if active:
+      print('LP')
 
 def initialize():
   global RaydiumLPV4

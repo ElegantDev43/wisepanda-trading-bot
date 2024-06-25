@@ -1,5 +1,8 @@
 from src.database import user as user_model
 
+def get_users():
+  return user_model.gets()
+
 def add_user(user_id):
   user_model.add(user_id)
 
@@ -36,6 +39,47 @@ def remove_wallet(user_id, chain, wallet_id):
       user.wallets[chain].pop(index)
       break
   user_model.set(user_id, 'wallets', user.wallets)
+
+def get_positions(user_id, chain):
+  user = get_user(user_id)
+  return list(filter(lambda position: position['chain'] == chain, user.positions))
+
+def add_position(user_id, position):
+  user = get_user(user_id)
+  user.positions.append(position)
+  user_model.set(user_id, 'positions', user.positions)
+
+def get_position(user_id, position_id):
+  user = get_user(user_id)
+  for position in user.positions:
+    if position['id'] == position_id:
+      return position
+  return None
+
+def set_position(user_id, position_id, position):
+  user = get_user(user_id)
+  for index, position in enumerate(user.positions):
+    if position['id'] == position_id:
+      user.positions[index] = position
+      break
+  user_model.set(user_id, 'positions', user.positions)
+
+def remove_position(user_id, position_id):
+  user = get_user(user_id)
+  for index, position in enumerate(user.positions):
+    if position['id'] == position_id:
+      user.positions.pop(index)
+      break
+  user_model.set(user_id, 'positions', user.positions)
+
+def get_auto_sniper(user_id, chain):
+  user = get_user(user_id)
+  return user.auto_sniper[chain]
+
+def set_auto_sniper(user_id, chain, auto_sniper):
+  user = get_user(user_id)
+  user.auto_sniper[chain] = auto_sniper
+  user_model.set(user_id, 'auto_sniper', user.auto_sniper)
 
 def get_token_snipers(user_id, chain):
   user = get_user(user_id)
@@ -132,38 +176,6 @@ def remove_dca_order(user_id, dca_order_id):
       user.dca_orders.pop(index)
       break
   user_model.set(user_id, 'dca_orders', user.dca_orders)
-
-def get_positions(user_id, chain):
-  user = get_user(user_id)
-  return list(filter(lambda position: position['chain'] == chain, user.positions))
-
-def add_position(user_id, position):
-  user = get_user(user_id)
-  user.positions.append(position)
-  user_model.set(user_id, 'positions', user.positions)
-
-def get_position(user_id, position_id):
-  user = get_user(user_id)
-  for position in user.positions:
-    if position['id'] == position_id:
-      return position
-  return None
-
-def set_position(user_id, position_id, position):
-  user = get_user(user_id)
-  for index, position in enumerate(user.positions):
-    if position['id'] == position_id:
-      user.positions[index] = position
-      break
-  user_model.set(user_id, 'positions', user.positions)
-
-def remove_position(user_id, position_id):
-  user = get_user(user_id)
-  for index, position in enumerate(user.positions):
-    if position['id'] == position_id:
-      user.positions.pop(index)
-      break
-  user_model.set(user_id, 'positions', user.positions)
 
 def get_auto_order(user_id, chain):
   user = get_user(user_id)

@@ -96,6 +96,14 @@ def get_positions(user_id):
   chain = get_chain(user_id)
   return database.get_positions(user_id, chain)
 
+def get_auto_sniper(user_id):
+  chain = get_chain(user_id)
+  return database.get_auto_sniper(user_id, chain)
+
+def set_auto_sniper(user_id, auto_sniper):
+  chain = get_chain(user_id)
+  database.set_auto_sniper(user_id, chain, auto_sniper)
+
 def get_token_snipers(user_id):
   chain = get_chain(user_id)
   return database.get_token_snipers(user_id, chain)
