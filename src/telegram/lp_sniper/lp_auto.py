@@ -9,9 +9,8 @@ chain_slippages = [50]
 chain_counts = [100]
 chain_limit_token_prices = [500, 1000, 2000]
 
-chain_auto_sell_params = [{'amount': 100, 'price': 0}, {'amount': 50, 'price': 0}]
 x_value_list = {'mode':0,'profit':0,"buy-amount": 0, 'slippage': 0, "stop-loss":0,
-                "auto_amount":0, "auto_price":0,'max_mc':0, 'min_mc':0, 'token_count':0}
+                "auto_amount":0, "auto_price":0,'max_mc':0, 'min_mc':0, 'token_count':0, 'more_btn_index':1}
 
 index_list = {'wallet': 100, 'buy_amount': 100, 'slippage': 100, 'profit':100, 'token_count':100}
 
@@ -56,7 +55,7 @@ def get_keyboard(update_data, chat_id, index_data):
         button = types.InlineKeyboardButton(
             text=caption, callback_data=f"lp auto select buy wallet {index}")
         wallets.append(button)
-    more_wallet_btn = types.InlineKeyboardButton('🔽', callback_data='show more wallets')
+    more_wallet_btn = types.InlineKeyboardButton('🔽', callback_data='lp auto show more wallets')
     buys = []
     buy_count = len(chain_buy_amounts)
     amount_title = types.InlineKeyboardButton(
@@ -133,13 +132,20 @@ def get_keyboard(update_data, chat_id, index_data):
         text=caption, callback_data='sniper select token count x')
       
     create_order = types.InlineKeyboardButton(
-        '✔️ Set Sniper', callback_data='make lp sniper order')
+        '✔️ Set Sniper', callback_data='make lp sniper auth order')
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
-    if wallet_count <= 3:
-      keyboard.row(*wallets[0:(wallet_count)])
+
+    if update_data['more_btn_index'] == 1:
+      keyboard.row(*wallets[4*(update_data['more_btn_index']-1): 4*(update_data['more_btn_index']-1) + 3], more_wallet_btn)
     else:
-      keyboard.row(*wallets[0:3], more_wallet_btn)
+      for index in range(update_data['more_btn_index'] - 1):
+        keyboard.row(*wallets[4*index: 4 * index + 4])
+      last_index = update_data['more_btn_index'] -1
+      if 4 * (last_index + 1) <= wallet_count:
+        keyboard.row(*wallets[4 * last_index: 4 * last_index + 3], more_wallet_btn)
+      else:
+        keyboard.row(*wallets[4 * last_index: wallet_count])
 
     keyboard.row(amount_title, *buys[0:buy_count], buy_x)
     keyboard.row(*slippages[0:(len(slippages))], slippage_x)
@@ -148,6 +154,13 @@ def get_keyboard(update_data, chat_id, index_data):
 
     return keyboard
   
+def handle_more_btn(bot, message):
+    x_value_list['more_btn_index'] += 1
+    keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+    
 def select_buy_wallet(bot, message, index):
    # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
@@ -201,8 +214,6 @@ def handle_select_auto_slippage(bot, message, index):
   keyboard.row(cancel, confirm)
   bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                     reply_markup=keyboard, disable_web_page_preview=True)
-  bot.delete_message(chat_id=message.chat.id,
-                       message_id=message.message_id)
   
 def select_slip_page(bot, message, index):
    # user = user_model.get_user_by_telegram(message.chat.id)
@@ -308,6 +319,11 @@ def handle_input_value(bot, message, item):
                      reply_markup=keyboard, disable_web_page_preview=True)
 
 def handle_set_sniper(bot, message):
-  print(result['buy_amount'], result['slippage'])
-  bot.send_message(chat_id=message.chat.id,
+    auto_sniper = main_api.get_auto_sniper(message.chat.id)
+    auto_sniper['lp']['active'] = True
+    auto_sniper['lp']['amount'] = result['buy_amount']
+    auto_sniper['lp']['slippage'] = result['slippage']
+    auto_sniper['lp']['wallet_id'] = result['wallet']
+    main_api.set_auto_sniper(message.chat.id, auto_sniper)
+    bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Sniper')

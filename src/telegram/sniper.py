@@ -10,11 +10,10 @@ chain_profits = [5]
 chain_counts = [100]
 chain_limit_token_prices = [500, 1000, 2000]
 
-chain_auto_sell_params = [{'amount':'x', 'price':'x'}]
 x_value_list = {'mode':0,'profit':0,"buy-amount": 0, 'slippage': 0, "stop-loss":0,
-                "auto_amount":0, "auto_price":0,'max_mc':0, 'min_mc':0, 'token_count':0}
+                "auto_amount":0, "auto_price":0,'max_mc':0, 'min_mc':0, 'token_count':0, 'chain_auto_sell_params':[], 'more_btn_index':1}
 
-index_list = {'wallet': 100, 'buy_amount': 100, 'slippage': 100, 'profit':100, 'token_count':100, 'more_btn_index':1}
+index_list = {'wallet': 100, 'buy_amount': 100, 'slippage': 100, 'profit':100, 'token_count':100}
 
 result = {'wallet': 0, 'token': '', 'buy_amount': 0, 'slippage': 0,
           'stop-loss':0, 'max_mc':0, 'min_mc':0, 'profit':0, 'token_count':0, 'mode':0}
@@ -27,6 +26,8 @@ def initialize_x_value():
     x_value_list['gas-price'] = 0
     x_value_list['limit-token-price'] = 0
     x_value_list['slippage'] = 0
+    index_list['more_btn_index'] = 1
+    x_value_list['chain_auto_sell_params'] =[]
 
 def handle_sniper(bot, message):
    # user_model.create_user_by_telegram(message.chat.id)
@@ -37,27 +38,26 @@ Select mode for token sniper here.
     '''
 
     keyboard = types.InlineKeyboardMarkup()
-    
     auto_mode_btn = types.InlineKeyboardButton(
       text="🎮 Auto Mode", callback_data=f"sniper select auto mode")
     paste_mode_btn = types.InlineKeyboardButton(
       text="🤏 Manual Mode", callback_data=f"sniper select manual mode")
-    
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
-    
     keyboard.row(auto_mode_btn, paste_mode_btn)
     keyboard.row(back, close)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
-    
+
 def handle_manual_mode(bot, message):
    # user_model.create_user_by_telegram(message.chat.id)
     text = '''
 🎯 * Token Sniper* >> Manual Mode
 
 Enter a token symbol or address to snipe.
+Ex: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
     '''
+    initialize_x_value()
     x_value_list['mode'] = 1
     result['mode'] = 1
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
@@ -75,6 +75,7 @@ Set your parameters for auto token snipping.
     '''
     x_value_list['mode'] = 0
     result['mode'] = 0
+    initialize_x_value()
     keyboard = get_keyboard(x_value_list,
                               message.chat.id, index_list)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
@@ -98,6 +99,7 @@ def get_keyboard(update_data, chat_id, index_data):
             text=caption, callback_data=f"sniper select buy wallet {index}")
         wallets.append(button)
     more_wallet_btn = types.InlineKeyboardButton('🔽', callback_data='sniper show more wallets')
+    
     buys = []
     buy_count = len(chain_buy_amounts)
     amount_title = types.InlineKeyboardButton(
@@ -204,31 +206,39 @@ def get_keyboard(update_data, chat_id, index_data):
 
 
     auto_amounts = []
-    for index in range(len(chain_auto_sell_params)):
+    for index in range(len(update_data['chain_auto_sell_params'])):
       auto_amount_x = types.InlineKeyboardButton(
-          text= f'''{chain_auto_sell_params[index]['amount']}%''', callback_data=f'sniper select auto amount {index}')
+          text= f'''{update_data['chain_auto_sell_params'][index]['amount']}%''', callback_data=f'sniper select auto amount {index}')
       auto_amounts.append(auto_amount_x)
     
     auto_prices = []
-    for index in range(len(chain_auto_sell_params)):
+    for index in range(len(update_data['chain_auto_sell_params'])):
       auto_price_x = types.InlineKeyboardButton(
-          text=f'''{chain_auto_sell_params[index]['price']}X''', callback_data=f'sniper select auto price {index}')
+          text=f'''{update_data['chain_auto_sell_params'][index]['price']}X''', callback_data=f'sniper select auto price {index}')
       auto_prices.append(auto_price_x)
 
     auto_removes = []
-    for index in range(len(chain_auto_sell_params)):
+    for index in range(len(update_data['chain_auto_sell_params'])):
       auto_remove_x = types.InlineKeyboardButton(
           text='❌', callback_data=f'sniper remove auto params {index}')
       auto_removes.append(auto_remove_x)
-      
+
     create_order = types.InlineKeyboardButton(
         '✔️ Set Sniper', callback_data='make sniper order')
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
-    if wallet_count <= 3:
-      keyboard.row(*wallets[0:(wallet_count)])
+
+    if update_data['more_btn_index'] == 1:
+      keyboard.row(*wallets[4*(update_data['more_btn_index']-1): 4*(update_data['more_btn_index']-1) + 3], more_wallet_btn)
     else:
-      keyboard.row(*wallets[0:3], more_wallet_btn)
+      for index in range(update_data['more_btn_index'] - 1):
+        keyboard.row(*wallets[4*index: 4 * index + 4])
+      last_index = update_data['more_btn_index'] -1
+      if 4 * (last_index + 1) <= wallet_count:
+        keyboard.row(*wallets[4 * last_index: 4 * last_index + 3], more_wallet_btn)
+      else:
+        keyboard.row(*wallets[4 * last_index: wallet_count])
+
 
     keyboard.row(amount_title, *buys[0:buy_count], buy_x)
     keyboard.row(*slippages[0:(len(slippages))], slippage_x)
@@ -237,7 +247,7 @@ def get_keyboard(update_data, chat_id, index_data):
       keyboard.row(token_count_title, *counts[0:(len(counts))], token_count_x)
     keyboard.row(auto_sell)
     if auto_sell_status['index'] == 1:
-      for index in range(len(chain_auto_sell_params)):
+      for index in range(len(update_data['chain_auto_sell_params'])):
         keyboard.row(auto_amount_title, auto_amounts[index], auto_price_title, auto_prices[index], auto_removes[index])
       keyboard.row(auto_add_button)
     keyboard.row(create_order)
@@ -302,42 +312,15 @@ Sell your tokens here.
                      reply_markup=keyboard, disable_web_page_preview=True)
 
 def handle_more_btn(bot, message):
-    chain_wallets = main_api.get_wallets(message.chat.id)
-    wallet_count = len(chain_wallets)
+    x_value_list['more_btn_index'] += 1
+    keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
     
 
 def handle_auto_sell(bot, message):
-    if x_value_list['mode'] == 0:
-      text = '''
-🎯 * Token Sniper* >> Auto Mode
-
-Set your parameters for auto token snipping.
-    '''
-    if x_value_list['mode'] == 1:
-      chain_index = main_api.get_chain(message.chat.id)
-      chains = main_api.get_chains()
-      current_chain = chains[chain_index]
-      token = result['token']
-      token_data = main_api.get_token_market_data(message.chat.id, token)
-      meta_data = main_api.get_token_metadata(message.chat.id, token)
-      
-      token_price = format_number(token_data['price'])
-      token_liquidity = format_number(token_data['liquidity'])
-      token_market_cap = format_number(token_data['market_capital'])
-      text = f'''
-      *🎯 Token Sniper*
-
-  Sell your tokens here.
-
-  *{meta_data['name']}  (🔗{current_chain})  *
-  {token}
-      
-  💲 *Price:* {token_price}$
-  💧 *Liquidity:* {token_liquidity}$
-  📊 *Market Cap:* {token_market_cap}$
-
-  [Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
-  '''
+  
     if auto_sell_status['index'] == 0:
       auto_sell_status['index'] = 1
     elif auto_sell_status['index'] == 1:
@@ -345,10 +328,8 @@ Set your parameters for auto token snipping.
 
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
-    bot.delete_message(chat_id=message.chat.id,
-                       message_id=message.message_id)
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 
 def select_buy_wallet(bot, message, index):
@@ -539,57 +520,81 @@ Enter the Price to set:
 
 def handle_auto_amount_input_value(bot, message, index):
     item = int(index)
-    chain_auto_sell_params[item]['amount'] = message.text
+    x_value_list['chain_auto_sell_params'][item]['amount'] = message.text
+
+    if x_value_list['mode'] == 0:
+      text = '''
+🎯 * Token Sniper* >> Auto Mode
+
+Set your parameters for auto token snipping.
+    '''
+    if x_value_list['mode'] == 1:
+      chain_index = main_api.get_chain(message.chat.id)
+      chains = main_api.get_chains()
+      current_chain = chains[chain_index]
+      token = result['token']
+      token_data = main_api.get_token_market_data(message.chat.id, token)
+      meta_data = main_api.get_token_metadata(message.chat.id, token)
+      
+      token_price = format_number(token_data['price'])
+      token_liquidity = format_number(token_data['liquidity'])
+      token_market_cap = format_number(token_data['market_capital'])
+      text = f'''
+      *🎯 Token Sniper*
+
+  Sell your tokens here.
+
+  *{meta_data['name']}  (🔗{current_chain})  *
+  {token}
+      
+  💲 *Price:* {token_price}$
+  💧 *Liquidity:* {token_liquidity}$
+  📊 *Market Cap:* {token_market_cap}$
+
+  [Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
+  '''
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
-    token = 0x61D8A0d002CED76FEd03E1551c6Dd71dFAC02fD7
-
-    chain = 'ethereum'
-
-    name = "elo"
-    text = f'''
-            *Token Sniper*
-
-    Sell your tokens here.
-
-     *{name}  (🔗{chain})*
-      {token}
-      ❌ Snipe not set
-
-      [Scan](https://etherscan.io/address/{token}) | [Dexscreener](https://dexscreener.com/ethereum/{token}) | [DexTools](https://www.dextools.io/app/en/ether/pair-explorer/{token}) | [Defined](https://www.defined.fi/eth/{token})
-          '''
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
 
 def handle_auto_price_input_value(bot, message, index):
     item = int(index)
-    chain_auto_sell_params[item]['price'] = message.text
+    x_value_list['chain_auto_sell_params'][item]['price'] = message.text
+
+    if x_value_list['mode'] == 0:
+      text = '''
+🎯 * Token Sniper* >> Auto Mode
+
+Set your parameters for auto token snipping.
+    '''
+    if x_value_list['mode'] == 1:
+      chain_index = main_api.get_chain(message.chat.id)
+      chains = main_api.get_chains()
+      current_chain = chains[chain_index]
+      token = result['token']
+      token_data = main_api.get_token_market_data(message.chat.id, token)
+      meta_data = main_api.get_token_metadata(message.chat.id, token)
+      
+      token_price = format_number(token_data['price'])
+      token_liquidity = format_number(token_data['liquidity'])
+      token_market_cap = format_number(token_data['market_capital'])
+      text = f'''
+      *🎯 Token Sniper*
+
+  Sell your tokens here.
+
+  *{meta_data['name']}  (🔗{current_chain})  *
+  {token}
+      
+  💲 *Price:* {token_price}$
+  💧 *Liquidity:* {token_liquidity}$
+  📊 *Market Cap:* {token_market_cap}$
+
+  [Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
+  '''
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
-    chain_index = main_api.get_chain(message.chat.id)
-    chains = main_api.get_chains()
-    current_chain = chains[chain_index]
-    token = result['token']
-    token_data = main_api.get_token_market_data(message.chat.id, token)
-    meta_data = main_api.get_token_metadata(message.chat.id, token)
-    
-    token_price = format_number(token_data['price'])
-    token_liquidity = format_number(token_data['liquidity'])
-    token_market_cap = format_number(token_data['market_capital'])
-    text = f'''
-    *🎯 Token Sniper*
-
-Sell your tokens here.
-
-*{meta_data['name']}  (🔗{current_chain})  *
-{token}
-    
-💲 *Price:* {token_price}$
-💧 *Liquidity:* {token_liquidity}$
-📊 *Market Cap:* {token_market_cap}$
-
-[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
-'''
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
     
@@ -707,59 +712,44 @@ Set your parameters for auto token snipping.
 
 def handle_remove_auto_params(bot, message, index):
     item = int(index)
-    chain_auto_sell_params.pop(item)
+    x_value_list['chain_auto_sell_params'].pop(item)
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
-    chain_index = main_api.get_chain(message.chat.id)
-    chains = main_api.get_chains()
-    current_chain = chains[chain_index]
-    token = result['token']
-    token_data = main_api.get_token_market_data(message.chat.id, token)
-    meta_data = main_api.get_token_metadata(message.chat.id, token)
-    
-    token_price = format_number(token_data['price'])
-    token_liquidity = format_number(token_data['liquidity'])
-    token_market_cap = format_number(token_data['market_capital'])
-    text = f'''
-    *🎯 Token Sniper*
-
-Sell your tokens here.
-
-*{meta_data['name']}  (🔗{current_chain})  *
-{token}
-    
-💲 *Price:* {token_price}$
-💧 *Liquidity:* {token_liquidity}$
-📊 *Market Cap:* {token_market_cap}$
-
-[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
-'''
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 def add_auto_param(bot, message):
-    new_param = {'amount':0, 'price':0}
-    chain_auto_sell_params.append(new_param)
+    new_param = {'amount':'x', 'price':'x'}
+    x_value_list['chain_auto_sell_params'].append(new_param)
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
-    chain_index = main_api.get_chain(message.chat.id)
-    chains = main_api.get_chains()
-    current_chain = chains[chain_index]
-    token = result['token']
-    meta_data = main_api.get_token_metadata(message.chat.id, token)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
-    text = f'''
-    *🎯 Token Sniper*
-
-Sell your tokens here.
-
-*{meta_data['name']}({meta_data['symbol']}) >> (🔗{current_chain})  *
-{token}'''
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
-    
 def handle_set_sniper(bot, message):
-  print(result['buy_amount'], result['slippage'], result['min_mc'], result['max_mc'], result['profit'])
+  if result['mode'] == 0:
+    auto_sniper = {
+      'token': {
+        'active': True,
+        'amount': result['buy_amount'],
+        'slippage': result['slippage'],
+        'wallet_id': result['wallet'],
+        'auto_sell': x_value_list['chain_auto_sell_params'],
+        'min_market_capital': result['min_mc'],
+        'max_market_capital': result['max_mc'],
+        'limit': result['token_count'],
+        'count': 0,
+      },
+      'lp': {
+        'active': False,
+        'amount': 1,
+        'slippage': 50,
+        'wallet_id': 0
+      }
+    }
+    main_api.set_auto_sniper(message.chat.id, auto_sniper)
+  elif result['mode'] == 1:
+       main_api.add_token_sniper(message.chat.id, result['token'], result['buy_amount'], result['slippage'], result['wallet'], x_value_list['chain_auto_sell_params'])
   bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Sniper')
 

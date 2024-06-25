@@ -58,8 +58,8 @@ def get_position(user_id, position_id):
 
 def set_position(user_id, position_id, position):
   user = get_user(user_id)
-  for index, position in enumerate(user.positions):
-    if position['id'] == position_id:
+  for index in range(len(user.positions)):
+    if user.positions[index]['id'] == position_id:
       user.positions[index] = position
       break
   user_model.set(user_id, 'positions', user.positions)

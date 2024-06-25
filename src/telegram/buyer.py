@@ -4,7 +4,7 @@ from src.database import user as user_model
 from src.engine import api as main_api
 import threading
 
-chain_buy_amounts = [0.1]
+chain_buy_amounts = [0.01]
 chain_gas_amounts = [0.1, 0.2, 0.3]
 chain_gas_prices = [0.1, 0.2, 0.3]
 chain_slippages = [50]
@@ -63,7 +63,8 @@ def handle_buyer(bot, message):
     text = '''
 🛒 * Token Buy*
 
-Enter a token symbol or address to buy.
+Enter a token address to buy.
+Ex: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
     '''
 
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
@@ -788,14 +789,20 @@ def handle_buy(bot, message):
     print(result['token'])
     
     if order_name == "Market Order":
-        position_id = main_api.market_buy(message.chat.id, result['token'], buy_amount, result['slippage'], buy_wallet)
+        bot.send_message(chat_id=message.chat.id,
+                     text='Buy Transaction sent. Please take for about 10 seconds to be confirmed')
+        position = main_api.market_buy(message.chat.id, result['token'], buy_amount, result['slippage'], buy_wallet)
+        result_text = f'''Successfully confirmed Buy Transaction. 
+Transaction ID: {position['transaction_id']}
+View on SolScan: (https://solscan.io/tx/{position['transaction_id']})'''
+        bot.send_message(chat_id=message.chat.id,
+                     text=result_text)
     elif order_name == "Limit Order":
         main_api.add_limit_order(message.chat.id, result['type'], result['token'], result['buy_amount'], result['slippage'], result['wallet'], result['limit_token_price'])
     elif order_name == "DCA Order":
         dca_criteria = {'max_price': result['max_dca_price'], 'min_price':result['min_dca_price']}
         main_api.add_dca_order(message.chat.id, result['type'], result['token'], result['buy_amount'], result['slippage'], result['wallet'], dca_criteria, result['interval'], result['duration'])
-    bot.send_message(chat_id=message.chat.id,
-                     text='Successfully registered Order')
+    
 
 def handle_limit_order(bot, message):
     order_index = "Limit Order"

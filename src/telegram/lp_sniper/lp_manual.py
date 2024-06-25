@@ -41,6 +41,7 @@ def handle_start(bot, message):
    *🎯 LP Sniper* >> Manual Mode
 
 Enter a token symbol or address to snipe.
+Ex: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
     '''
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
     bot.register_next_step_handler_by_chat_id(
@@ -262,8 +263,6 @@ def handle_select_auto_slippage(bot, message, index):
   keyboard.row(cancel, confirm)
   bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                     reply_markup=keyboard, disable_web_page_preview=True)
-  bot.delete_message(chat_id=message.chat.id,
-                       message_id=message.message_id)
   
 def select_slip_page(bot, message, index):
    # user = user_model.get_user_by_telegram(message.chat.id)
@@ -415,6 +414,7 @@ Sell your tokens here.
                      reply_markup=keyboard, disable_web_page_preview=True)
 
 def handle_set_sniper(bot, message):
-  print(result['buy_amount'], result['slippage'])
+
+  main_api.add_lp_sniper(message.chat.id, result['token'], result['buy_amount'], result['slippage'], result['wallet'])
   bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Sniper')

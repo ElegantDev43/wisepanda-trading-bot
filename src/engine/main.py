@@ -5,4 +5,4 @@ from src.engine import raydium
 def initialize():
   print('Initialize Engine')
   
-  Thread(target=raydium.initialize).start()
+  #Thread(target=raydium.initialize).start()

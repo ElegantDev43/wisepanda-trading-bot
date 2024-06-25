@@ -89,7 +89,13 @@ def handle_callback_query(call):
         lp_auto.handle_start(bot, call.message)
     elif call.data == 'lp sniper select manual mode':
         lp_manual.handle_start(bot, call.message)
-        
+
+    elif call.data == 'lp auto show more wallets':
+        lp_auto.handle_more_btn(bot, call.message)
+    elif call.data == 'make lp sniper auth order':
+        lp_auto.handle_set_sniper(bot, call.message)
+    elif call.data == 'lmake lp sniper order':
+        lp_auto.handle_set_sniper(bot, call.message)
     elif call.data.startswith('lp auto select buy wallet '):
         lp_auto.select_buy_wallet(bot, call.message, call.data[26:])
     elif call.data.startswith('lp auto select buy amount '):
@@ -264,7 +270,9 @@ def handle_callback_query(call):
         wallets.handle_remove_wallet(bot, call.message)
     elif call.data.startswith('select_remove_wallet '):
         wallets.remove_selected_wallet(bot, call.message, call.data[21:])
-
+        
+    elif call.data == 'sniper show more wallets':
+        sniper.handle_more_btn(bot, call.message)
     elif call.data.startswith('auto wallet '):
         sniper.handle_toggle_wallet(bot, call.message, call.data[12:])
     elif call.data.startswith('auto buy '):

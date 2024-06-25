@@ -75,7 +75,8 @@ Select position to sell tokens.
     for index in range(position_count):
       for item in range(len(wallets)):
         if wallets[item]['id'] == chain_positions[index]['wallet_id']:
-          caption = f'Token: {chain_positions[index]['token']}, Amount:{chain_positions[index]['amount']}, W{item}'
+          meta = main_api.get_token_metadata(message.chat.id, chain_positions[index]['token'])
+          caption = f'Token: {meta['symbol']}, Amount:{chain_positions[index]['amount']}, W{item}'
       button = types.InlineKeyboardButton(
             text=caption, callback_data=f"seller select position {index}")
       positions.append(button)
@@ -721,7 +722,6 @@ def handle_sell(bot, message):
     if order_name == "Market Order":
         print(result['buy_amount'], result['slippage'])
         tx_id, amount = main_api.market_sell(message.chat.id, sell_position,result['buy_amount'], result['slippage'])
-        print(tx_id)
     elif order_name == "Limit Order":
         main_api.limit_order(message.chat.id, result)
     elif order_name == "DCA Order":
