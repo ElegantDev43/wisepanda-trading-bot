@@ -22,8 +22,8 @@ tokenlist= [
 ]
 
 def getTokenImage(token):
-  if os.path.exists(f'src/engine/swing/data_png/prices_{token}.png') != True:
-    asyncio.run(exportTestValues(token))
+  #if os.path.exists(f'src/engine/swing/data_png/prices_{token}.png') != True:
+  asyncio.run(exportTestValues(token))
   image_path = f'src/engine/swing/data_png/prices_{token}.png'
   
   return image_path
