@@ -727,13 +727,15 @@ def add_auto_param(bot, message):
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 def handle_set_sniper(bot, message):
+  wallets = main_api.get_wallets(message.chat.id)
+  buy_wallet = wallets[result['wallet']]['id']
   if result['mode'] == 0:
     auto_sniper = {
       'token': {
         'active': True,
         'amount': result['buy_amount'],
         'slippage': result['slippage'],
-        'wallet_id': result['wallet'],
+        'wallet_id':  buy_wallet,
         'auto_sell': x_value_list['chain_auto_sell_params'],
         'min_market_capital': result['min_mc'],
         'max_market_capital': result['max_mc'],
@@ -749,7 +751,7 @@ def handle_set_sniper(bot, message):
     }
     main_api.set_auto_sniper(message.chat.id, auto_sniper)
   elif result['mode'] == 1:
-       main_api.add_token_sniper(message.chat.id, result['token'], result['buy_amount'], result['slippage'], result['wallet'], x_value_list['chain_auto_sell_params'])
+      main_api.add_token_sniper(message.chat.id, result['token'], result['buy_amount'], result['slippage'], buy_wallet, x_value_list['chain_auto_sell_params'])
   bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Sniper')
 

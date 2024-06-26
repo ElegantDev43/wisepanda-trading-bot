@@ -41,7 +41,11 @@ def get_keyboard(update_data, chat_id, index_data):
             text=caption, callback_data=f"fully_auto swing select buy amount {index}")
         buys.append(button)
 
-    status_btn = types.InlineKeyboardButton('Start', callback_data='handle swing auto mode status')
+    if result['status'] == 0:
+      status_caption = 'Start'
+    else:
+      status_caption = 'Stop'
+    status_btn = types.InlineKeyboardButton(text=status_caption, callback_data='handle swing auto mode status')
     back = types.InlineKeyboardButton('🔙 Back', callback_data='swing')
     if update_data['buy-amount'] == 0:
         caption = "X SOL"
@@ -130,7 +134,20 @@ Select Criterias for Auto Trading.
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
     
-    
+def handle_trading_status(bot, message):
+  wallets = main_api.get_wallets(message.chat.id)
+  buy_wallet = wallets[result['wallet']]['id']
+  if result['status'] == 1:
+    result['status'] = 0
+    bot.send_message(chat_id=message.chat.id,
+                     text='Auto Swing Trading Stopped.')
+    main_api.stop_auto_swing(message.chat.id)
+  elif result['status']==0:
+    result['status'] = 1
+    bot.send_message(chat_id=message.chat.id,
+                     text='Auto Swing Trading Started.')
+    main_api.start_auto_swing(message.chat.id, result['buy_amount'], buy_wallet)
+
 def start_trading(bot, message):
   result['status'] = 1
   print(result['wallet'], result['buy_amount'], result['status'])

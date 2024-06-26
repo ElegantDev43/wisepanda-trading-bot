@@ -2,7 +2,7 @@ import os
 import telebot
 from telebot import types
 
-from src.telegram import start, sniper, buyer, orders, token_snipers, positions, bots, hots,seller, limit_order, dca_order
+from src.telegram import start, sniper, buyer, token_snipers, positions, bots, hots,seller, limit_order, dca_order, lp_snipers
 from src.telegram.settings import main as settings, chains, wallets, keyboards, auto_order
 from src.telegram.swing import swing as main_swing, fully_auto, token_mode, manual_mode
 from src.telegram.lp_sniper import lp_sniper, lp_auto, lp_manual
@@ -34,11 +34,6 @@ def handle_start(message):
 @bot.message_handler(commands=['hots'])
 def handle_hots(message):
     hots.handle_hots(bot, message)
-
-
-@bot.message_handler(commands=['orders'])
-def handle_orders(message):
-    orders.handle_orders(bot, message)
 
 
 @bot.message_handler(commands=['chains'])
@@ -133,18 +128,10 @@ def handle_callback_query(call):
         lp_manual.select_slip_page(bot, call.message, call.data[34:])
     elif call.data == 'make lp manual order':
         lp_manual.handle_set_sniper(bot, call.message)   
-        
+    elif call.data == 'lp manual show more wallets':
+        lp_manual.handle_more_btn(bot, call.message)
     elif call.data == 'buyer':
         buyer.handle_buyer(bot, call.message)
-
-    elif call.data == 'manage-pending-orders':
-        orders.handle_orders(bot, call.message)
-    elif call.data == 'handle_next_pending_order':
-        orders.handle_next_order(bot, call.message)
-    elif call.data == 'handle_prev_pending_order':
-        orders.handle_prev_order(bot, call.message)
-    elif call.data == 'handle_remove_pending_order':
-        orders.handle_remove_order(bot, call.message)
 
     elif call.data == 'settings':
         settings.handle_settings(bot, call.message)
@@ -240,6 +227,22 @@ def handle_callback_query(call):
         item = call.data[26:]
         token_snipers.handle_input(bot, call.message, item)
 
+
+    elif call.data == 'manage-lp-snipers':
+        lp_snipers.handle_orders(bot, call.message)
+    elif call.data == 'handle_next_lp_sniper':
+        lp_snipers.handle_next_order(bot, call.message)
+    elif call.data == 'handle_prev_lp_sniper':
+        lp_snipers.handle_prev_order(bot, call.message)
+    elif call.data == 'handle_remove_lp_sniper':
+        lp_snipers.handle_remove_order(bot, call.message)
+    elif call.data == 'handle_update_lp_sniper':
+        lp_snipers.handle_update_order(bot, call.message)
+    elif call.data.startswith('handle_lp_sniper_input '):
+        item = call.data[23:]
+        lp_snipers.handle_input(bot, call.message, item)
+
+
     elif call.data == 'manage-dca-orders':
         dca_order.handle_orders(bot, call.message)
     elif call.data == 'handle_next_dca_order':
@@ -261,6 +264,8 @@ def handle_callback_query(call):
         buyer.handle_market_order(bot, call.message)
     elif call.data == 'buy-dca-orders':
         buyer.handle_dca_order(bot, call.message)
+    elif call.data == 'buyer show more wallets':
+        buyer.handle_more_btn(bot, call.message)
 
     elif call.data == 'create_wallet':
         wallets.handle_create_wallet(bot, call.message)
@@ -500,22 +505,14 @@ def handle_callback_query(call):
         fully_auto.select_buy_wallet(bot, call.message, call.data[35:])
     elif call.data == 'start swing auto mode':
         fully_auto.start_trading(bot, call.message)
+    elif call.data == 'handle swing auto mode status':
+        fully_auto.handle_trading_status(bot, call.message)
 
-    elif call.data == 'swing mode select_token':
-        token_mode.handle_start(bot, call.message)
-    elif call.data.startswith('token_mode swing select buy amount '):
-        amount = call.data[35:]
-        if (amount == 'x'):
-            token_mode.handle_buy_amount_x(bot, call.message)
-        else:
-            token_mode.select_buy_amount(bot, call.message, call.data[35:])
-    elif call.data.startswith('token_mode swing select buy wallet '):
-        token_mode.select_buy_wallet(bot, call.message, call.data[35:])
-    elif call.data == 'start swing token_mode':
-        token_mode.start_trading(bot, call.message)
         
     elif call.data == 'swing mode manual':
         manual_mode.handle_start(bot, call.message)
+    elif call.data == 'manual swing make buy order':
+        manual_mode.handle_buy(bot, call.message)
     elif call.data.startswith('manual swing select buy amount '):
         amount = call.data[31:]
         if (amount == 'x'):

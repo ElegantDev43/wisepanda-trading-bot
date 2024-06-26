@@ -31,7 +31,7 @@ With Panda Bot, you can trade any token instantly, taking advantage of market op
     positions = types.InlineKeyboardButton(
         '📊 Token Snipers', callback_data='manage-token-snipers')
     orders = types.InlineKeyboardButton(
-        '⏳ Pending Orders', callback_data='manage-pending-orders')
+        '⏳ LP Snipers', callback_data='manage-lp-snipers')
     limit_order = types.InlineKeyboardButton(
         '🚀 Limit Orders', callback_data='manage-limit-orders')
     dca_order = types.InlineKeyboardButton(

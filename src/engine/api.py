@@ -9,6 +9,7 @@ from src.engine import limit_order as limit_order_engine
 from src.engine import dca_order as dca_order_engine
 
 from src.engine import swap as swap_engine
+from src.engine.swing import api as swing_engine
 
 from src.engine.chain import wallet as wallet_engine
 from src.engine.chain import token as token_engine
@@ -158,7 +159,7 @@ def get_limit_orders(user_id):
   chain = get_chain(user_id)
   return database.get_limit_orders(user_id, chain)
 
-def add_limit_buy(user_id, token, amount, slippage, wallet_id, stop_loss, criteria):
+def add_limit_buy(user_id, token, amount, slippage, wallet_id, criteria):
   chain = get_chain(user_id)
   limit_order = {
     'id': time.time(),
@@ -168,8 +169,7 @@ def add_limit_buy(user_id, token, amount, slippage, wallet_id, stop_loss, criter
     'amount': amount,
     'slippage': slippage,
     'wallet_id': wallet_id,
-    'stop_loss': stop_loss,
-    'criteria': criteria
+    'market_capital': criteria
   }
   database.add_limit_order(user_id, limit_order)
   Thread(target=limit_order_engine.start, args=(user_id, limit_order['id'])).start()
@@ -181,7 +181,7 @@ def add_limit_sell(user_id, position_id, amount, slippage, criteria):
     'position_id': position_id,
     'amount': amount,
     'slippage': slippage,
-    'criteria': criteria
+    'market_capital': criteria
   }
   database.add_limit_order(user_id, limit_order)
   Thread(target=limit_order_engine.start, args=(user_id, limit_order['id'])).start()
@@ -196,20 +196,18 @@ def get_dca_orders(user_id):
   chain = get_chain(user_id)
   return database.get_dca_orders(user_id, chain)
 
-def add_dca_buy(user_id, token, amount, slippage, wallet_id, criteria, interval, count, stop_loss):
+def add_dca_buy(user_id, token, amount, slippage, wallet_id, interval, count):
   chain = get_chain(user_id)
   dca_order = {
     'id': time.time(),
-    'type': 'sell',
+    'type': 'buy',
     'chain': chain,
     'token': token,
     'amount': amount,
     'slippage': slippage,
     'wallet_id': wallet_id,
-    'criteria': criteria,
     'interval': interval,
     'count': count,
-    'stop_loss': stop_loss
   }
   database.add_dca_order(user_id, dca_order)
   Thread(target=dca_order_engine.start, args=(user_id, dca_order['id'])).start()
@@ -233,7 +231,7 @@ def set_dca_order(user_id, dca_order_id, dca_order):
 
 def remove_dca_order(user_id, dca_order_id):
   database.remove_dca_order(user_id, dca_order_id)
-  
+
 def get_auto_order(user_id):
   chain = get_chain(user_id)
   return database.get_auto_order(user_id, chain)
@@ -241,3 +239,21 @@ def get_auto_order(user_id):
 def set_auto_order(user_id, auto_order):
   chain = get_chain(user_id)
   database.set_auto_order(user_id, chain, auto_order)
+
+def get_auto_swing(user_id):
+  if swing_engine.SetFullyAutoTokens('Auto Status',user_id) == 'Stop':
+    profit, original_amount, wallet_id = swing_engine.SetFullyAutoTokens('Market Status',user_id)
+    return 'Active', profit, original_amount,wallet_id
+  else:
+    return 'DeActive'
+
+def start_auto_swing(user_id, amount, wallet_id):
+  chain = get_chain(user_id)
+  wallet = database.get_wallet(user_id, chain, wallet_id)
+  swing_engine.SetFullyAutoTokens('Start', user_id, amount, wallet)
+
+def stop_auto_swing(user_id):
+  swing_engine.SetFullyAutoTokens('Stop', user_id)
+
+def get_price_chart(token):
+  return swing_engine.getTokenImage(token)

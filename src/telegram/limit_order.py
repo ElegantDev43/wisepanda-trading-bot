@@ -2,27 +2,30 @@ from telebot import types
 from src.engine import api as main_api
 
 current_limit_order = {'index': 0}
-updat_values = {'id':0, 'chain':0, 'type': 0, 'token': "", 'amount': 0, 'slippage':0,'wallet_id': 0,'criteria': 0}
+updat_values = {'id':0, 'chain':0, 'type': 0, 'token': "", 'amount': 0, 'slippage':0,'wallet_id': 0,'market_capital': 0}
 
 
 def get_keyboard(chat_id, order, order_index):
     keyboard = types.InlineKeyboardMarkup()
     updat_values.update(order)
+    
+    token_symbol = main_api.get_token_metadata(chat_id, order['token'])['symbol']
+    wallets = main_api.get_wallets(chat_id)
+    for index in range(len(wallets)):
+      if wallets[index]['id'] == order['wallet_id']:
+        wallet_index = index
     index_button = types.InlineKeyboardButton(
         f'Order: {order_index + 1}', callback_data='aaa')
-    if order['type'] == 0:
-        caption = 'Type: Buy'
-    else:
-        caption = 'Type: Sell'
-    type = types.InlineKeyboardButton(caption, callback_data='aaa')
+    type = types.InlineKeyboardButton(
+        f'Type: {order['type']}', callback_data='aaa')
     token = types.InlineKeyboardButton(
-        f'Token: {order['token']}', callback_data='aaa')
+        f'Token: {token_symbol}', callback_data='aaa')
     wallet = types.InlineKeyboardButton(
-        f'Wallet: W{order['wallet_id']}', callback_data='aaa')
+        f'Wallet: W{wallet_index+1}', callback_data='aaa')
     amount = types.InlineKeyboardButton(
-        f'Amount: {order['amount']}E', callback_data='handle_limit_input amount')
+        f'Amount: {order['amount']}SOL', callback_data='handle_limit_input amount')
     limit_token_price = types.InlineKeyboardButton(
-        f'Criteria: {order['criteria']}', callback_data='handle_limit_input criteria')
+        f'Market Cap: {order['market_capital']}', callback_data='handle_limit_input market_capital')
     slippage = types.InlineKeyboardButton(
         f'Slippage: {order['slippage']}%', callback_data='handle_limit_input slippage')
     left_button = types.InlineKeyboardButton(
@@ -79,10 +82,8 @@ You currently have {len(limit_orders)} limit orders. You can manage your orders 
 Your orders are:
     '''
     keyboard = get_keyboard(message.chat.id, order, index)
-    bot.delete_message(chat_id=message.chat.id,
-                       message_id=message.message_id)
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 
 def handle_prev_order(bot, message):
@@ -99,10 +100,8 @@ You currently have {len(limit_orders)} limit orders. You can manage your orders 
 Your orders are:
     '''
     keyboard = get_keyboard(message.chat.id, order, index)
-    bot.delete_message(chat_id=message.chat.id,
-                       message_id=message.message_id)
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 
 def handle_remove_order(bot, message):

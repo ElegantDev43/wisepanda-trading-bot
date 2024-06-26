@@ -40,7 +40,7 @@ def initialize_x_value():
 def handle_start(bot, message):
    # user_model.create_user_by_telegram(message.chat.id)
     text = '''
-🛒 * Token Buy*
+    *🪁 Swing Trading* >> Manual Mode
 
 Enter a token symbol or address to buy.
     '''
@@ -139,6 +139,8 @@ def get_keyboard(update_data, chat_id, index_data):
 def handle_input_token(bot, message):
     result['token'] = message.text
     
+    image_url = main_api.get_price_chart(result['token'])
+
     chain_index = main_api.get_chain(message.chat.id)
     chains = main_api.get_chains()
     current_chain = chains[chain_index]
@@ -150,7 +152,7 @@ def handle_input_token(bot, message):
     token_liquidity = format_number(token_data['liquidity'])
     token_market_cap = format_number(token_data['market_capital'])
     text = f'''
-    *🪁 Swing Trading*
+    *🪁 Swing Trading* >> Manual Mode
 
 Sell your tokens here.
 
@@ -165,8 +167,8 @@ Sell your tokens here.
 '''
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
+    with open(image_url, 'rb') as image:
+        bot.send_photo(chat_id=message.chat.id, photo = image, caption=text, parse_mode='Markdown', reply_markup=keyboard)
 
 def select_buy_wallet(bot, message, index):
     index_list['wallet'] = int(index)
@@ -194,6 +196,8 @@ def select_slip_page(bot, message, index):
     result['slippage'] = chain_slippages[int(index)]
     x_value_list['slippage'] = 0
     
+    image_url = main_api.get_price_chart(result['token'])
+
     chain_index = main_api.get_chain(message.chat.id)
     chains = main_api.get_chains()
     current_chain = chains[chain_index]
@@ -205,7 +209,7 @@ def select_slip_page(bot, message, index):
     token_liquidity = format_number(token_data['liquidity'])
     token_market_cap = format_number(token_data['market_capital'])
     text = f'''
-      *🪁 Swing Trading*
+      *🪁 Swing Trading* >> Manual Mode
 
   Sell your tokens here.
 
@@ -221,12 +225,12 @@ def select_slip_page(bot, message, index):
     keyboard = get_keyboard( x_value_list,
                             message.chat.id, index_list)
 
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
-    
+    with open(image_url, 'rb') as image:
+        bot.send_photo(chat_id=message.chat.id, photo = image, caption=text, parse_mode='Markdown', reply_markup=keyboard)
+
 def handle_select_auto_slippage(bot, message, index):
   text = '''
-      *🎯 Token Sniper*
+      *🪁 Swing Trading*
  Do you confirm 50% slippage as Auto Slippage?.
 '''
   keyboard = types.InlineKeyboardMarkup()
@@ -269,7 +273,7 @@ def handle_input_value(bot, message, item):
         index_list['slippage'] = 100
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
-    
+    image_url = main_api.get_price_chart(result['token'])
     chain_index = main_api.get_chain(message.chat.id)
     chains = main_api.get_chains()
     current_chain = chains[chain_index]
@@ -294,8 +298,9 @@ Sell your tokens here.
 
 [Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
 '''
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
+    with open(image_url, 'rb') as image:
+        bot.send_photo(chat_id=message.chat.id, photo = image, caption=text, parse_mode='Markdown', reply_markup=keyboard)
+
 
 def handle_buy(bot, message):
     chain_index = main_api.get_chain(message.chat.id)
@@ -304,6 +309,6 @@ def handle_buy(bot, message):
     buy_wallet = wallets[result['wallet']]['id']
     buy_amount = int(result['buy_amount'] * 1_000_000_000)
     print(result['token'])
-    tx_hash, out_amount = main_api.market_buy(message.chat.id, result['token'], buy_amount, result['slippage'], buy_wallet, result['stop-loss'])
+    tx_hash, out_amount = main_api.market_buy(message.chat.id, result['token'], buy_amount, result['slippage'], buy_wallet)
     bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Order')

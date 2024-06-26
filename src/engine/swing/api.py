@@ -6,6 +6,7 @@ from src.database.swing import Htokens as htokens_model
 from src.database import user as user_model
 
 from src.engine.swing.data_extract import exportTestValues
+from src.engine.chain import dex as dex_engine
 
 chain_name = ['solana','ethereum']
 
@@ -42,7 +43,7 @@ def getAutoTokens(userid):
 def remove_by_userid_and_token(userid,token):
   swing_model.remove_by_userid_and_token(userid,token)
 
-def SetFullyAutoTokens(type,userid,amount,wallet):
+def SetFullyAutoTokens(type,userid,amount = 0,wallet = None):
   
   if type == 'Start':  
     user = user_model.get(userid)
@@ -59,17 +60,20 @@ def SetFullyAutoTokens(type,userid,amount,wallet):
       position = swing_model.get_by_user_id_and_token(userid,token['address'])
       if position.original_state == 'buy':
         print(f'Sell {token['address']}')
+        dex_engine.swap(0, 'sell', token['address'], 100 , 50, position.wallet )
       swing_model.remove_by_swing_id(position.id)
     return 'OK'
   elif type == 'Market Status':
     total_amount = 0
     original_amount = 0
+    wallet = 0
     for token in tokenlist:
       position = swing_model.get_by_user_id_and_token(userid,token['address'])
       total_amount = total_amount + position.amount
       original_amount = original_amount + position.original_amount
-    
-    return total_amount, original_amount
+      wallet = position.wallet['id']
+
+    return total_amount, original_amount,wallet
   elif type == 'Auto Status':
     positions = swing_model.get_by_user_id(userid)
     if len(positions) > 0:

@@ -2,28 +2,28 @@ from telebot import types
 from src.engine import api as main_api
 
 current_token_sniper = {'index': 0}
-updat_values = {'id': 0, 'stage':'buy', 'chain':0, 'token': "", 'amount': 0, 'slippage': 0,'wallet_id': 0, 'criteria': 0,
-                'stop_loss': 0, 'auto_sell':[]}
+updat_values = {'id': 0, 'stage':'buy', 'chain':0, 'token': "", 'amount': 0, 'slippage': 0,'wallet_id': 0, 'auto_sell':[]}
 
 def get_keyboard(chat_id, order, order_index):
     keyboard = types.InlineKeyboardMarkup()
     updat_values.update(order)
+    token_symbol = main_api.get_token_metadata(chat_id, order['token'])['symbol']
+    wallets = main_api.get_wallets(chat_id)
+    for index in range(len(wallets)):
+      if wallets[index]['id'] == order['wallet_id']:
+        wallet_index = index
     index_button = types.InlineKeyboardButton(
         f'Order: {order_index + 1}', callback_data='aaa')
     token = types.InlineKeyboardButton(
-        f'Token: {order['token']}', callback_data='aaa')
+        f'Token: {token_symbol}', callback_data='aaa')
     wallet = types.InlineKeyboardButton(
-        f'Wallet: W{order['wallet_id']}', callback_data='aaa')
+        f'Wallet: W{wallet_index+1}', callback_data='aaa')
     amount = types.InlineKeyboardButton(
-        f'Amount: {order['amount']}E', callback_data='handle_token_sniper_input amount')
-    criteria = types.InlineKeyboardButton(
-        f'Criteria: {order['criteria']}', callback_data='handle_token_sniper_input criteria')
+        f'Amount: {order['amount']}SOL', callback_data='handle_token_sniper_input amount')
+
     slippage = types.InlineKeyboardButton(
         f'Slippage: {order['slippage']}%', callback_data='handle_token_sniper_input slippage')
-    stop_loss = types.InlineKeyboardButton(
-        f'Stop Loss: {order['stop_loss']}', callback_data='handle_token_sniper_input stop_loss')
-    
-    
+
     auto_amount_title = types.InlineKeyboardButton(
         'Amount:', callback_data='2')
     auto_price_title = types.InlineKeyboardButton(
@@ -35,13 +35,13 @@ def get_keyboard(chat_id, order, order_index):
     auto_amounts = []
     for index in range(len(order['auto_sell'])):
       auto_amount_x = types.InlineKeyboardButton(
-          text=f'''{order['auto_sell'][index]['amount']}''', callback_data=f'handle_sniper_auto_amount {index}')
+          text=f'''{order['auto_sell'][index]['amount']}%''', callback_data=f'handle_sniper_auto_amount {index}')
       auto_amounts.append(auto_amount_x)
-    
+
     auto_prices = []
     for index in range(len(order['auto_sell'])):
       auto_price_x = types.InlineKeyboardButton(
-          text=f'''{order['auto_sell'][index]['price']}''', callback_data=f'handle_sniper_auto_price {index}')
+          text=f'''{order['auto_sell'][index]['price']}X''', callback_data=f'handle_sniper_auto_price {index}')
       auto_prices.append(auto_price_x)
 
     auto_removes = []
@@ -66,7 +66,6 @@ def get_keyboard(chat_id, order, order_index):
     keyboard.row(left_button, index_button, right_button)
     keyboard.row(token)
     keyboard.row(wallet, amount, slippage)
-    keyboard.row(criteria, stop_loss)
     keyboard.row(auto_sell)
     for index in range(len(order['auto_sell'])):
       keyboard.row(auto_amount_title, auto_amounts[index], auto_price_title, auto_prices[index], auto_removes[index])
@@ -90,6 +89,7 @@ Your orders are:
         bot.send_message(chat_id=message.chat.id, text='You have no orders')
     else:
         order = token_snipers[current_token_sniper['index']]
+        print(order)
         keyboard = get_keyboard(message.chat.id, order,
                                 current_token_sniper['index'])
         bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
@@ -103,18 +103,10 @@ def handle_next_order(bot, message):
     token_snipers = main_api.get_token_snipers(message.chat.id)
 
     order = token_snipers[index]
-    text = f'''
-*limit Orders*
 
-You currently have {len(token_snipers)} limit orders. You can manage your orders here.
-
-Your orders are:
-    '''
     keyboard = get_keyboard(message.chat.id, order, index)
-    bot.delete_message(chat_id=message.chat.id,
-                       message_id=message.message_id)
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 
 def handle_prev_order(bot, message):
@@ -123,19 +115,9 @@ def handle_prev_order(bot, message):
     index -= 1
     current_token_sniper['index'] = index
     order = token_snipers[index]
-    text = f'''
-*limit Orders*
-
-You currently have {len(token_snipers)} limit orders. You can manage your orders here.
-
-Your orders are:
-    '''
     keyboard = get_keyboard(message.chat.id, order, index)
-    bot.delete_message(chat_id=message.chat.id,
-                       message_id=message.message_id)
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
-
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 def handle_remove_order(bot, message):
     orders = main_api.get_token_snipers(message.chat.id)
@@ -180,9 +162,9 @@ def handle_input_auto_price_value(bot, message, item):
     order = orders[index]
     updat_values['auto_sell'][int(item)]['price'] = message.text
     text = f'''
-*limit Orders*
+*Token Snipers*
 
-You currently have {len(orders)} limit orders. You can manage your orders here.
+You currently have {len(orders)} Token Snipers. You can manage your orders here.
 
 Your orders are:
     '''
@@ -196,9 +178,9 @@ def handle_input_auto_amount_value(bot, message, item):
     order = orders[index]
     updat_values['auto_sell'][int(item)]['amount'] = message.text
     text = f'''
-*limit Orders*
+*Token Snipers*
 
-You currently have {len(orders)} limit orders. You can manage your orders here.
+You currently have {len(orders)} Token Snipers. You can manage your orders here.
 
 Your orders are:
     '''
@@ -214,15 +196,15 @@ def handle_remove_auto_param(bot, message, item):
     
     updat_values['auto_sell'].pop(id)
     text = f'''
-*limit Orders*
+*Token Snipers*
 
-You currently have {len(orders)} limit orders. You can manage your orders here.
+You currently have {len(orders)} Token Snipers. You can manage your orders here.
 
 Your orders are:
     '''
     keyboard = get_keyboard(message.chat.id, updat_values, index)
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 def handle_add_auto_param(bot, message):
     orders = main_api.get_token_snipers(message.chat.id)
@@ -231,15 +213,15 @@ def handle_add_auto_param(bot, message):
     new_param = {'amount':0, 'price':0}
     updat_values['auto_sell'].append(new_param)
     text = f'''
-*limit Orders*
+*Token Snipers*
 
-You currently have {len(orders)} limit orders. You can manage your orders here.
+You currently have {len(orders)} Token Snipers. You can manage your orders here.
 
 Your orders are:
     '''
     keyboard = get_keyboard(message.chat.id, updat_values, index)
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
     
 def handle_update_order(bot, message):
     index = current_token_sniper['index']
@@ -259,11 +241,11 @@ def handle_input_value(bot, message, item):
     order = orders[index]
     updat_values[item] = message.text
     text = f'''
-*limit Orders*
+*Token Snipers*
 
-You currently have {len(orders)} limit orders. You can manage your orders here.
+You currently have {len(orders)} token snipers. You can manage your snipers here.
 
-Your orders are:
+Your snipers are:
     '''
     keyboard = get_keyboard(message.chat.id, updat_values, index)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',

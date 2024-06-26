@@ -5,7 +5,7 @@ from src.engine import api as main_api
 import threading
 
 chain_buy_amounts = [50]
-chain_slippages = [10]
+chain_slippages = [50]
 chain_limit_token_prices = [500, 1000, 2000]
 chain_market_caps = [10000, 200000, 50000]
 chain_liquidities = [10000, 200000, 50000]

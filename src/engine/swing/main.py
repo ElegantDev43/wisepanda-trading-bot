@@ -64,11 +64,11 @@ async def Control():
     token = current_position.token
     amount = current_position.amount
     wallet = current_position.wallet
-    slippage = 5
+    slippage = 50
     stop_loss = 10
-    
-    #dex_engine.swap(chain, action, token, amount, slippage, wallet)
-  
+
+    dex_engine.swap(0, action, token, amount, slippage, wallet)
+
     swing_model.update_by_user_id(id = current_position.id,
                                   amount = amount,
                                   original_price = original_price,

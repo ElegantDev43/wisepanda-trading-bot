@@ -320,10 +320,12 @@ def handle_input_value(bot, message, item):
 
 def handle_set_sniper(bot, message):
     auto_sniper = main_api.get_auto_sniper(message.chat.id)
+    wallets = main_api.get_wallets(message.chat.id)
+    buy_wallet = wallets[result['wallet']]['id']
     auto_sniper['lp']['active'] = True
     auto_sniper['lp']['amount'] = result['buy_amount']
     auto_sniper['lp']['slippage'] = result['slippage']
-    auto_sniper['lp']['wallet_id'] = result['wallet']
+    auto_sniper['lp']['wallet_id'] = buy_wallet
     main_api.set_auto_sniper(message.chat.id, auto_sniper)
     bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Sniper')
