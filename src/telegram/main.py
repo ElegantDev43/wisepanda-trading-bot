@@ -381,7 +381,10 @@ def handle_callback_query(call):
         amount = call.data[23:]
         if (amount == 'x'):
             seller.handle_slippage_x(bot, call.message)
-        seller.select_slip_page(bot, call.message, call.data[23:])
+        else:
+            seller.handle_select_auto_slippage(bot, call.message, call.data[23:])
+    elif call.data.startswith('confirm seller select slippage '):
+        seller.select_slip_page(bot, call.message, call.data[21:])
 
     elif call.data.startswith('seller select limit token price '):
         amount = call.data[32:]

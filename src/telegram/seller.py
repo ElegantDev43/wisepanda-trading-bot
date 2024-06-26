@@ -157,25 +157,22 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
     slip_page_count = len(chain_slippages)
     for index in range(slip_page_count):
         if index_data['slippage'] == 100:
-            caption = f'{chain_slippages[index]}%'
+            caption = f'Auto Slippage'
         else:
-            caption = f'{" 🟢" if index == index_data['slippage'] else ""} {
-                chain_slippages[index]}%'
+            caption = f'{"🟢" if index == index_data['slippage'] else ""} Auto Slippage'
         button = types.InlineKeyboardButton(
             text=caption, callback_data=f"seller select slippage {index}")
         slippages.append(button)
-    slippage_title = types.InlineKeyboardButton(
-        'Slippage:', callback_data='set title')
     if update_data['slippage'] == 0:
-        caption = "X %"
+        caption = "X% Slippage"
     else:
-        caption = f"🟢 {update_data['slippage']}%"
+        caption = f"🟢 {update_data['slippage']}% Slippage"
     slippage_x = types.InlineKeyboardButton(
         text=caption, callback_data='seller select slippage x')
 # limit order
 
     limit_token_price_title = types.InlineKeyboardButton(
-        'Token Price:', callback_data='set title')
+        'Profit:', callback_data='set title')
     if update_data['limit-token-price'] == 0:
         caption = "X"
     else:
@@ -213,24 +210,6 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
     duration_x = types.InlineKeyboardButton(
         text=caption, callback_data='seller select duration x')
 
-    dca_max_price_title = types.InlineKeyboardButton(
-        'Max Price:', callback_data='set title')
-    if update_data['dca-max-price'] == 0:
-        caption = "X"
-    else:
-        caption = f"{update_data['dca-max-price']}"
-    dca_max_price_x = types.InlineKeyboardButton(
-        text=caption, callback_data='seller select max price x')
-
-   
-    dca_min_price_title = types.InlineKeyboardButton(
-        'Min Price:', callback_data='set title')
-    if update_data['dca-min-price'] == 0:
-        caption = "X"
-    else:
-        caption = f"{update_data['dca-min-price']}"
-    dca_min_price_x = types.InlineKeyboardButton(
-        text=caption, callback_data='seller select min price x')
 
     create_order = types.InlineKeyboardButton(
         '✔️ Sell', callback_data='make sell order')
@@ -239,7 +218,7 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
 
     keyboard.row(*buys[0:(buy_count // 2)])
     keyboard.row(*buys[(buy_count // 2):buy_count], buy_x)
-    keyboard.row(slippage_title,*slippages[0:(len(slippages))], slippage_x)
+    keyboard.row(*slippages[0:(len(slippages))], slippage_x)
     if order_name == "Market Order":
         keyboard.row(anti_mev, anti_rug)
     elif order_name == "Limit Order":
@@ -248,7 +227,6 @@ def get_keyboard(order_name, update_data, chat_id, index_data):
         keyboard.row(interval_title,
             *intervals[0:(len(intervals))], interval_x)
         keyboard.row(duration_title, duration_x)
-        keyboard.row(dca_min_price_title, dca_min_price_x,dca_max_price_title, dca_max_price_x)
     keyboard.row(create_order)
     keyboard.row(back, close)
 
@@ -301,22 +279,44 @@ def select_gas_amount(bot, message, index):
 def select_slip_page(bot, message, index):
    # user = user_model.get_user_by_telegram(message.chat.id)
    # chain = user.chain
-    #  wallets = user.wallets[chain]
-
     index_list['slippage'] = int(index)
     #  user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     result['slippage'] = chain_slippages[int(index)]
     x_value_list['slippage'] = 0
+    
+    chain_index = main_api.get_chain(message.chat.id)
+    chains = main_api.get_chains()
+    current_chain = chains[chain_index]
+    token = result['token']
+    token_data = main_api.get_token_market_data(message.chat.id, token)
+    meta_data = main_api.get_token_metadata(message.chat.id, token)
+      
+    token_price = format_number(token_data['price'])
+    token_liquidity = format_number(token_data['liquidity'])
+    token_market_cap = format_number(token_data['market_capital'])
+    text = f'''
+      *🛒 Token Sell*
+
+  Sell your tokens here.
+
+  *{meta_data['name']}  (🔗{current_chain})  *
+  {token}
+      
+  💲 *Price:* {token_price}$
+  💧 *Liquidity:* {token_liquidity}$
+  📊 *Market Cap:* {token_market_cap}$
+
+  [Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
+  '''
     order_index = ''
-   # user_model.update_user_by_id(user.id, 'wallets', user.wallets)
     for order in order_list:
         if order['active'] == True:
             order_index = order['name']
     keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
 
-    bot.edit_message_reply_markup(
-        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                     reply_markup=keyboard, disable_web_page_preview=True)
 
 
 def select_stop_loss(bot, message, index):
@@ -403,6 +403,17 @@ def select_liquidity(bot, message, index):
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
+def handle_select_auto_slippage(bot, message, index):
+  text = '''
+      *🛒 Token Sell*
+ Do you confirm 50% slippage as Auto Slippage?.
+'''
+  keyboard = types.InlineKeyboardMarkup()
+  cancel = types.InlineKeyboardButton('Cancel', callback_data='seller select slippage x')
+  confirm = types.InlineKeyboardButton('Confirm', callback_data=f'confirm seller select slippage {index}')
+  keyboard.row(cancel, confirm)
+  bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                    reply_markup=keyboard, disable_web_page_preview=True)
 
 def select_interval(bot, message, index):
   #  user = user_model.get_user_by_telegram(message.chat.id)
@@ -719,13 +730,14 @@ def handle_sell(bot, message):
     positions = main_api.get_positions(message.chat.id)
     sell_position = positions[result['position']]['id']
     print(sell_position)
+    
     if order_name == "Market Order":
         print(result['buy_amount'], result['slippage'])
         tx_id, amount = main_api.market_sell(message.chat.id, sell_position,result['buy_amount'], result['slippage'])
     elif order_name == "Limit Order":
-        main_api.limit_order(message.chat.id, result)
+        main_api.add_limit_sell(message.chat.id, sell_position, result['buy_amount'], result['slippage'], result['market_cap'])
     elif order_name == "DCA Order":
-        main_api.dca_order(message.chat.id, result)
+        main_api.add_dca_sell(message.chat.id, sell_position, result['buy_amount'], result['slippage'], result['interval'], result['duration'])
     bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Order')
 

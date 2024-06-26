@@ -66,6 +66,8 @@ async def Control():
     wallet = current_position.wallet
     slippage = 50
     stop_loss = 10
+    if action == 'sell':
+      amount = 100
 
     dex_engine.swap(0, action, token, amount, slippage, wallet)
 

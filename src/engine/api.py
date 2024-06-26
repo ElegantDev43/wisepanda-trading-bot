@@ -212,14 +212,13 @@ def add_dca_buy(user_id, token, amount, slippage, wallet_id, interval, count):
   database.add_dca_order(user_id, dca_order)
   Thread(target=dca_order_engine.start, args=(user_id, dca_order['id'])).start()
 
-def add_dca_sell(user_id, position_id, amount, slippage, criteria, interval, count):
+def add_dca_sell(user_id, position_id, amount, slippage, interval, count):
   dca_order = {
     'id': time.time(),
     'type': 'sell',
     'position_id': position_id,
     'amount': amount,
     'slippage': slippage,
-    'criteria': criteria,
     'interval': interval,
     'count': count
   }
