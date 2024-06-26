@@ -719,7 +719,7 @@ def handle_remove_auto_params(bot, message, index):
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 def add_auto_param(bot, message):
-    new_param = {'amount':'x', 'price':'x'}
+    new_param = {'amount':'x', 'profit':'x'}
     x_value_list['chain_auto_sell_params'].append(new_param)
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
@@ -734,12 +734,12 @@ def handle_set_sniper(bot, message):
       'token': {
         'active': True,
         'amount': result['buy_amount'],
-        'slippage': result['slippage'],
+        'slippage': int(result['slippage']),
         'wallet_id':  buy_wallet,
         'auto_sell': x_value_list['chain_auto_sell_params'],
-        'min_market_capital': result['min_mc'],
-        'max_market_capital': result['max_mc'],
-        'limit': result['token_count'],
+        'min_market_capital': int(result['min_mc']),
+        'max_market_capital': int(result['max_mc']),
+        'limit': int(result['token_count']),
         'count': 0,
       },
       'lp': {

@@ -191,10 +191,21 @@ def print_table(tokens: Tuple[Pubkey, Pubkey, Pubkey]) -> None:
   # print("|".rjust(18))
   # for row in data:
   #   print("│".join(f" {str(row[col]).ljust(15)} " for col in header))
-  if tokens[0] == 'So11111111111111111111111111111111111111112':
+  if str(tokens[0]) == 'So11111111111111111111111111111111111111112':
     token = tokens[1]
   else:
     token = tokens[0]
+  
+  token = str(token)
+  
+  from src.engine.chain import token as token_engine
+  metadata = token_engine.get_metadata(0, token)
+  market_data = token_engine.get_market_data(0, token)
+  
+  token_symbol = metadata['symbol']
+  token_mc = market_data['market_capital']
+  
+  print('Raydium Launch', token, token_symbol, token_mc)
   
   import time
   from threading import Thread
@@ -217,12 +228,12 @@ def print_table(tokens: Tuple[Pubkey, Pubkey, Pubkey]) -> None:
       token_sniper['wallet_id'],
       token_sniper['auto_sell'],
       token_sniper['min_market_capital'],
-      token_sniper['max_market_captial'],
+      token_sniper['max_market_capital'],
       token_sniper['limit'],
       token_sniper['count']
     )
     if active:
-      market_captial = token_engine.get_market_data(chain, token)
+      market_captial = token_engine.get_market_data(chain, token)['market_capital']
       if market_captial > min_market_captial and market_captial < max_market_captial:
         if limit != 0 and count != limit:
           token_sniper_id = time.time()

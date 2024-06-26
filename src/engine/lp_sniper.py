@@ -17,7 +17,9 @@ def start(user_id, lp_sniper_id):
       )
       if token_engine.check_liveness(chain, token):
         position = swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id)
+        print('LP Sniper Buy', position['id'])
         swap_engine.sell(user_id, position['id'], 100, slippage)
+        print('LP Sniper Sell', position['id'])
         database.remove_lp_sniper(user_id, lp_sniper_id)
     else:
       break

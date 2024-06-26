@@ -782,8 +782,9 @@ def select_position(bot, message, item):
   chain_index = main_api.get_chain(message.chat.id)
   chains = main_api.get_chains()
   current_chain = chains[chain_index]
-  
+
   chain_positions = main_api.get_positions(message.chat.id)
+  result['token'] = chain_positions[index]['token']
   token = chain_positions[index]['token']
   token_data = main_api.get_token_market_data(message.chat.id, token)
   meta_data = main_api.get_token_metadata(message.chat.id, token)

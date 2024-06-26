@@ -87,21 +87,24 @@ def get_market_data(token):
     else:
       token_price = data['data']['token']['price']
       liquidity = data['data']['token']['liquidity']
-      market_cap = data['data']['token']['market_cap']
-      print(f"Token Price: {token_price:.18f}")
-      print(f"Liquidity: {liquidity}")
-      print(f"Market Cap: {market_cap}")
-      return {'price':token_price, 'liquidity':liquidity, 'market_capital':market_cap}
+      market_cap = data['data']['token'].get('market_cap', '1')
+      # print(f"Token Price: {token_price:.18f}")
+      # print(f"Liquidity: {liquidity}")
+      # print(f"Market Cap: {market_cap}")
+      return {'price':token_price, 'liquidity':liquidity, 'market_capital':int(market_cap)}
   else:
     print(f"Failed to fetch data. Status code: {response.status_code}")
 
 def get_jupiter_price(token):
   try:
-    symbol = get_metadata(token)
+    symbol = get_metadata(token)['symbol']
     response = requests.get(f"https://price.jup.ag/v6/price?ids={symbol}")
     
     if response.status_code == 200:
-      data = response.json()['data'][symbol]['price']
+      resp = response.json()['data']
+      if not resp[symbol]:
+        return 0
+      data = resp[symbol]['price']
       return data
     else:
       return 0
