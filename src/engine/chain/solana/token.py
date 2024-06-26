@@ -3,7 +3,7 @@ import json
 from solana.rpc.api import Client
 from solders.pubkey import Pubkey # type: ignore
 from solders.keypair import Keypair # type: ignore
-from solana_tracker.solanatracker import SolanaTracker
+from src.engine.chain.solana.solana_tracker.solanatracker import SolanaTracker
 import base58
 import re
 
