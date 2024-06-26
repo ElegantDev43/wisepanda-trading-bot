@@ -735,10 +735,16 @@ def handle_sell(bot, message):
         print(result['buy_amount'], result['slippage'])
         tx_id, amount = main_api.market_sell(message.chat.id, sell_position,result['buy_amount'], result['slippage'])
     elif order_name == "Limit Order":
-        main_api.add_limit_sell(message.chat.id, sell_position, result['buy_amount'], result['slippage'], result['market_cap'])
+        main_api.add_limit_sell(message.chat.id, sell_position, int(result['buy_amount']), int(result['slippage']), int(result['market_cap']))
+        bot.send_message(chat_id=message.chat.id,
+                     text='Successfully registered Order')
     elif order_name == "DCA Order":
-        main_api.add_dca_sell(message.chat.id, sell_position, result['buy_amount'], result['slippage'], result['interval'], result['duration'])
-    bot.send_message(chat_id=message.chat.id,
+        if int(result['buy_amount']) * int(result['duration']) > 100:
+            bot.send_message(chat_id=message.chat.id,
+                     text='Amount Exceeds')
+        else:
+          main_api.add_dca_sell(message.chat.id, sell_position, int(result['buy_amount']), int(result['slippage']), int(result['interval']), int(result['duration']))
+          bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Order')
 
 

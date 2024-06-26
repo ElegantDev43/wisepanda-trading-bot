@@ -154,8 +154,6 @@ def handle_input_token(bot, message):
     text = f'''
     *🪁 Swing Trading* >> Manual Mode
 
-Sell your tokens here.
-
 *{meta_data['name']}  (🔗{current_chain})  *
 {token}
     
@@ -210,8 +208,6 @@ def select_slip_page(bot, message, index):
     token_market_cap = format_number(token_data['market_capital'])
     text = f'''
       *🪁 Swing Trading* >> Manual Mode
-
-  Sell your tokens here.
 
   *{meta_data['name']}  (🔗{current_chain})  *
   {token}
@@ -287,8 +283,6 @@ def handle_input_value(bot, message, item):
     text = f'''
     *🪁 Swing Trading* >> Manual Mode
 
-Sell your tokens here.
-
 *{meta_data['name']}  (🔗{current_chain})  *
 {token}
     
@@ -308,7 +302,11 @@ def handle_buy(bot, message):
     wallets = main_api.get_wallets(message.chat.id)
     buy_wallet = wallets[result['wallet']]['id']
     buy_amount = int(result['buy_amount'] * 1_000_000_000)
-    print(result['token'])
-    tx_hash, out_amount = main_api.market_buy(message.chat.id, result['token'], buy_amount, result['slippage'], buy_wallet)
     bot.send_message(chat_id=message.chat.id,
-                     text='Successfully registered Order')
+                     text='Buy Transaction sent. Please take for about 10 seconds to be confirmed')
+    position = main_api.market_buy(message.chat.id, result['token'], buy_amount, result['slippage'], buy_wallet)
+    result_text = f'''Successfully confirmed Buy Transaction.
+Transaction ID: {position['transaction_id']}
+View on SolScan: (https://solscan.io/tx/{position['transaction_id']})'''
+    bot.send_message(chat_id=message.chat.id,
+                     text=result_text)

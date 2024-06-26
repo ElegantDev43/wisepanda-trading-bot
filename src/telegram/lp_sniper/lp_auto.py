@@ -130,9 +130,13 @@ def get_keyboard(update_data, chat_id, index_data):
         caption = f"🟢 {update_data['token_count']}"
     token_count_x = types.InlineKeyboardButton(
         text=caption, callback_data='sniper select token count x')
-      
-    create_order = types.InlineKeyboardButton(
-        '✔️ Set Sniper', callback_data='make lp sniper auth order')
+
+    if main_api.get_auto_sniper(chat_id)['lp']['active'] ==  True:
+      caption = "Stop Sniper"
+    else:
+      caption = "Start Sniper"
+    create_order = types.InlineKeyboardButton(text=caption, callback_data='make lp sniper auth order')
+
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
 
@@ -322,10 +326,14 @@ def handle_set_sniper(bot, message):
     auto_sniper = main_api.get_auto_sniper(message.chat.id)
     wallets = main_api.get_wallets(message.chat.id)
     buy_wallet = wallets[result['wallet']]['id']
-    auto_sniper['lp']['active'] = True
-    auto_sniper['lp']['amount'] = result['buy_amount']
-    auto_sniper['lp']['slippage'] = result['slippage']
-    auto_sniper['lp']['wallet_id'] = buy_wallet
+    buy_amount = int(result['buy_amount'] * 1_000_000_000)
+    if auto_sniper['lp']['active'] == True:
+      auto_sniper['lp']['active'] = False
+    if auto_sniper['lp']['active'] == False:
+      auto_sniper['lp']['active'] = True
+      auto_sniper['lp']['amount'] = buy_amount
+      auto_sniper['lp']['slippage'] = int(result['slippage'])
+      auto_sniper['lp']['wallet_id'] = buy_wallet
     main_api.set_auto_sniper(message.chat.id, auto_sniper)
     bot.send_message(chat_id=message.chat.id,
-                     text='Successfully registered Sniper')
+                     text='Successfully updated Sniper')

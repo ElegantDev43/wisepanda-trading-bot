@@ -724,7 +724,7 @@ View on SolScan: (https://solscan.io/tx/{position['transaction_id']})'''
         bot.send_message(chat_id=message.chat.id,
                      text=result_text)
     elif order_name == "Limit Order":
-        main_api.add_limit_buy(message.chat.id, result['token'], buy_amount, result['slippage'], buy_wallet, result['market_cap'])
+        main_api.add_limit_buy(message.chat.id, result['token'], buy_amount, int(result['slippage']), buy_wallet, float(result['market_cap']))
         bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Order.')
     elif order_name == "DCA Order":

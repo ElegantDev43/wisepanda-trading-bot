@@ -431,6 +431,7 @@ Sell your tokens here.
 def handle_set_sniper(bot, message):
   wallets = main_api.get_wallets(message.chat.id)
   buy_wallet = wallets[result['wallet']]['id']
-  main_api.add_lp_sniper(message.chat.id, result['token'], result['buy_amount'], result['slippage'], buy_wallet)
+  buy_amount = int(result['buy_amount'] * 1_000_000_000)
+  main_api.add_lp_sniper(message.chat.id, result['token'], buy_amount, int(result['slippage']), buy_wallet)
   bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Sniper')

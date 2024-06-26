@@ -2,7 +2,7 @@ from telebot import types
 from src.engine import api as main_api
 
 current_limit_order = {'index': 0}
-updat_values = {'id':0, 'chain':0, 'type': 0, 'token': "", 'amount': 0, 'slippage':0,'wallet_id': 0,'market_capital': 0}
+updat_values = {'id':0, 'chain':0, 'type': 0, 'token': "", 'amount': 0, 'slippage':0,'wallet_id': 0,'max_market_capital': 0}
 
 
 def get_keyboard(chat_id, order, order_index):
@@ -25,7 +25,7 @@ def get_keyboard(chat_id, order, order_index):
     amount = types.InlineKeyboardButton(
         f'Amount: {order['amount']}SOL', callback_data='handle_limit_input amount')
     limit_token_price = types.InlineKeyboardButton(
-        f'Market Cap: {order['market_capital']}', callback_data='handle_limit_input market_capital')
+        f'Market Cap: {order['max_market_capital']}', callback_data='handle_limit_input max_market_capital')
     slippage = types.InlineKeyboardButton(
         f'Slippage: {order['slippage']}%', callback_data='handle_limit_input slippage')
     left_button = types.InlineKeyboardButton(

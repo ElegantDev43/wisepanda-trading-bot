@@ -140,26 +140,7 @@ def get_keyboard(update_data, chat_id, index_data):
     slippage_x = types.InlineKeyboardButton(
         text=caption, callback_data='sniper select slippage x')
 
-    profit_title = types.InlineKeyboardButton(text='Profit:', callback_data='set title')
-    profits = []
-    profit_count = len(chain_profits)
-    for index in range(profit_count):
-        if index_data['profit'] == 100:
-            caption = f'{chain_profits[index]}x'
-        else:
-            caption = f'{"🟢" if index == index_data['profit'] else ""} {
-                chain_profits[index]}x'
-        button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"sniper select profit {index}")
-        profits.append(button)
-    if update_data['profit'] == 0:
-        caption = "X"
-    else:
-        caption = f"🟢 {update_data['profit']}x"
-    profit_x = types.InlineKeyboardButton(
-        text=caption, callback_data='sniper select profit x')
 
-    
     max_mc_title = types.InlineKeyboardButton(text='Max MC:', callback_data='set title')
     min_mc_title = types.InlineKeyboardButton(text='Min MC:', callback_data='set title')
     if update_data['max_mc'] == 0:
@@ -214,7 +195,7 @@ def get_keyboard(update_data, chat_id, index_data):
     auto_prices = []
     for index in range(len(update_data['chain_auto_sell_params'])):
       auto_price_x = types.InlineKeyboardButton(
-          text=f'''{update_data['chain_auto_sell_params'][index]['price']}X''', callback_data=f'sniper select auto price {index}')
+          text=f'''{update_data['chain_auto_sell_params'][index]['profit']}X''', callback_data=f'sniper select auto price {index}')
       auto_prices.append(auto_price_x)
 
     auto_removes = []
@@ -223,8 +204,11 @@ def get_keyboard(update_data, chat_id, index_data):
           text='❌', callback_data=f'sniper remove auto params {index}')
       auto_removes.append(auto_remove_x)
 
-    create_order = types.InlineKeyboardButton(
-        '✔️ Set Sniper', callback_data='make sniper order')
+    if main_api.get_auto_sniper(chat_id)['token']['active'] ==  True:
+      caption = "Stop Sniper"
+    else:
+      caption = "Start Sniper"
+    create_order = types.InlineKeyboardButton(text=caption, callback_data='make sniper order')
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
 
@@ -520,7 +504,7 @@ Enter the Price to set:
 
 def handle_auto_amount_input_value(bot, message, index):
     item = int(index)
-    x_value_list['chain_auto_sell_params'][item]['amount'] = message.text
+    x_value_list['chain_auto_sell_params'][item]['amount'] = int(message.text)
 
     if x_value_list['mode'] == 0:
       text = '''
@@ -560,7 +544,7 @@ Set your parameters for auto token snipping.
 
 def handle_auto_price_input_value(bot, message, index):
     item = int(index)
-    x_value_list['chain_auto_sell_params'][item]['price'] = message.text
+    x_value_list['chain_auto_sell_params'][item]['profit'] = int(message.text)
 
     if x_value_list['mode'] == 0:
       text = '''
@@ -730,28 +714,36 @@ def handle_set_sniper(bot, message):
   wallets = main_api.get_wallets(message.chat.id)
   buy_wallet = wallets[result['wallet']]['id']
   if result['mode'] == 0:
-    auto_sniper = {
-      'token': {
-        'active': True,
-        'amount': result['buy_amount'],
-        'slippage': int(result['slippage']),
-        'wallet_id':  buy_wallet,
-        'auto_sell': x_value_list['chain_auto_sell_params'],
-        'min_market_capital': int(result['min_mc']),
-        'max_market_capital': int(result['max_mc']),
-        'limit': int(result['token_count']),
-        'count': 0,
-      },
-      'lp': {
-        'active': False,
-        'amount': 1,
-        'slippage': 50,
-        'wallet_id': 0
+    auto_sniper = main_api.get_auto_sniper(message.chat.id)
+    if auto_sniper['token']['active'] == True:
+      auto_sniper['token']['active'] = False
+      bot.send_message(chat_id=message.chat.id,
+                     text='Successfully stopped Sniper')
+    if auto_sniper['token']['active'] == False:
+      buy_amount = int(result['buy_amount'] * 1_000_000_000)
+      auto_sniper = {
+        'token': {
+          'active': True,
+          'amount': buy_amount,
+          'slippage': int(result['slippage']),
+          'wallet_id':  buy_wallet,
+          'auto_sell': x_value_list['chain_auto_sell_params'],
+          'min_market_capital': int(result['min_mc']),
+          'max_market_capital': int(result['max_mc']),
+          'limit': int(result['token_count']),
+          'count': 0,
+        },
+        'lp': {
+          'active': False,
+          'amount': 1,
+          'slippage': 50,
+          'wallet_id': 0
+        }
       }
-    }
     main_api.set_auto_sniper(message.chat.id, auto_sniper)
+    bot.send_message(chat_id=message.chat.id,
+                     text='Successfully Started Sniper')
   elif result['mode'] == 1:
       main_api.add_token_sniper(message.chat.id, result['token'], result['buy_amount'], result['slippage'], buy_wallet, x_value_list['chain_auto_sell_params'])
-  bot.send_message(chat_id=message.chat.id,
-                     text='Successfully registered Sniper')
+
 

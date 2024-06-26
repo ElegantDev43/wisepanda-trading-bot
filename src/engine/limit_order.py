@@ -8,7 +8,6 @@ def start(user_id, limit_order_id):
   while True:
     limit_order = database.get_limit_order(user_id, limit_order_id)
     if limit_order:
-      market_capital = token_engine.get_market_data(chain, token)['market_capital']
       if limit_order['type'] == 'buy':
         chain, token, amount, slippage, wallet_id, max_market_capital = (
           limit_order['chain'],
@@ -18,6 +17,7 @@ def start(user_id, limit_order_id):
           limit_order['wallet_id'],
           limit_order['max_market_capital']
         )
+        market_capital = token_engine.get_market_data(chain, token)['market_capital']
         if market_capital <= max_market_capital:
           position = swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id)
           print('Limit Buy', position['id'])
@@ -30,6 +30,7 @@ def start(user_id, limit_order_id):
           limit_order['profit']
         )
         position = database.get_position(user_id, position_id)
+        market_capital = token_engine.get_market_data(chain, token)['market_capital']
         if market_capital >= position['market_capital'] * (1 + profit):
           swap_engine.sell(user_id, position_id, amount, slippage)
           print('Limit Sell', position['id'])
