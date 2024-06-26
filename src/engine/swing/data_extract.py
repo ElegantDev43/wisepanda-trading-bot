@@ -222,6 +222,7 @@ async def SaveAsGraph(dataFrame,address):
     # Add labels and title
     plt.xlabel('Date')
     plt.ylabel('Value')
+    plt.xticks(horizontalalignment="center", fontweight="light")
     plt.title('Sample DataFrame Plot')
 
 
@@ -271,7 +272,7 @@ async def exportTestValues(address):
       return
 
   dataFrame = pd.DataFrame.from_dict(inputData, orient='columns')
-  dataFrame.index = pd.DatetimeIndex(dataFrame['unixTime'])
+  dataFrame.index = pd.DatetimeIndex(dataFrame['Date'])
 
   dataFrame = dataFrame.drop(columns=['unixTime'])
   
