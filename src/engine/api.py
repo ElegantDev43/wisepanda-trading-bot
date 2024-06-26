@@ -159,7 +159,7 @@ def get_limit_orders(user_id):
   chain = get_chain(user_id)
   return database.get_limit_orders(user_id, chain)
 
-def add_limit_buy(user_id, token, amount, slippage, wallet_id, criteria):
+def add_limit_buy(user_id, token, amount, slippage, wallet_id, max_market_capital):
   chain = get_chain(user_id)
   limit_order = {
     'id': time.time(),
@@ -169,19 +169,19 @@ def add_limit_buy(user_id, token, amount, slippage, wallet_id, criteria):
     'amount': amount,
     'slippage': slippage,
     'wallet_id': wallet_id,
-    'market_capital': criteria
+    'max_market_capital': max_market_capital
   }
   database.add_limit_order(user_id, limit_order)
   Thread(target=limit_order_engine.start, args=(user_id, limit_order['id'])).start()
 
-def add_limit_sell(user_id, position_id, amount, slippage, criteria):
+def add_limit_sell(user_id, position_id, amount, slippage, profit):
   limit_order = {
     'id': time.time(),
     'type': 'sell',
     'position_id': position_id,
     'amount': amount,
     'slippage': slippage,
-    'market_capital': criteria
+    'profit': profit
   }
   database.add_limit_order(user_id, limit_order)
   Thread(target=limit_order_engine.start, args=(user_id, limit_order['id'])).start()

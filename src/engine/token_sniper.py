@@ -25,16 +25,16 @@ def start(user_id, token_sniper_id):
             database.remove_token_sniper(user_id, token_sniper_id)
           else:
             token_sniper['stage'] = 'sell'
-            token_sniper['market_capital'] = token_engine.get_market_data(chain, token)['market_capital']
             token_sniper['position_id'] = position['id']
             database.set_token_sniper(user_id, token_sniper_id, token_sniper)
       else:
         sell = auto_sell[0]
         auto_sell.pop(0)
+        position = database.get_position(user_id, token_sniper['position_id'])
         market_capital = token_engine.get_market_data(chain, token)['market_capital']
-        if market_capital >= token_sniper['market_capital'] * (1 + sell['profit']):
-          swap_engine.sell(user_id, token_sniper['position_id'], sell['amount'], slippage)
-          print('Token Sniper Sell', token_sniper['position_id'])
+        if market_capital >= position['market_capital'] * (1 + sell['profit']):
+          swap_engine.sell(user_id, position['id'], sell['amount'], slippage)
+          print('Token Sniper Sell', position['id'])
           if len(auto_sell) == 0:
             database.remove_token_sniper(user_id, token_sniper_id)
           else:
