@@ -1,7 +1,7 @@
 from telebot import types
 from src.engine import api as main_api
 
-chain_buy_amounts = [100]
+chain_buy_amounts = [1]
 
 from src.database.swing import Htokens as HTokens_model
 
@@ -147,6 +147,10 @@ def handle_trading_status(bot, message):
     bot.send_message(chat_id=message.chat.id,
                      text='Auto Swing Trading Started.')
     main_api.start_auto_swing(message.chat.id, result['buy_amount'], buy_wallet)
+  keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
+  bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 def start_trading(bot, message):
   result['status'] = 1

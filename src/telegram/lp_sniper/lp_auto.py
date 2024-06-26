@@ -3,7 +3,7 @@ from telebot import types
 from src.database import user as user_model
 from src.engine import api as main_api
 import threading
-chain_buy_amounts = [0.1]
+chain_buy_amounts = [1]
 chain_gas_prices = [0.1, 0.2, 0.3]
 chain_slippages = [50]
 chain_counts = [100]
@@ -329,7 +329,7 @@ def handle_set_sniper(bot, message):
     buy_amount = int(result['buy_amount'] * 1_000_000_000)
     if auto_sniper['lp']['active'] == True:
       auto_sniper['lp']['active'] = False
-    if auto_sniper['lp']['active'] == False:
+    elif auto_sniper['lp']['active'] == False:
       auto_sniper['lp']['active'] = True
       auto_sniper['lp']['amount'] = buy_amount
       auto_sniper['lp']['slippage'] = int(result['slippage'])
@@ -337,3 +337,7 @@ def handle_set_sniper(bot, message):
     main_api.set_auto_sniper(message.chat.id, auto_sniper)
     bot.send_message(chat_id=message.chat.id,
                      text='Successfully updated Sniper')
+    keyboard = get_keyboard(x_value_list,
+                              message.chat.id, index_list)
+    bot.edit_message_reply_markup(
+          chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)

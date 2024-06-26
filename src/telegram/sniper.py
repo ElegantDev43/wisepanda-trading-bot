@@ -3,7 +3,7 @@ from telebot import types
 from src.database import user as user_model
 from src.engine import api as main_api
 import threading
-chain_buy_amounts = [0.1]
+chain_buy_amounts = [1]
 chain_gas_prices = [0.1, 0.2, 0.3]
 chain_slippages = [50]
 chain_profits = [5]
@@ -719,7 +719,7 @@ def handle_set_sniper(bot, message):
       auto_sniper['token']['active'] = False
       bot.send_message(chat_id=message.chat.id,
                      text='Successfully stopped Sniper')
-    if auto_sniper['token']['active'] == False:
+    elif auto_sniper['token']['active'] == False:
       buy_amount = int(result['buy_amount'] * 1_000_000_000)
       auto_sniper = {
         'token': {
@@ -740,10 +740,13 @@ def handle_set_sniper(bot, message):
           'wallet_id': 0
         }
       }
-    main_api.set_auto_sniper(message.chat.id, auto_sniper)
-    bot.send_message(chat_id=message.chat.id,
+      bot.send_message(chat_id=message.chat.id,
                      text='Successfully Started Sniper')
+    main_api.set_auto_sniper(message.chat.id, auto_sniper)
   elif result['mode'] == 1:
       main_api.add_token_sniper(message.chat.id, result['token'], result['buy_amount'], result['slippage'], buy_wallet, x_value_list['chain_auto_sell_params'])
 
-
+  keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
+  bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)

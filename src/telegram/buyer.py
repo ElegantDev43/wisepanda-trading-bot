@@ -4,7 +4,7 @@ from src.database import user as user_model
 from src.engine import api as main_api
 import threading
 
-chain_buy_amounts = [0.01]
+chain_buy_amounts = [1]
 chain_gas_amounts = [0.1, 0.2, 0.3]
 chain_gas_prices = [0.1, 0.2, 0.3]
 chain_slippages = [50]
@@ -717,7 +717,7 @@ def handle_buy(bot, message):
     if order_name == "Market Order":
         bot.send_message(chat_id=message.chat.id,
                      text='Buy Transaction sent. Please take for about 10 seconds to be confirmed')
-        position = main_api.market_buy(message.chat.id, result['token'], buy_amount, result['slippage'], buy_wallet)
+        position = main_api.market_buy(message.chat.id, result['token'], buy_amount, result['slippage'], buy_wallet, False)
         result_text = f'''Successfully confirmed Buy Transaction.
 Transaction ID: {position['transaction_id']}
 View on SolScan: (https://solscan.io/tx/{position['transaction_id']})'''

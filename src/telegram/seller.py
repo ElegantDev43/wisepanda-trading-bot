@@ -60,6 +60,8 @@ def initialize_x_value():
 
 def handle_positions(bot, message):
     chain_positions = main_api.get_positions(message.chat.id)
+
+
     text = f'''
             *🛒 Token Sell*
             
@@ -82,6 +84,7 @@ Select position to sell tokens.
       positions.append(button)
     for item in positions:
       keyboard.row(item)
+      
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
 
@@ -287,7 +290,10 @@ def select_slip_page(bot, message, index):
     chain_index = main_api.get_chain(message.chat.id)
     chains = main_api.get_chains()
     current_chain = chains[chain_index]
-    token = result['token']
+    chain_positions = main_api.get_positions(message.chat.id)
+    result['token'] = chain_positions[int(index)]['token']
+    image_url = main_api.get_price_chart(result['token'])
+    token = chain_positions[int(index)]['token']
     token_data = main_api.get_token_market_data(message.chat.id, token)
     meta_data = main_api.get_token_metadata(message.chat.id, token)
       
@@ -315,8 +321,12 @@ def select_slip_page(bot, message, index):
     keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
 
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
+    if chain_positions[int(index)]['is_swing'] == True:
+      with open(image_url, 'rb') as image:
+        bot.send_photo(chat_id=message.chat.id, photo = image, caption=text, parse_mode='Markdown', reply_markup=keyboard)
+    elif chain_positions[int(index)]['is_swing'] == False:
+        bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                      reply_markup=keyboard, disable_web_page_preview=True)
 
 
 def select_stop_loss(bot, message, index):
@@ -691,6 +701,7 @@ def handle_input_value(bot, message, item):
     chain_positions = main_api.get_positions(message.chat.id)
     index = index_list['position']
     token = chain_positions[index]['token']
+    image_url = main_api.get_price_chart(result['token'])
     token_data = main_api.get_token_market_data(message.chat.id, token)
     meta_data = main_api.get_token_metadata(message.chat.id, token)
       
@@ -712,8 +723,12 @@ def handle_input_value(bot, message, item):
   [Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
   '''
 
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
+    if chain_positions[index]['is_swing'] == True:
+      with open(image_url, 'rb') as image:
+        bot.send_photo(chat_id=message.chat.id, photo = image, caption=text, parse_mode='Markdown', reply_markup=keyboard)
+    elif chain_positions[index]['is_swing'] == False:
+        bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                      reply_markup=keyboard, disable_web_page_preview=True)
 
 
 def handle_buy_amount(bot, message, amount):
@@ -792,9 +807,10 @@ def select_position(bot, message, item):
   chain_positions = main_api.get_positions(message.chat.id)
   result['token'] = chain_positions[index]['token']
   token = chain_positions[index]['token']
+  image_url = main_api.get_price_chart(result['token'])
   token_data = main_api.get_token_market_data(message.chat.id, token)
   meta_data = main_api.get_token_metadata(message.chat.id, token)
-    
+  
   token_price = format_number(token_data['price'])
   token_liquidity = format_number(token_data['liquidity'])
   token_market_cap = format_number(token_data['market_capital'])
@@ -815,5 +831,9 @@ Sell your tokens here.
 
   keyboard = get_keyboard(order_index, x_value_list,
                             message.chat.id, index_list)
-  bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+  if chain_positions[index]['is_swing'] == True:
+    with open(image_url, 'rb') as image:
+      bot.send_photo(chat_id=message.chat.id, photo = image, caption=text, parse_mode='Markdown', reply_markup=keyboard)
+  elif chain_positions[index]['is_swing'] == False:
+      bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)

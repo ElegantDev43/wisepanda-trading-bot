@@ -3,7 +3,7 @@ from telebot import types
 from src.database import user as user_model
 from src.engine import api as main_api
 import threading
-chain_buy_amounts = [0.1]
+chain_buy_amounts = [1]
 chain_gas_prices = [0.1, 0.2, 0.3]
 chain_slippages = [50]
 chain_counts = [100]
