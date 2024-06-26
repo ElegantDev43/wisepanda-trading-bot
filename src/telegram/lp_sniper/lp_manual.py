@@ -97,7 +97,14 @@ def handle_input_token(bot, message):
           bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
         else:
-          bot.send_message(chat_id = message.chat.id, text = "It's a live token.")
+          keyboard = types.InlineKeyboardMarkup()
+          go_to_buy = types.InlineKeyboardButton('Go to Start', callback_data='start')
+          text = '''It's a live token.
+Go to the buy section to buy tokens.
+          '''
+          keyboard.row(go_to_buy)
+          bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                        reply_markup=keyboard, disable_web_page_preview=True)
     
 def get_keyboard(update_data, chat_id, index_data):
     keyboard = types.InlineKeyboardMarkup()
