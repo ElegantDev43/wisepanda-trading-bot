@@ -98,7 +98,6 @@ def check_liveness(token):
           0.00005,  # Priority fee (Recommended while network is congested)
           True  # Force legacy transaction for Jupiter
       )
-
       # Check the response for the specific error message
       if swap_response.get('message') == 'To token address is invalid.':
           return False

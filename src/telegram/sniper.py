@@ -26,11 +26,12 @@ def initialize_x_value():
     x_value_list['gas-price'] = 0
     x_value_list['limit-token-price'] = 0
     x_value_list['slippage'] = 0
-    index_list['more_btn_index'] = 1
+    x_value_list['more_btn_index'] = 1
     x_value_list['chain_auto_sell_params'] =[]
 
 def handle_sniper(bot, message):
    # user_model.create_user_by_telegram(message.chat.id)
+    initialize_x_value()
     text = '''
 *🎯 Token Sniper*
 
@@ -226,7 +227,6 @@ def get_keyboard(update_data, chat_id, index_data):
 
     keyboard.row(amount_title, *buys[0:buy_count], buy_x)
     keyboard.row(*slippages[0:(len(slippages))], slippage_x)
-    keyboard.row(min_mc_title, min_mc_x, max_mc_title, max_mc_x)
     if update_data['mode'] == 0:
       keyboard.row(token_count_title, *counts[0:(len(counts))], token_count_x)
     keyboard.row(auto_sell)
@@ -259,8 +259,8 @@ def handle_input_token(bot, message):
     chains = main_api.get_chains()
     current_chain = chains[chain_index]
     token = result['token']
-    token_data = main_api.get_token_market_data(message.chat.id, token)
-    if token_data == 999:
+    print(main_api.is_valid_token(message.chat.id, token))
+    if main_api.is_valid_token(message.chat.id, token) == False:
       text = '''
       *🎯 Token Sniper*
 ❌ Not a token address.
@@ -269,31 +269,26 @@ def handle_input_token(bot, message):
       retry = types.InlineKeyboardButton('Retry', callback_data='sniper select manual mode')
       back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
       keyboard.row(retry, back)
-    else:
-      #pool_data = main_api.check_liveness(message.chat.id, token)
-      meta_data = main_api.get_token_metadata(message.chat.id, token)
-      
-      token_price = format_number(token_data['price'])
-      token_liquidity = format_number(token_data['liquidity'])
-      token_market_cap = format_number(token_data['market_capital'])
-      text = f'''
-      *🎯 Token Sniper*
-
-Sell your tokens here.
-
-*{meta_data['name']}  (🔗{current_chain})  *
-{token}
-      
-*💲 Price:* {token_price}$
-💧 *Liquidity:* {token_liquidity}$
-📊 *Market Cap:* {token_market_cap}$
-
-[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
-  '''
-      keyboard = get_keyboard(x_value_list,
-                              message.chat.id, index_list)
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+      bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
+    else:
+        if not main_api.check_token_liveness(message.chat.id, token):
+      #pool_data = main_api.check_liveness(message.chat.id, token)
+          meta_data = main_api.get_token_metadata(message.chat.id, token)
+
+          text = f'''
+          *🎯 Token Sniper*
+    ❌ Snipe not set.
+    *{meta_data['name']}  (🔗{current_chain})  *
+    {token}
+'''
+          keyboard = get_keyboard(x_value_list,
+                                  message.chat.id, index_list)
+          bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                     reply_markup=keyboard, disable_web_page_preview=True)
+        else:
+          bot.send_message(chat_id = message.chat.id, text = "It's a live token.")
+
 
 def handle_more_btn(bot, message):
     x_value_list['more_btn_index'] += 1
@@ -408,24 +403,12 @@ Set your parameters for auto token snipping.
       token = result['token']
       token_data = main_api.get_token_market_data(message.chat.id, token)
       meta_data = main_api.get_token_metadata(message.chat.id, token)
-      
-      token_price = format_number(token_data['price'])
-      token_liquidity = format_number(token_data['liquidity'])
-      token_market_cap = format_number(token_data['market_capital'])
       text = f'''
-      *🎯 Token Sniper*
-
-  Sell your tokens here.
-
-  *{meta_data['name']}  (🔗{current_chain})  *
-  {token}
-      
-  💲 *Price:* {token_price}$
-  💧 *Liquidity:* {token_liquidity}$
-  📊 *Market Cap:* {token_market_cap}$
-
-  [Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
-  '''
+          *🎯 Token Sniper*
+    ❌ Snipe not set.
+    *{meta_data['name']}  (🔗{current_chain})  *
+    {token}
+'''
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
 
@@ -524,19 +507,11 @@ Set your parameters for auto token snipping.
       token_liquidity = format_number(token_data['liquidity'])
       token_market_cap = format_number(token_data['market_capital'])
       text = f'''
-      *🎯 Token Sniper*
-
-  Sell your tokens here.
-
-  *{meta_data['name']}  (🔗{current_chain})  *
-  {token}
-      
-  💲 *Price:* {token_price}$
-  💧 *Liquidity:* {token_liquidity}$
-  📊 *Market Cap:* {token_market_cap}$
-
-  [Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
-  '''
+          *🎯 Token Sniper*
+    ❌ Snipe not set.
+    *{meta_data['name']}  (🔗{current_chain})  *
+    {token}
+'''
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
@@ -564,19 +539,11 @@ Set your parameters for auto token snipping.
       token_liquidity = format_number(token_data['liquidity'])
       token_market_cap = format_number(token_data['market_capital'])
       text = f'''
-      *🎯 Token Sniper*
-
-  Sell your tokens here.
-
-  *{meta_data['name']}  (🔗{current_chain})  *
-  {token}
-      
-  💲 *Price:* {token_price}$
-  💧 *Liquidity:* {token_liquidity}$
-  📊 *Market Cap:* {token_market_cap}$
-
-  [Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
-  '''
+          *🎯 Token Sniper*
+    ❌ Snipe not set.
+    *{meta_data['name']}  (🔗{current_chain})  *
+    {token}
+'''
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
@@ -626,19 +593,11 @@ Set your parameters for auto token snipping.
       token_liquidity = format_number(token_data['liquidity'])
       token_market_cap = format_number(token_data['market_capital'])
       text = f'''
-      *🎯 Token Sniper*
-
-  Sell your tokens here.
-
-  *{meta_data['name']}  (🔗{current_chain})  *
-  {token}
-      
-  💲 *Price:* {token_price}$
-  💧 *Liquidity:* {token_liquidity}$
-  📊 *Market Cap:* {token_market_cap}$
-
-  [Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
-  '''
+          *🎯 Token Sniper*
+    ❌ Snipe not set.
+    *{meta_data['name']}  (🔗{current_chain})  *
+    {token}
+'''
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
@@ -675,19 +634,11 @@ Set your parameters for auto token snipping.
       token_liquidity = format_number(token_data['liquidity'])
       token_market_cap = format_number(token_data['market_capital'])
       text = f'''
-      *🎯 Token Sniper*
-
-  Sell your tokens here.
-
-  *{meta_data['name']}  (🔗{current_chain})  *
-  {token}
-      
-  💲 *Price:* {token_price}$
-  💧 *Liquidity:* {token_liquidity}$
-  📊 *Market Cap:* {token_market_cap}$
-
-  [Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
-  '''
+          *🎯 Token Sniper*
+    ❌ Snipe not set.
+    *{meta_data['name']}  (🔗{current_chain})  *
+    {token}
+'''
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',

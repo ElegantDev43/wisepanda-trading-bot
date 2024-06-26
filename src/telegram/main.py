@@ -510,7 +510,8 @@ def handle_callback_query(call):
         fully_auto.start_trading(bot, call.message)
     elif call.data == 'handle swing auto mode status':
         fully_auto.handle_trading_status(bot, call.message)
-
+    elif call.data == 'swing auto show more wallets':
+        fully_auto.handle_more_btn(bot, call.message)
         
     elif call.data == 'swing mode manual':
         manual_mode.handle_start(bot, call.message)
@@ -533,7 +534,8 @@ def handle_callback_query(call):
             manual_mode.handle_select_auto_slippage(bot, call.message, call.data[23:])
     elif call.data.startswith('manual swing confirm select slippage '):
         manual_mode.select_slip_page(bot, call.message, call.data[43:])
-        
+    elif call.data == 'swing manual show more wallets':
+        manual_mode.handle_more_btn(bot, call.message)
     elif call.data == 'start swing manual':
         manual_mode.start_trading(bot, call.message)
 def initialize():

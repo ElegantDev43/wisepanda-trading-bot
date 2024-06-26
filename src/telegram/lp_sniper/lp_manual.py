@@ -43,6 +43,7 @@ def handle_start(bot, message):
 Enter a token symbol or address to snipe.
 Ex: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
     '''
+    x_value_list['more_btn_index'] = 1
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_token(bot, next_message))
@@ -69,41 +70,34 @@ def handle_input_token(bot, message):
     chains = main_api.get_chains()
     current_chain = chains[chain_index]
     token = result['token']
-    token_data = main_api.get_token_market_data(message.chat.id, token)
-    if token_data == 999:
+    if main_api.is_valid_token(message.chat.id, token) == False:
       text = '''
-      *🎯 LP Sniper* >> Manual Mode
+      *🎯 LP Sniper*
 ❌ Not a token address.
 '''
       keyboard = types.InlineKeyboardMarkup()
       retry = types.InlineKeyboardButton('Retry', callback_data='lp sniper select manual mode')
       back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
       keyboard.row(retry, back)
-    else:
-      #pool_data = main_api.check_liveness(message.chat.id, token)
-      meta_data = main_api.get_token_metadata(message.chat.id, token)
-      
-      token_price = format_number(token_data['price'])
-      token_liquidity = format_number(token_data['liquidity'])
-      token_market_cap = format_number(token_data['market_capital'])
-      text = f'''
-      *🎯 LP Sniper* >> Manual Mode
-
-Sell your tokens here.
-
-*{meta_data['name']}  (🔗{current_chain})  *
-{token}
-      
-*💲 Price:* {token_price}$
-💧 *Liquidity:* {token_liquidity}$
-📊 *Market Cap:* {token_market_cap}$
-
-[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
-  '''
-      keyboard = get_keyboard(x_value_list,
-                              message.chat.id, index_list)
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+      bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
+    else:
+        if not main_api.check_token_liveness(message.chat.id, token):
+      #pool_data = main_api.check_liveness(message.chat.id, token)
+          meta_data = main_api.get_token_metadata(message.chat.id, token)
+
+          text = f'''
+          *🎯 LP Sniper*
+    ❌ Snipe not set.
+    *{meta_data['name']}  (🔗{current_chain})  *
+    {token}
+'''
+          keyboard = get_keyboard(x_value_list,
+                                  message.chat.id, index_list)
+          bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                     reply_markup=keyboard, disable_web_page_preview=True)
+        else:
+          bot.send_message(chat_id = message.chat.id, text = "It's a live token.")
     
 def get_keyboard(update_data, chat_id, index_data):
     keyboard = types.InlineKeyboardMarkup()
@@ -302,17 +296,10 @@ def select_slip_page(bot, message, index):
     text = f'''
       *🎯 LP Sniper* >> Manual Mode
 
-Sell your tokens here.
-
-*{meta_data['name']}  (🔗{current_chain})  *
-{token}
-      
-💲 *Price:* {token_price}$
-💧 *Liquidity:* {token_liquidity}$
-📊 *Market Cap:* {token_market_cap}$
-
-[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
-  '''
+    ❌ Snipe not set.
+    *{meta_data['name']}  (🔗{current_chain})  *
+    {token}
+'''
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
 
@@ -410,18 +397,10 @@ def handle_input_value(bot, message, item):
     token_market_cap = format_number(token_data['market_capital'])
     text = f'''
       *🎯 LP Sniper* >> Manual Mode
-
-Sell your tokens here.
-
-*{meta_data['name']}  (🔗{current_chain})  *
-{token}
-      
-💲 *Price:* {token_price}$
-💧 *Liquidity:* {token_liquidity}$
-📊 *Market Cap:* {token_market_cap}$
-
-[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
-  '''
+    ❌ Snipe not set.
+    *{meta_data['name']}  (🔗{current_chain})  *
+    {token}
+'''
     
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)

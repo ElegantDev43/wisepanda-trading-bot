@@ -6,7 +6,7 @@ chain_buy_amounts = [1]
 from src.database.swing import Htokens as HTokens_model
 
 
-x_value_list = {"buy-amount": 0}
+x_value_list = {"buy-amount": 0, 'more_btn_index':1}
 
 index_list = {'wallet': 100, 'buy_amount': 100}
 
@@ -26,7 +26,7 @@ def get_keyboard(update_data, chat_id, index_data):
         button = types.InlineKeyboardButton(
             text=caption, callback_data=f"fully_auto swing select buy wallet {index}")
         wallets.append(button)
-    more_wallet_btn = types.InlineKeyboardButton('🔽', callback_data='show more wallets')
+    more_wallet_btn = types.InlineKeyboardButton('🔽', callback_data='swing auto show more wallets')
     buys = []
     buy_count = len(chain_buy_amounts)
     amount_title = types.InlineKeyboardButton(
@@ -54,15 +54,28 @@ def get_keyboard(update_data, chat_id, index_data):
     buy_x = types.InlineKeyboardButton(
         text=caption, callback_data='fully_auto swing select buy amount x')
     
-    if wallet_count <= 3:
-      keyboard.row(*wallets[0:(wallet_count)])
+    if update_data['more_btn_index'] == 1:
+      keyboard.row(*wallets[4*(update_data['more_btn_index']-1): 4*(update_data['more_btn_index']-1) + 3], more_wallet_btn)
     else:
-      keyboard.row(*wallets[0:3], more_wallet_btn)
+      for index in range(update_data['more_btn_index'] - 1):
+        keyboard.row(*wallets[4*index: 4 * index + 4])
+      last_index = update_data['more_btn_index'] -1
+      if 4 * (last_index + 1) <= wallet_count:
+        keyboard.row(*wallets[4 * last_index: 4 * last_index + 3], more_wallet_btn)
+      else:
+        keyboard.row(*wallets[4 * last_index: wallet_count])
+        
     keyboard.row(amount_title, *buys[0:buy_count], buy_x)
     keyboard.row(status_btn)
     keyboard.row(back)
     return keyboard
 
+def handle_more_btn(bot, message):
+    x_value_list['more_btn_index'] += 1
+    keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 def handle_start(bot, message):
 
@@ -70,7 +83,7 @@ def handle_start(bot, message):
 *🪁 Swing Trading* >> Auto Mode
 Select Criterias for Auto Trading.
     '''
-
+    x_value_list['more_btn_index'] = 1
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
     #bot.delete_message(chat_id = message.chat.id, message_id = message.message_id, timeout = 0 )

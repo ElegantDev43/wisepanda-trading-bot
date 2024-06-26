@@ -7,7 +7,7 @@ import threading
 chain_buy_amounts = [10]
 chain_slippages = [50]
 
-x_value_list = {"buy-amount": 0, "slippage": 0}
+x_value_list = {"buy-amount": 0, "slippage": 0, 'more_btn_index':1}
 
 index_list = {'wallet': 100, 'buy_amount': 100, 'slippage': 100}
 
@@ -44,7 +44,7 @@ def handle_start(bot, message):
 
 Enter a token symbol or address to buy.
     '''
-
+    x_value_list['more_btn_index'] = 1
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_token(bot, next_message))
@@ -58,7 +58,7 @@ def get_keyboard(update_data, chat_id, index_data):
     keyboard = types.InlineKeyboardMarkup()
 
     wallets = []
-    more_wallet_btn = types.InlineKeyboardButton('🔽', callback_data='show more wallets')
+    more_wallet_btn = types.InlineKeyboardButton('🔽', callback_data='swing manual show more wallets')
     chain_wallets = main_api.get_wallets(chat_id)
     wallet_count = len(chain_wallets)
     for index in range(wallet_count):
@@ -119,12 +119,17 @@ def get_keyboard(update_data, chat_id, index_data):
         '✔️ Buy', callback_data='manual swing make buy order')
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
-    if wallet_count <= 3:
-      keyboard.row(*wallets[0:(wallet_count)])
+    
+    if update_data['more_btn_index'] == 1:
+      keyboard.row(*wallets[4*(update_data['more_btn_index']-1): 4*(update_data['more_btn_index']-1) + 3], more_wallet_btn)
     else:
-      keyboard.row(*wallets[0:3], more_wallet_btn)
-
-    keyboard.row(amount_title, *buys[0:buy_count],buy_x)
+      for index in range(update_data['more_btn_index'] - 1):
+        keyboard.row(*wallets[4*index: 4 * index + 4])
+      last_index = update_data['more_btn_index'] -1
+      if 4 * (last_index + 1) <= wallet_count:
+        keyboard.row(*wallets[4 * last_index: 4 * last_index + 3], more_wallet_btn)
+      else:
+        keyboard.row(*wallets[4 * last_index: wallet_count])
 
     current_chain_index = main_api.get_chain(chat_id)
     chains = main_api.get_chains()
@@ -256,6 +261,13 @@ Enter the slippage to set:
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
 
+def handle_more_btn(bot, message):
+    x_value_list['more_btn_index'] += 1
+    keyboard = get_keyboard(x_value_list,
+                            message.chat.id, index_list)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+    
 def handle_input_value(bot, message, item):
     if item == "Buy Amount":
         buy_amount_x = float(message.text)

@@ -24,6 +24,7 @@ from solana.rpc.websocket_api import SolanaWsClientProtocol
 from solders.rpc.responses import RpcLogsResponse, SubscriptionResult, LogsNotification, GetTransactionResp # type: ignore
 from solders.signature import Signature # type: ignore
 from solders.transaction_status import UiPartiallyDecodedInstruction, ParsedInstruction # type: ignore
+from src.engine.chain.solana.token import is_valid, check_liveness, get_market_data, get_metadata
 
 # Raydium Liquidity Pool V4
 RaydiumLPV4 = "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8"
@@ -206,6 +207,10 @@ def print_table(tokens: Tuple[Pubkey, Pubkey, Pubkey]) -> None:
   token_mc = market_data['market_capital']
   
   print('Raydium Launch', token, token_symbol, token_mc)
+  print('Is valid', is_valid(token))
+  print('Liveness', check_liveness(token))
+  print('Market', get_market_data(token))
+  print('MetaData', get_metadata(token))
   
   import time
   from threading import Thread

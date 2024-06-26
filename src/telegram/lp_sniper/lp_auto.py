@@ -36,6 +36,7 @@ def initialize_x_value():
 
 def handle_start(bot, message):
    # user_model.create_user_by_telegram(message.chat.id)
+    x_value_list['more_btn_index'] = 1
     text = global_text
     keyboard = get_keyboard(x_value_list,
                             message.chat.id, index_list)
