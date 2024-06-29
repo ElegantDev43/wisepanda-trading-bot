@@ -20,7 +20,8 @@ class User(Base):
   limit_orders = Column(JSON)
   dca_orders = Column(JSON)
   auto_order = Column(JSON)
-
+  user_feature_values = Column(JSON)
+  
 def initialize():
   Base.metadata.create_all(engine)
 
@@ -35,6 +36,38 @@ def add(user_id):
   wallets = []
   auto_sniper = []
   auto_order = []
+  user_feature_values = {
+        'token_sniper_auto':{
+          'wallet_row':1,
+          'wallet':0,
+          'amount':-999,
+          'slippage':-999,
+          'stop-loss':0,
+          'min_market_cap':0,
+          'max_market_cap':0,
+          'chain_auto_sell_params':[]
+        },
+        'token_sniper_manual':{
+          'wallet_row':1,
+          'wallet':0,
+          'amount':0,
+          'slippage':0,
+          'stop-loss':0,
+          'chain_auto_sell_params':[]
+        },
+        'buyer':{
+          'order_name':0,
+          'token':'',
+          'wallet_row':1,
+          'wallet':0,
+          'amount':-999,
+          'slippage':-999,
+          'stop-loss':0,
+          'max_market_capital':0,
+          'interval':0,
+          'count':0
+        }
+  }
   for _ in range(10):
     wallets.append([])
     auto_sniper.append({
@@ -78,7 +111,8 @@ def add(user_id):
     lp_snipers=[],
     limit_orders=[],
     dca_orders=[],
-    auto_order=auto_order
+    auto_order=auto_order,
+    user_feature_values=user_feature_values
   )
   session.add(user)
   session.commit()
@@ -111,5 +145,7 @@ def set(user_id, key, value):
     user.dca_orders = value
   elif key == 'auto_order':
     user.auto_order = value
+  elif key == 'user_feature_values':
+    user.user_feature_values = value
   session.commit()
   session.close()

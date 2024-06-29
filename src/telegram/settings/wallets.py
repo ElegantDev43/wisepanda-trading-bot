@@ -42,8 +42,7 @@ Your currently added {wallet_count} wallets:
     remove_wallet = types.InlineKeyboardButton(
         text='Remove Wallet', callback_data='remove_wallet')
     back = types.InlineKeyboardButton('🔙 Back', callback_data='settings')
-    keyboard.row(create_wallet)
-    keyboard.row(import_wallet)
+    keyboard.row(create_wallet, import_wallet)
     keyboard.row(remove_wallet)
     keyboard.row(back)
 
@@ -80,7 +79,7 @@ def handle_import_wallet(bot, message):
     chains = main_api.get_chains()
     current_chain_index = main_api.get_chain(message.chat.id)
     wallets = main_api.get_wallets(message.chat.id)
-    if len(wallets) == 5:
+    if len(wallets) == 100:
         bot.send_message(chat_id=message.chat.id,
                          text='Exceed wallets limit of 5')
         return

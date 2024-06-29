@@ -21,7 +21,8 @@ trading efficiency and returns.
       text="🎮 Auto Mode", callback_data=f"lp sniper select auto mode")
     paste_mode_btn = types.InlineKeyboardButton(
       text="🤏 Manual Mode", callback_data=f"lp sniper select manual mode")
-    
+    orders = types.InlineKeyboardButton(
+        '⏳ LP Snipers', callback_data='manage-lp-snipers')
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
     
