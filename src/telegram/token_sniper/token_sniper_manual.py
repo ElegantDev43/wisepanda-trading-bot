@@ -318,13 +318,32 @@ Enter the amount to sell:
     
 def handle_auto_sell_inputs(bot, message, index):
     current_keyboard['chain_auto_sell_params'][index]['amount'] = int(message.text)
-    text = '''
- *🎯 Token Sniper* >> Manual Mode
+    chain_index = main_api.get_chain(message.chat.id)
+    chains = main_api.get_chains()
+    current_chain = chains[chain_index]
+    token = current_keyboard['token']
+    token_data = main_api.get_token_market_data(message.chat.id, token)
+    meta_data = main_api.get_token_metadata(message.chat.id, token)
+    token_price = format_number(token_data['price'])
+    token_liquidity = format_number(token_data['liquidity'])
+    token_market_cap = format_number(token_data['market_capital'])
+    text = f'''
+    *🎯 Token Sniper* >> Manual Mode
 
-Set your parameters for auto token snipping.
-    '''
-    feature_api.update_user_feature_values(message.chat.id, 'token_sniper_manual', current_keyboard)
+Buy your tokens here.
+
+*{meta_data['name']}  (🔗{current_chain})  *
+{token}
+
+💲 *Price:* {token_price}$
+💧 *Liquidity:* {token_liquidity}$
+📊 *Market Cap:* {token_market_cap}$
+
+[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
+'''
+
     keyboard = get_keyboard(message.chat.id, current_keyboard)
+    feature_api.update_user_feature_values(message.chat.id, 'token_sniper_manual', current_keyboard)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
     
@@ -339,13 +358,32 @@ Enter the profit to get in sell:
     
 def handle_auto_profit_inputs(bot, message, index):
     current_keyboard['chain_auto_sell_params'][index]['profit'] = int(message.text)
-    text = '''
- *🎯 Token Sniper* >> Manual Mode
+    chain_index = main_api.get_chain(message.chat.id)
+    chains = main_api.get_chains()
+    current_chain = chains[chain_index]
+    token = current_keyboard['token']
+    token_data = main_api.get_token_market_data(message.chat.id, token)
+    meta_data = main_api.get_token_metadata(message.chat.id, token)
+    token_price = format_number(token_data['price'])
+    token_liquidity = format_number(token_data['liquidity'])
+    token_market_cap = format_number(token_data['market_capital'])
+    text = f'''
+    *🎯 Token Sniper* >> Manual Mode
 
-Set your parameters for auto token snipping.
-    '''
-    feature_api.update_user_feature_values(message.chat.id, 'token_sniper_manual', current_keyboard)
+Buy your tokens here.
+
+*{meta_data['name']}  (🔗{current_chain})  *
+{token}
+
+💲 *Price:* {token_price}$
+💧 *Liquidity:* {token_liquidity}$
+📊 *Market Cap:* {token_market_cap}$
+
+[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
+'''
+
     keyboard = get_keyboard(message.chat.id, current_keyboard)
+    feature_api.update_user_feature_values(message.chat.id, 'token_sniper_manual', current_keyboard)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
     
@@ -353,3 +391,4 @@ def handle_make_order(bot, message):
   wallets = main_api.get_wallets(message.chat.id)
   buy_wallet = wallets[current_keyboard['wallet']]['id']
   main_api.add_token_sniper(message.chat.id, current_keyboard['token'], current_keyboard['amount'],current_keyboard['slippage'], buy_wallet, current_keyboard['chain_auto_sell_params'], current_keyboard['stop-loss'])
+  bot.send_message(text = "successfully registered sniper")

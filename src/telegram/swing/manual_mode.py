@@ -121,7 +121,7 @@ def handle_input_token(bot, message):
       bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
     else:
-        if main_api.check_token_liveness(message.chat.id, token):
+        #if main_api.check_token_liveness(message.chat.id, token):
           token_data = main_api.get_token_market_data(message.chat.id, token)
           meta_data = main_api.get_token_metadata(message.chat.id, token)
           token_price = format_number(token_data['price'])

@@ -165,7 +165,7 @@ def handle_input_token(bot, message):
       bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
     else:
-        if main_api.check_token_liveness(message.chat.id, token):
+        #if main_api.check_token_liveness(message.chat.id, token):
           token_data = main_api.get_token_market_data(message.chat.id, token)
           meta_data = main_api.get_token_metadata(message.chat.id, token)
           token_price = format_number(token_data['price'])
@@ -347,6 +347,6 @@ View on SolScan: (https://solscan.io/tx/{position['transaction_id']})'''
         bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Order.')
     elif current_keyboard['order_name'] == 2:
-        main_api.add_dca_buy(message.chat.id, current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet,  current_keyboard['interval'], current_keyboard['duration'])
+        main_api.add_dca_buy(message.chat.id, current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet,  current_keyboard['interval'], current_keyboard['count'])
         bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Order.')

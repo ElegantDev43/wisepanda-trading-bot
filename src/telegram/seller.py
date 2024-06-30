@@ -161,7 +161,7 @@ def get_keyboard(chat_id, keyboard_data):
 
 def handle_select_position(bot, message, index):
     chain_positions = main_api.get_positions(message.chat.id)
-
+    current_keyboard['wallet'] = chain_positions[index]['id']
     current_keyboard['token'] = chain_positions[index]['token']
     current_keyboard['wallet'] = chain_positions[index]['wallet_id']
     feature_api.update_user_feature_values(message.chat.id, 'seller', current_keyboard)
@@ -335,20 +335,19 @@ def handle_dca_order(bot, message):
 def handle_make_order(bot, message):
   
     wallets = main_api.get_wallets(message.chat.id)
-    buy_wallet = wallets[current_keyboard['wallet']]['id']
     buy_amount = int(current_keyboard['amount'])
     if current_keyboard['order_name'] == 0:
-        position = main_api.market_buy(message.chat.id, current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet, False)
+        position = main_api.market_buy(message.chat.id, current_keyboard['wallet'], buy_amount, current_keyboard['slippage'])
         result_text = f'''Successfully confirmed Buy Transaction.
 Transaction ID: {position['transaction_id']}
 View on SolScan: (https://solscan.io/tx/{position['transaction_id']})'''
         bot.send_message(chat_id=message.chat.id,
                      text=result_text)
     elif current_keyboard['order_name'] == 1:
-        main_api.add_limit_buy(message.chat.id, current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet, current_keyboard['max_market_capital'])
+        main_api.add_limit_sell(message.chat.id, current_keyboard['wallet'], buy_amount, current_keyboard['slippage'],current_keyboard['profit'])
         bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Order.')
     elif current_keyboard['order_name'] == 2:
-        main_api.add_dca_buy(message.chat.id, current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet,  current_keyboard['interval'], current_keyboard['duration'])
+        main_api.add_dca_buy(message.chat.id, current_keyboard['wallet'], buy_amount, current_keyboard['slippage'],  current_keyboard['interval'], current_keyboard['count'])
         bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Order.')

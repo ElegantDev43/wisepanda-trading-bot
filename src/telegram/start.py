@@ -7,11 +7,13 @@ def handle_start(bot, message):
       main_api.add_user(message.chat.id)
 
     text = '''
-*Welcome to the Panda Bot!*
+*WisePanda Bot*
 
 We’re excited to present a revolutionary trading bot designed specifically for the growing popoularity.
-With Panda Bot, you can trade any token instantly, taking advantage of market opportunities the moment they appear.
-    
+
+*To get started*
+❗ Add and fund your wallet first.
+Use the buttons below to access our features.
     '''
 
     keyboard = types.InlineKeyboardMarkup()
@@ -53,8 +55,8 @@ With Panda Bot, you can trade any token instantly, taking advantage of market op
     keyboard.row(copy_trading, anom_trading)
     keyboard.row(buyer, seller)
     keyboard.row(limit_order, dca_order)
-    keyboard.row(referral, weekly)
     keyboard.row(bridge, wallet)
+    keyboard.row(referral, weekly)
     keyboard.row(bots,  settings)
     keyboard.row(help_doc, official_chat)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
