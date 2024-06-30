@@ -278,7 +278,7 @@ def handle_sniper_status(bot, message):
       auto_sniper['token']['active'] = False
       bot.send_message(chat_id=message.chat.id,
                      text='Successfully stopped Sniper')
-  elif auto_sniper['token']['active'] == False:
+  if auto_sniper['token']['active'] == False:
       buy_amount = int(current_keyboard['amount'])
       new_sniper = {
         'token': {
