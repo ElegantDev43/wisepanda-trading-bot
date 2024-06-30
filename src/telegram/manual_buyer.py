@@ -334,7 +334,7 @@ def handle_make_order(bot, message):
   
     wallets = main_api.get_wallets(message.chat.id)
     buy_wallet = wallets[current_keyboard['wallet']]['id']
-    buy_amount = int(current_keyboard['amount'] * 1_000_000_000)
+    buy_amount = int(current_keyboard['amount'])
     if current_keyboard['order_name'] == 0:
         position = main_api.market_buy(message.chat.id, current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet, False)
         result_text = f'''Successfully confirmed Buy Transaction.

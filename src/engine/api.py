@@ -110,7 +110,7 @@ def get_token_snipers(user_id):
   chain = get_chain(user_id)
   return database.get_token_snipers(user_id, chain)
 
-def add_token_sniper(user_id, token, amount, slippage, wallet_id, auto_sell):
+def add_token_sniper(user_id, token, amount, slippage, wallet_id, auto_sell, stop_loss):
   chain = get_chain(user_id)
   token_sniper = {
     'id': time.time(),
@@ -120,7 +120,8 @@ def add_token_sniper(user_id, token, amount, slippage, wallet_id, auto_sell):
     'amount': amount,
     'slippage': slippage,
     'wallet_id': wallet_id,
-    'auto_sell': auto_sell
+    'auto_sell': auto_sell,
+    'stop_loss': stop_loss
   }
   database.add_token_sniper(user_id, token_sniper)
   Thread(target=token_sniper_engine.start, args=(user_id, token_sniper['id'])).start()
@@ -256,3 +257,9 @@ def stop_auto_swing(user_id):
 
 def get_price_chart(token):
   return swing_engine.getTokenImage(token)
+
+def get_auto_swing_status(user_id):
+  return database.get_auto_swing_status(user_id)
+
+def set_auto_swing_status(user_id, value):
+  return database.set_auto_swing_status(user_id, value)

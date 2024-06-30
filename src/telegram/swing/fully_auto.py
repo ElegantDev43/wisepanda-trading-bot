@@ -1,170 +1,195 @@
 from telebot import types
+
 from src.engine import api as main_api
-
-chain_buy_amounts = [1]
-
-from src.database.swing import Htokens as HTokens_model
+from src.telegram import user_manage as feature_api
 
 
-x_value_list = {"buy-amount": 0, 'more_btn_index':1}
+current_keyboard = {}
 
-index_list = {'wallet': 100, 'buy_amount': 100}
 
-result = {'wallet': 0, 'buy_amount': 0, 'status':0}
+def handle_start(bot, message):
+   # user_model.create_user_by_telegram(message.chat.id)
+    text = '''
+*🪁 Swing Trading* >> Auto Mode
 
-def get_keyboard(update_data, chat_id, index_data):
+Automatically perform swing trading.
+    '''
+    feature_api.initialize_values(message.chat.id, 'swing_auto')
+    keyboard_data = feature_api.get_user_feature_values(message.chat.id, 'swing_auto')
+    current_keyboard.update(keyboard_data)
+    keyboard = get_keyboard(message.chat.id, current_keyboard)
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                    reply_markup=keyboard, disable_web_page_preview=True)
 
+def get_keyboard(chat_id, keyboard_data):
     keyboard = types.InlineKeyboardMarkup()
-
     wallets = []
-
     chain_wallets = main_api.get_wallets(chat_id)
     wallet_count = len(chain_wallets)
     for index in range(wallet_count):
-        caption = f'{"🟢" if index == index_data['wallet'] else ""} W{
+        caption = f'{"🟢" if index == keyboard_data['wallet'] else ""} W{
             index + 1}'
         button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"fully_auto swing select buy wallet {index}")
+            text=caption, callback_data=f"swing_auto select buy wallet {index}")
         wallets.append(button)
-    more_wallet_btn = types.InlineKeyboardButton('🔽', callback_data='swing auto show more wallets')
-    buys = []
-    buy_count = len(chain_buy_amounts)
-    amount_title = types.InlineKeyboardButton(
-        'Amount:', callback_data='set title')
-    for index in range(buy_count):
-        if index_data['buy_amount'] == 100:
-            caption = f'{chain_buy_amounts[index]} SOL'
-        else:
-            caption = f'{"🟢" if index == index_data['buy_amount'] else ""} {
-                chain_buy_amounts[index]} SOL'
-        button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"fully_auto swing select buy amount {index}")
-        buys.append(button)
+    more_wallet_btn = types.InlineKeyboardButton('🔽', callback_data='swing_auto show more wallets')
 
-    if result['status'] == 0:
-      status_caption = 'Start'
+    buy_amount = types.InlineKeyboardButton(
+        text="🟢 1 SOL" if keyboard_data['amount'] == 10**9 else "1 SOL", callback_data='swing_auto amount default')
+    if keyboard_data['amount'] == -999:
+      caption = 'X SOL ✏️'
+    elif keyboard_data['amount'] == 10**9:
+      caption = 'X SOL ✏️'
     else:
-      status_caption = 'Stop'
-    status_btn = types.InlineKeyboardButton(text=status_caption, callback_data='handle swing auto mode status')
-    back = types.InlineKeyboardButton('🔙 Back', callback_data='swing')
-    if update_data['buy-amount'] == 0:
-        caption = "X SOL"
+      caption = f'''🟢 {float(keyboard_data['amount'] / (10 ** 9))} SOL'''
+    buy_amount_x = types.InlineKeyboardButton(
+        text=caption, callback_data='swing_auto amount x')
+
+    slippage = types.InlineKeyboardButton(
+        text="🟢 Auto Slippage" if keyboard_data['slippage'] == 50 else "Auto Slippage", callback_data='swing_auto slippage default')
+    if keyboard_data['slippage'] == -999:
+      caption = 'X Slippage ✏️'
+    elif keyboard_data['slippage'] == 50:
+      caption = 'X Slippage ✏️'
     else:
-        caption = f"🟢 {update_data['buy-amount']} SOL"
-    buy_x = types.InlineKeyboardButton(
-        text=caption, callback_data='fully_auto swing select buy amount x')
-    
-    if update_data['more_btn_index'] == 1:
-      keyboard.row(*wallets[4*(update_data['more_btn_index']-1): 4*(update_data['more_btn_index']-1) + 3], more_wallet_btn)
+      caption = f'''🟢 {keyboard_data['slippage']}% Slippage'''
+    slippage_x = types.InlineKeyboardButton(
+        text=caption, callback_data='swing_auto slippage x')
+
+    if keyboard_data['market_capital'] == 0:
+      caption = "✏️ Market Capital: _"
     else:
-      for index in range(update_data['more_btn_index'] - 1):
+      caption = f"✏️ Market Capital: {keyboard_data['market_capital']}"
+    max_market_cap = types.InlineKeyboardButton(
+          text=caption, callback_data='swing_auto market_capital')
+
+
+    if keyboard_data['stop-loss'] == 0:
+      caption = "✏️ Stop Loss: _"
+    else:
+      caption = f"✏️ Stop Loss: {keyboard_data['stop-loss']}%"
+    stop_loss_x = types.InlineKeyboardButton(
+          text=caption, callback_data='swing_auto stop-loss')
+
+    if keyboard_data['take-profit'] == 0:
+      caption = "✏️ Take Profit: _"
+    else:
+      caption = f"✏️ Take Profit: {keyboard_data['take-profit']}%"
+    take_profit = types.InlineKeyboardButton(
+          text=caption, callback_data='swing_auto take-profit')
+
+
+    if main_api.get_auto_swing_status(chat_id) == 0:
+      caption = 'Start'
+    elif main_api.get_auto_swing_status(chat_id) == 1:
+      caption = 'Stop'
+    create_order = types.InlineKeyboardButton(text = caption, callback_data='swing_auto start trading')
+    back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
+    close = types.InlineKeyboardButton('❌ Close', callback_data='close')
+
+    if keyboard_data['wallet_row'] == 1:
+      keyboard.row(*wallets[4*(keyboard_data['wallet_row']-1): 4*(keyboard_data['wallet_row']-1) + 3], more_wallet_btn)
+    else:
+      for index in range(keyboard_data['wallet_row'] - 1):
         keyboard.row(*wallets[4*index: 4 * index + 4])
-      last_index = update_data['more_btn_index'] -1
+      last_index = keyboard_data['wallet_row'] -1
       if 4 * (last_index + 1) <= wallet_count:
         keyboard.row(*wallets[4 * last_index: 4 * last_index + 3], more_wallet_btn)
       else:
         keyboard.row(*wallets[4 * last_index: wallet_count])
-        
-    keyboard.row(amount_title, *buys[0:buy_count], buy_x)
-    keyboard.row(status_btn)
-    keyboard.row(back)
+
+    keyboard.row(buy_amount, buy_amount_x)
+    keyboard.row(slippage, slippage_x)
+    keyboard.row(take_profit, stop_loss_x)
+    keyboard.row(max_market_cap)
+    keyboard.row(create_order)
+    keyboard.row(back, close)
+
     return keyboard
 
-def handle_more_btn(bot, message):
-    x_value_list['more_btn_index'] += 1
-    keyboard = get_keyboard(x_value_list,
-                            message.chat.id, index_list)
-    bot.edit_message_reply_markup(
-        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
-def handle_start(bot, message):
-
-    text = '''
-*🪁 Swing Trading* >> Auto Mode
-Select Criterias for Auto Trading.
-    '''
-    x_value_list['more_btn_index'] = 1
-    keyboard = get_keyboard(x_value_list,
-                            message.chat.id, index_list)
-    #bot.delete_message(chat_id = message.chat.id, message_id = message.message_id, timeout = 0 )
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
-                     reply_markup=keyboard, disable_web_page_preview=True)
-    
-def select_buy_wallet(bot, message, index):
-   # user = user_model.get_user_by_telegram(message.chat.id)
-   # chain = user.chain
-    #  wallets = user.wallets[chain]'
-    index_list['wallet'] = int(index)
-    result['wallet'] = int(index)
-
-    keyboard = get_keyboard(x_value_list,
-                            message.chat.id, index_list)
+def handle_default_values(bot, message, item):
+    current_keyboard[item] = 10**9
+    #print(current_keyboard)
+    feature_api.update_user_feature_values(message.chat.id, 'swing_auto', current_keyboard)
+    keyboard = get_keyboard(message.chat.id, current_keyboard)
 
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
-
-def select_buy_amount(bot, message, index):
-   # user = user_model.get_user_by_telegram(message.chat.id)
-   # chain = user.chain
-    #  wallets = user.wallets[chain]
-    index_list['buy_amount'] = int(index)
-    result['buy_amount'] = chain_buy_amounts[int(index)]
-    x_value_list['buy-amount'] = 0
-
-
-    keyboard = get_keyboard(x_value_list,
-                            message.chat.id, index_list)
-
-    bot.edit_message_reply_markup(
-        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
-    
-def handle_buy_amount_x(bot, message):
-    text = '''
-*Swing Trading(Auto Mode) > 💰 X*
-Enter the amount to set:
+def handle_x_values(bot, message, item):
+    text = f'''
+🪁 Swing Trading >> Auto Mode
+Enter the {item} to set:
 '''
-    item = "Buy Amount"
-    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
+    bot.send_message(chat_id=message.chat.id, text=text)
     bot.register_next_step_handler_by_chat_id(
         chat_id=message.chat.id, callback=lambda next_message: handle_input_value(bot, next_message, item))
-    
+
 def handle_input_value(bot, message, item):
-    bot.delete_message(chat_id=message.chat.id,
-                       message_id=message.message_id)
-    if item == "Buy Amount":
-        buy_amount_x = float(message.text)
-        x_value_list['buy-amount'] = buy_amount_x
-        result['buy_amount'] = buy_amount_x
-        index_list['buy_amount'] = 100
-        
+    if item == 'amount':
+      current_keyboard[item] = float(message.text) * 10 ** 9
+    elif item == 'slippage':
+      current_keyboard[item] = int(message.text)
+    elif item == 'stop-loss':
+      current_keyboard[item] = int(message.text)
+    #print(current_keyboard)
+    else:
+      current_keyboard[item] = int(message.text)
+
     text = '''
 *🪁 Swing Trading* >> Auto Mode
-Select Criterias for Auto Trading.
+
+Automatically perform swing trading.
     '''
-    keyboard = get_keyboard(x_value_list,
-                            message.chat.id, index_list)
+    feature_api.update_user_feature_values(message.chat.id, 'swing_auto', current_keyboard)
+    keyboard = get_keyboard(message.chat.id, current_keyboard)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
-    
-def handle_trading_status(bot, message):
-  wallets = main_api.get_wallets(message.chat.id)
-  buy_wallet = wallets[result['wallet']]['id']
-  if result['status'] == 1:
-    result['status'] = 0
-    bot.send_message(chat_id=message.chat.id,
-                     text='Auto Swing Trading Stopped.')
-    main_api.stop_auto_swing(message.chat.id)
-  elif result['status']==0:
-    result['status'] = 1
-    bot.send_message(chat_id=message.chat.id,
-                     text='Auto Swing Trading Started.')
-    main_api.start_auto_swing(message.chat.id, result['buy_amount'], buy_wallet)
-  keyboard = get_keyboard(x_value_list,
-                            message.chat.id, index_list)
-  bot.edit_message_reply_markup(
+
+def handle_confirm_auto_slippage(bot, message):
+  text = '''
+      *🪁 Swing Trading* >> Auto Mode
+ Do you confirm maximum of 50% slippage as Auto Slippage?.
+'''
+  keyboard = types.InlineKeyboardMarkup()
+  cancel = types.InlineKeyboardButton('Cancel', callback_data='swing_auto slippage x')
+  confirm = types.InlineKeyboardButton('Confirm', callback_data=f'swing_auto slippage confirm')
+  keyboard.row(cancel, confirm)
+  bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                    reply_markup=keyboard, disable_web_page_preview=True)
+
+def handle_default_slippage(bot, message):
+    current_keyboard['slippage'] = 50
+    keyboard = get_keyboard(message.chat.id, current_keyboard)
+    text = '''
+*🪁 Swing Trading* >> Auto Mode
+
+Automatically perform swing trading.
+    '''
+    feature_api.update_user_feature_values(message.chat.id, 'swing_auto', current_keyboard)
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                     reply_markup=keyboard, disable_web_page_preview=True)
+
+def select_wallet(bot, message, index):
+    current_keyboard['wallet'] = int(index)
+    feature_api.update_user_feature_values(message.chat.id, 'swing_auto', current_keyboard)
+    keyboard = get_keyboard(message.chat.id, current_keyboard)
+    bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
-def start_trading(bot, message):
-  result['status'] = 1
-  print(result['wallet'], result['buy_amount'], result['status'])
+def handle_show_more_wallets(bot, message):
+    current_keyboard['wallet_row'] += 1
+    feature_api.update_user_feature_values(message.chat.id, 'swing_auto', current_keyboard)
+    keyboard = get_keyboard(message.chat.id, current_keyboard)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+
+def handle_trading_tatus(bot, message):
+    if main_api.get_auto_swing_status(message.chat.id) == 0:
+      main_api.set_auto_swing_status(message.chat.id, 1)
+    elif main_api.get_auto_swing_status(message.chat.id) == 1:
+      main_api.set_auto_swing_status(message.chat.id, 0)
+    keyboard = get_keyboard(message.chat.id, current_keyboard)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)

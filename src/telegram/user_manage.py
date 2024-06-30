@@ -13,10 +13,11 @@ user = {
     'chain_auto_sell_params':[]
   },
   "token_sniper_manual":{
+    'token':'',
     'wallet_row':1,
     'wallet':0,
-    'amount':0,
-    'slippage':0,
+    'amount':-999,
+    'slippage':-999,
     'stop-loss':0,
     'chain_auto_sell_params':[]
   },
@@ -31,6 +32,36 @@ user = {
     'max_market_capital':0,
     'interval':0,
     'count':0
+  },
+  "seller":{
+    'order_name':0,
+    'token':'',
+    'wallet_row':1,
+    'wallet':0,
+    'amount':-999,
+    'slippage':-999,
+    'profit':0,
+    'interval':0,
+    'count':0
+  },
+  "swing_auto":{
+    'order_name':0,
+    'token':'',
+    'wallet_row':1,
+    'wallet':0,
+    'amount':-999,
+    'slippage':-999,
+    'take-profit':0,
+    'stop-loss':0,
+    'market_capital':0
+  },
+  "swing_manual":{
+    'token':'',
+    'wallet_row':1,
+    'wallet':0,
+    'amount':-999,
+    'slippage':-999,
+    'stop-loss':0
   }
 }
 

@@ -21,7 +21,7 @@ class User(Base):
   dca_orders = Column(JSON)
   auto_order = Column(JSON)
   user_feature_values = Column(JSON)
-  
+  auto_swing_status = Column(Integer)
 def initialize():
   Base.metadata.create_all(engine)
 
@@ -48,6 +48,7 @@ def add(user_id):
           'chain_auto_sell_params':[]
         },
         'token_sniper_manual':{
+          'token':'',
           'wallet_row':1,
           'wallet':0,
           'amount':0,
@@ -66,6 +67,34 @@ def add(user_id):
           'max_market_capital':0,
           'interval':0,
           'count':0
+        },
+        "seller":{
+          'order_name':0,
+          'token':'',
+          'wallet_row':1,
+          'wallet':0,
+          'amount':-999,
+          'slippage':-999,
+          'profit':0,
+          'interval':0,
+          'count':0
+        },
+        'swing_auto':{
+          'wallet_row':1,
+          'wallet':0,
+          'amount':-999,
+          'slippage':-999,
+          'take-profit':0,
+          'stop-loss':0,
+          'market_capital':0
+        },
+        "swing_manual":{
+          'token':'',
+          'wallet_row':1,
+          'wallet':0,
+          'amount':-999,
+          'slippage':-999,
+          'stop-loss':0
         }
   }
   for _ in range(10):
@@ -79,8 +108,7 @@ def add(user_id):
         'auto_sell': [],
         'min_market_capital': 1000,
         'max_market_capital': 10000,
-        'limit': 100,
-        'count': 0,
+        'stop_loss':0
       },
       'lp': {
         'active': False,
@@ -112,7 +140,8 @@ def add(user_id):
     limit_orders=[],
     dca_orders=[],
     auto_order=auto_order,
-    user_feature_values=user_feature_values
+    user_feature_values=user_feature_values,
+    auto_swing_status=0
   )
   session.add(user)
   session.commit()
@@ -147,5 +176,7 @@ def set(user_id, key, value):
     user.auto_order = value
   elif key == 'user_feature_values':
     user.user_feature_values = value
+  elif key == 'auto_swing_status':
+    user.auto_swing_status = value
   session.commit()
   session.close()

@@ -41,6 +41,8 @@ With Panda Bot, you can trade any token instantly, taking advantage of market op
         '📋 Copy Trading', callback_data='copytrades')
     anom_trading = types.InlineKeyboardButton(
         '🕵️‍♂️ Anonymous Trading', callback_data='anonym-trade')
+    wallet = types.InlineKeyboardButton(
+        '💳 Wallets', callback_data='wallets')
     help_doc = types.InlineKeyboardButton(
         '📓 Help', url=f'https://t.me/wisepandaofficial')
     official_chat = types.InlineKeyboardButton(
@@ -51,7 +53,8 @@ With Panda Bot, you can trade any token instantly, taking advantage of market op
     keyboard.row(copy_trading, anom_trading)
     keyboard.row(buyer, seller)
     keyboard.row(limit_order, dca_order)
-    keyboard.row(bridge, referral, weekly)
+    keyboard.row(referral, weekly)
+    keyboard.row(bridge, wallet)
     keyboard.row(bots,  settings)
     keyboard.row(help_doc, official_chat)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',

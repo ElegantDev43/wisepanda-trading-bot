@@ -4,7 +4,7 @@ from src.telegram import user_manage as feature_api
 from src.engine import api as main_api
 
 current_keyboard = {}
-
+auto_sell_status = {'status':0}
 def handle_start(bot, message):
     text = '''
  *🎯 Token Sniper* >> Auto Mode
@@ -79,21 +79,18 @@ def get_keyboard(chat_id, keyboard_data):
           text=caption, callback_data='token_sniper_auto max_market_cap')
     
     auto_sell = types.InlineKeyboardButton(
-        '🔻 Auto Sell', callback_data='sniper set auto_sell')
-    
-    auto_amount = types.InlineKeyboardButton(
-        'Sell :', callback_data='2')
-    auto_profit = types.InlineKeyboardButton(
-        'Profit:', callback_data='2')
-    auto_add_button = types.InlineKeyboardButton(
-        'Add', callback_data='sniper add auto params')
+        '🔻 Set Auto Sell', callback_data='token_sniper_auto set auto_sell')
 
+    auto_add_button = types.InlineKeyboardButton(
+        'Add Sell Stage', callback_data='token_sniper_auto add auto params')
+    auto_remove_button = types.InlineKeyboardButton(
+        'Remove Sell Stage', callback_data='token_sniper_auto remove auto params')
 
     if main_api.get_auto_sniper(chat_id)['token']['active'] ==  True:
       caption = "Stop Sniper"
     else:
       caption = "Start Sniper"
-    create_order = types.InlineKeyboardButton(text=caption, callback_data='make sniper order')
+    create_order = types.InlineKeyboardButton(text=caption, callback_data='make sniper auto order')
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
 
@@ -109,10 +106,20 @@ def get_keyboard(chat_id, keyboard_data):
         keyboard.row(*wallets[4 * last_index: wallet_count])
 
 
+
     keyboard.row(buy_amount, buy_amount_x)
     keyboard.row(slippage, slippage_x)
     keyboard.row(min_market_cap, max_market_cap)
     keyboard.row(stop_loss_x)
+    keyboard.row(auto_sell)
+    if auto_sell_status['status'] == 1:
+      keyboard.row(auto_add_button, auto_remove_button)
+      for index in range(len(keyboard_data['chain_auto_sell_params'])):
+        auto_amount = types.InlineKeyboardButton(
+          f'✏️ Sell Amount(%): {keyboard_data['chain_auto_sell_params'][index]['amount']}%' if keyboard_data['chain_auto_sell_params'][index]['amount'] != 0 else '✏️ Sell Amount(%): _', callback_data=f'token_sniper_auto auto_sell {index}')
+        auto_profit = types.InlineKeyboardButton(
+          f'✏️ Sell Profit: {keyboard_data['chain_auto_sell_params'][index]['profit']}x' if keyboard_data['chain_auto_sell_params'][index]['profit'] != 0 else '✏️ Sell Profit: _', callback_data=f'token_sniper_auto auto_profit {index}')
+        keyboard.row(auto_amount, auto_profit)
     keyboard.row(create_order)
     keyboard.row(back, close)
 
@@ -193,4 +200,107 @@ def handle_show_more_wallets(bot, message):
     feature_api.update_user_feature_values(message.chat.id, 'token_sniper_auto', current_keyboard)
     keyboard = get_keyboard(message.chat.id, current_keyboard)
     bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+    
+def handle_auto_sell_status(bot, message):
+    if auto_sell_status['status'] == 0:
+      auto_sell_status['status'] = 1
+    elif auto_sell_status['status'] == 1:
+      auto_sell_status['status'] = 0
+    keyboard = get_keyboard(message.chat.id, current_keyboard)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+
+def handle_add_auto_sell_param(bot, message):
+    new_param = {'amount':0, 'profit':0}
+    current_keyboard['chain_auto_sell_params'].append(new_param)
+    feature_api.update_user_feature_values(message.chat.id, 'token_sniper_auto', current_keyboard)
+    keyboard = get_keyboard(message.chat.id, current_keyboard)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+
+def handle_remove_auto_sell_param(bot, message):
+    length = len(current_keyboard['chain_auto_sell_params'])
+    current_keyboard['chain_auto_sell_params'].pop(length-1)
+    feature_api.update_user_feature_values(message.chat.id, 'token_sniper_auto', current_keyboard)
+    keyboard = get_keyboard(message.chat.id, current_keyboard)
+    bot.edit_message_reply_markup(
+        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+    
+def handle_auto_sell_input_values(bot, message, index):
+    text = f'''
+*🎯 Token Sniper* >> Auto Mode
+Enter the amount to sell:
+'''
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
+    bot.register_next_step_handler_by_chat_id(
+        chat_id=message.chat.id, callback=lambda next_message: handle_auto_sell_inputs(bot, next_message, int(index)))
+    
+def handle_auto_sell_inputs(bot, message, index):
+    current_keyboard['chain_auto_sell_params'][index]['amount'] = int(message.text)
+    text = '''
+ *🎯 Token Sniper* >> Auto Mode
+
+Set your parameters for auto token snipping.
+    '''
+    feature_api.update_user_feature_values(message.chat.id, 'token_sniper_auto', current_keyboard)
+    keyboard = get_keyboard(message.chat.id, current_keyboard)
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                     reply_markup=keyboard, disable_web_page_preview=True)
+    
+def handle_auto_profit_input_values(bot, message, index):
+    text = f'''
+*🎯 Token Sniper* >> Auto Mode
+Enter the profit to get in sell:
+'''
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
+    bot.register_next_step_handler_by_chat_id(
+        chat_id=message.chat.id, callback=lambda next_message: handle_auto_profit_inputs(bot, next_message, int(index)))
+    
+def handle_auto_profit_inputs(bot, message, index):
+    current_keyboard['chain_auto_sell_params'][index]['profit'] = int(message.text)
+    text = '''
+ *🎯 Token Sniper* >> Auto Mode
+
+Set your parameters for auto token snipping.
+    '''
+    feature_api.update_user_feature_values(message.chat.id, 'token_sniper_auto', current_keyboard)
+    keyboard = get_keyboard(message.chat.id, current_keyboard)
+    bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
+                     reply_markup=keyboard, disable_web_page_preview=True)
+    
+    
+def handle_sniper_status(bot, message):
+  wallets = main_api.get_wallets(message.chat.id)
+  buy_wallet = wallets[current_keyboard['wallet']]['id']
+  auto_sniper = main_api.get_auto_sniper(message.chat.id)
+  if auto_sniper['token']['active'] == True:
+      auto_sniper['token']['active'] = False
+      bot.send_message(chat_id=message.chat.id,
+                     text='Successfully stopped Sniper')
+  elif auto_sniper['token']['active'] == False:
+      buy_amount = int(current_keyboard['amount'])
+      auto_sniper = {
+        'token': {
+          'active': True,
+          'amount': buy_amount,
+          'slippage': int(current_keyboard['slippage']),
+          'wallet_id':  buy_wallet,
+          'auto_sell': current_keyboard['chain_auto_sell_params'],
+          'min_market_capital': int(current_keyboard['min_market_cap']),
+          'max_market_capital': int(current_keyboard['max_market_cap']),
+          'stop_loss':int(current_keyboard['stop-loss'])
+        },
+        'lp': {
+          'active': False,
+          'amount': 1,
+          'slippage': 50,
+          'wallet_id': 0
+        }
+      }
+      main_api.set_auto_sniper(message.chat.id, auto_sniper)
+      bot.send_message(chat_id=message.chat.id,
+                     text='Successfully Started Sniper')
+  keyboard = get_keyboard(message.chat.id, current_keyboard)
+  bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
