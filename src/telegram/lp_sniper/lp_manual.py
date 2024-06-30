@@ -41,7 +41,6 @@ def handle_start(bot, message):
    *🎯 LP Sniper* >> Manual Mode
 
 Enter a token symbol or address to snipe.
-Ex: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
     '''
     x_value_list['more_btn_index'] = 1
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')

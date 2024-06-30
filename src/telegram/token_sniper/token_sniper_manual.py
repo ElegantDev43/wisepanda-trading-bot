@@ -25,7 +25,6 @@ def handle_start(bot, message):
   *🎯 Token Sniper* >> Manual Mode
 
 Enter a token address to buy.
-Ex: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
     '''
     feature_api.initialize_values(message.chat.id, 'token_sniper_manual')
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')

@@ -24,7 +24,6 @@ def handle_start(bot, message):
 *🪁 Swing Trading* >> Manual Mode
 
 Enter a token address to buy.
-Ex: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
     '''
     feature_api.initialize_values(message.chat.id, 'swing_manual')
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')

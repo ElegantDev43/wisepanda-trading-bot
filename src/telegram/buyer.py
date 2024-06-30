@@ -64,7 +64,6 @@ def handle_buyer(bot, message):
 🛒 * Token Buy*
 
 Enter a token address to buy.
-Ex: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v
     '''
     x_value_list['more_btn_index'] = 1
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')
