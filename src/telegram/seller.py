@@ -28,6 +28,9 @@ You currently have {len(chain_positions)} positions.
 
 Select position to sell tokens.
 '''
+    feature_api.initialize_values(message.chat.id, 'seller')
+    keyboard_data = feature_api.get_user_feature_values(message.chat.id, 'seller')
+    current_keyboard.update(keyboard_data)
     keyboard = types.InlineKeyboardMarkup()
     positions = []
     chain_positions = main_api.get_positions(message.chat.id)
@@ -37,7 +40,7 @@ Select position to sell tokens.
       for item in range(len(wallets)):
         if wallets[item]['id'] == chain_positions[index]['wallet_id']:
           meta = main_api.get_token_metadata(message.chat.id, chain_positions[index]['token'])
-          caption = f'Token: {meta['symbol']}, Amount:{chain_positions[index]['amount']}, W{item}'
+          caption = f'Token: {meta['symbol']}, Amount:{chain_positions[index]['amount']}, W{item + 1}'
       button = types.InlineKeyboardButton(
             text=caption, callback_data=f"seller select position {index}")
       positions.append(button)
@@ -65,26 +68,15 @@ def get_keyboard(chat_id, keyboard_data):
     market_order = types.InlineKeyboardButton(text= market_caption, callback_data='seller market_order')
     limit_order = types.InlineKeyboardButton(text= limit_caption, callback_data='seller limit_order')
     dca_order = types.InlineKeyboardButton(text= dca_caption, callback_data='seller dca_order')
-
-    wallets = []
-    chain_wallets = main_api.get_wallets(chat_id)
-    wallet_count = len(chain_wallets)
-    for index in range(wallet_count):
-        caption = f'{"🟢" if index == keyboard_data['wallet'] else ""} W{
-            index + 1}'
-        button = types.InlineKeyboardButton(
-            text=caption, callback_data=f"seller select buy wallet {index}")
-        wallets.append(button)
-    more_wallet_btn = types.InlineKeyboardButton('🔽', callback_data='seller show more wallets')
-
+    
     buy_amount = types.InlineKeyboardButton(
-        text="🟢 1 SOL" if keyboard_data['amount'] == 10**9 else "1 SOL", callback_data='seller amount default')
+        text="🟢 100%" if keyboard_data['amount'] == 100 else "100%", callback_data='seller amount default')
     if keyboard_data['amount'] == -999:
-      caption = 'X SOL ✏️'
-    elif keyboard_data['amount'] == 10**9:
-      caption = 'X SOL ✏️'
+      caption = 'X% ✏️'
+    elif keyboard_data['amount'] == 100:
+      caption = 'X% ✏️'
     else:
-      caption = f'''🟢 {float(keyboard_data['amount'] / (10 ** 9))} SOL'''
+      caption = f'''🟢 {keyboard_data['amount']}%'''
     buy_amount_x = types.InlineKeyboardButton(
         text=caption, callback_data='seller amount x')
 
@@ -119,13 +111,6 @@ def get_keyboard(chat_id, keyboard_data):
       caption = f"✏️ Count: {keyboard_data['count']}"
     count = types.InlineKeyboardButton(
           text=caption, callback_data='seller count')
-    
-    if keyboard_data['stop-loss'] == 0:
-      caption = "✏️ Stop Loss: _"
-    else:
-      caption = f"✏️ Stop Loss: {keyboard_data['stop-loss']}%"
-    stop_loss_x = types.InlineKeyboardButton(
-          text=caption, callback_data='seller stop-loss')
 
     create_order = types.InlineKeyboardButton(
         '✔️ Buy', callback_data='seller make order')
@@ -135,20 +120,8 @@ def get_keyboard(chat_id, keyboard_data):
 
     keyboard.row(market_order, limit_order, dca_order)
     
-    if keyboard_data['wallet_row'] == 1:
-      keyboard.row(*wallets[4*(keyboard_data['wallet_row']-1): 4*(keyboard_data['wallet_row']-1) + 3], more_wallet_btn)
-    else:
-      for index in range(keyboard_data['wallet_row'] - 1):
-        keyboard.row(*wallets[4*index: 4 * index + 4])
-      last_index = keyboard_data['wallet_row'] -1
-      if 4 * (last_index + 1) <= wallet_count:
-        keyboard.row(*wallets[4 * last_index: 4 * last_index + 3], more_wallet_btn)
-      else:
-        keyboard.row(*wallets[4 * last_index: wallet_count])
-
     keyboard.row(buy_amount, buy_amount_x)
     keyboard.row(slippage, slippage_x)
-    keyboard.row(stop_loss_x)
     if keyboard_data['order_name'] == 1:
       keyboard.row(profit)
     elif keyboard_data['order_name'] == 2:
@@ -161,9 +134,8 @@ def get_keyboard(chat_id, keyboard_data):
 
 def handle_select_position(bot, message, index):
     chain_positions = main_api.get_positions(message.chat.id)
-    current_keyboard['wallet'] = chain_positions[index]['id']
-    current_keyboard['token'] = chain_positions[index]['token']
-    current_keyboard['wallet'] = chain_positions[index]['wallet_id']
+    current_keyboard['wallet'] = chain_positions[int(index)]['id']
+    current_keyboard['token'] = chain_positions[int(index)]['token']
     feature_api.update_user_feature_values(message.chat.id, 'seller', current_keyboard)
     chain_index = main_api.get_chain(message.chat.id)
     chains = main_api.get_chains()
@@ -195,7 +167,7 @@ Sell your tokens here.
                      reply_markup=keyboard, disable_web_page_preview=True)
 
 def handle_default_values(bot, message, item):
-    current_keyboard[item] = 10**9
+    current_keyboard[item] = 100
     #print(current_keyboard)
     feature_api.update_user_feature_values(message.chat.id, 'seller', current_keyboard)
     keyboard = get_keyboard(message.chat.id, current_keyboard)
@@ -214,7 +186,7 @@ Enter the {item} to set:
 
 def handle_input_value(bot, message, item):
     if item == 'amount':
-      current_keyboard[item] = float(message.text) * 10 ** 9
+      current_keyboard[item] = int(message.text)
     elif item == 'slippage':
       current_keyboard[item] = int(message.text)
     elif item == 'stop-loss':
@@ -337,10 +309,10 @@ def handle_make_order(bot, message):
     wallets = main_api.get_wallets(message.chat.id)
     buy_amount = int(current_keyboard['amount'])
     if current_keyboard['order_name'] == 0:
-        position = main_api.market_buy(message.chat.id, current_keyboard['wallet'], buy_amount, current_keyboard['slippage'])
+        tx_id, amount = main_api.market_sell(message.chat.id, current_keyboard['wallet'], buy_amount, current_keyboard['slippage'])
         result_text = f'''Successfully confirmed Buy Transaction.
-Transaction ID: {position['transaction_id']}
-View on SolScan: (https://solscan.io/tx/{position['transaction_id']})'''
+Transaction ID: {tx_id}
+View on SolScan: (https://solscan.io/tx/{tx_id})'''
         bot.send_message(chat_id=message.chat.id,
                      text=result_text)
     elif current_keyboard['order_name'] == 1:
@@ -348,6 +320,6 @@ View on SolScan: (https://solscan.io/tx/{position['transaction_id']})'''
         bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Order.')
     elif current_keyboard['order_name'] == 2:
-        main_api.add_dca_buy(message.chat.id, current_keyboard['wallet'], buy_amount, current_keyboard['slippage'],  current_keyboard['interval'], current_keyboard['count'])
+        main_api.add_dca_sell(message.chat.id, current_keyboard['wallet'], buy_amount, current_keyboard['slippage'],  current_keyboard['interval'], current_keyboard['count'])
         bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Order.')

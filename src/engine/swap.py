@@ -4,8 +4,9 @@ from src.database import api as database
 from src.engine.chain import dex as dex_engine
 from src.engine.chain import token as token_engine
 
-def buy(user_id, chain, token, amount, slippage, wallet_id, is_swing = False):
+def buy(user_id, chain, token, amount, slippage, wallet_id):
   wallet = database.get_wallet(user_id, chain, wallet_id)
+  print(wallet)
   transaction_id, amount = dex_engine.swap(chain, 'buy', token, amount, slippage, wallet)
   market_capital = token_engine.get_market_data(chain, token)['market_capital']
   position = {
@@ -15,8 +16,7 @@ def buy(user_id, chain, token, amount, slippage, wallet_id, is_swing = False):
     'wallet_id': wallet_id,
     'transaction_id': transaction_id,
     'amount': amount,
-    'market_capital': market_capital,
-    'is_swing':is_swing
+    'market_capital': market_capital
   }
   database.add_position(user_id, position)
   return position

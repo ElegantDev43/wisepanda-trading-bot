@@ -146,7 +146,7 @@ Enter the {item} to set:
     
 def handle_input_value(bot, message, item):
     if item == 'amount':
-      current_keyboard[item] = int(message.text) * 10 ** 9
+      current_keyboard[item] = float(message.text) * 10 ** 9
     elif item == 'slippage':
       current_keyboard[item] = int(message.text)
     elif item == 'stop-loss':

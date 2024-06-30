@@ -87,9 +87,9 @@ def get_token_market_data(user_id, token):
   chain = get_chain(user_id)
   return token_engine.get_market_data(chain, token)
 
-def market_buy(user_id, token, amount, slippage, wallet_id, is_swing):
+def market_buy(user_id, token, amount, slippage, wallet_id):
   chain = get_chain(user_id)
-  return swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id, is_swing)
+  return swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id)
 
 def market_sell(user_id, position_id, amount, slippage):
   return swap_engine.sell(user_id, position_id, amount, slippage)
