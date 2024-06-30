@@ -57,15 +57,16 @@ async def Control():
                 current_position.token,
                 first_data,current_position.amount,current_position.original_price,
                 current_position.original_state,current_position.buy_count,current_position.sell_count,
-                current_position.stop_count,current_position.total_count,'medium',current_position.original_trend)
+                current_position.stop_count,current_position.total_count,'medium',current_position.original_trend,
+                current_position.take_profit,current_position.stop_loss)
   
     userid = current_position.userid
     chain = current_position.chain
     token = current_position.token
     amount = current_position.amount
     wallet = current_position.wallet
-    slippage = 50
-    stop_loss = 10
+    slippage = current_position.slip_page
+    stop_loss = current_position.stop_loss
     if action == 'sell':
       amount = 100
 

@@ -40,10 +40,13 @@ async def exportTechnicalIndicators(address):
   addressType = "token"
 
   today = datetime.now()
-  two_months_before = today - relativedelta(months=2)
+  two_months_before = today - relativedelta(days=3)
   two_months_before = two_months_before.strftime("%Y-%m-%d %H:%M:%S")
 
-  timeFrom = int(time.mktime(time.strptime(startAt, '%Y-%m-%d %H:%M:%S')))
+  one_year_before = today - relativedelta(months=12)
+  one_year_before = one_year_before.strftime("%Y-%m-%d %H:%M:%S")
+
+  timeFrom = int(time.mktime(time.strptime(one_year_before, '%Y-%m-%d %H:%M:%S')))
 #  timeTo = int(time.mktime(time.strptime(endAt, '%Y-%m-%d %H:%M:%S')))
   timeTo = int(time.mktime(time.strptime(two_months_before, '%Y-%m-%d %H:%M:%S')))
 
@@ -81,16 +84,21 @@ async def exportTechnicalIndicators(address):
   dataFrame.ffill(inplace=True)
   dataFrame.bfill(inplace=True)
 
+  R_period = 2
+
+  dpo_indicator = DetrendedPriceOscillator(input_data=dataFrame,period=R_period)
+  dataFrame['dpo'] = dpo_indicator.getTiData()[['dpo'][0]]
+
   swing_indicator = SwingIndex(input_data=dataFrame)
   dataFrame['Swing'] = swing_indicator.getTiData()
 
-  rsi_indicator = RelativeStrengthIndex(input_data=dataFrame)
+  rsi_indicator = RelativeStrengthIndex(input_data=dataFrame,period=R_period)
   dataFrame['RSI'] = rsi_indicator.getTiData()
 
   sma_indicator = MovingAverage(input_data=dataFrame,period = 5)
   dataFrame['SMA_5'] = sma_indicator.getTiData()
 
-  sma_10_indicator = MovingAverage(input_data=dataFrame,period = 10)
+  sma_indicator = MovingAverage(input_data=dataFrame,period = 10)
   dataFrame['SMA_10'] = sma_indicator.getTiData()
 
   sma_indicator = MovingAverage(input_data=dataFrame,period = 20)
@@ -113,7 +121,7 @@ async def exportTechnicalIndicators(address):
 
   tsma_indicator = MovingAverage(input_data=dataFrame,ma_type='time_series')
   dataFrame['TSMA'] = tsma_indicator.getTiData()
-  
+
   tma_indicator = MovingAverage(input_data=dataFrame,ma_type='triangular')
   dataFrame['TMA'] = tma_indicator.getTiData()
 
@@ -121,24 +129,21 @@ async def exportTechnicalIndicators(address):
   dataFrame['MACD'] = macd_indicator.getTiData()[['macd'][0]]
   dataFrame['Signal'] = macd_indicator.getTiData()[['signal_line'][0]]
 
-  bb_indicator = BollingerBands(input_data=dataFrame)
+  bb_indicator = BollingerBands(input_data=dataFrame,period=R_period)
   dataFrame['bb_up'] = bb_indicator.getTiData()[['upper_band'][0]]
   dataFrame['bb_low'] = bb_indicator.getTiData()[['lower_band'][0]]
 
-  william_indicator = WilliamsR(input_data=dataFrame)
+  william_indicator = WilliamsR(input_data=dataFrame,period=R_period)
   dataFrame['william'] = william_indicator.getTiData()
 
   volume_indicator = VolumeOscillator(input_data=dataFrame)
   dataFrame['vol'] = volume_indicator.getTiData()
-  
+
   onvolume_indicator = OnBalanceVolume(input_data=dataFrame)
   dataFrame['OnVolume'] = onvolume_indicator.getTiData()
-  
+
   adl_indicator = ChandeMomentumOscillator(input_data=dataFrame)
   dataFrame['cmo'] = adl_indicator.getTiData()[['cmo'][0]]
-
-  dpo_indicator = DetrendedPriceOscillator(input_data=dataFrame)
-  dataFrame['dpo'] = dpo_indicator.getTiData()[['dpo'][0]]
 
   lri_indicator = LinearRegressionIndicator(input_data=dataFrame)
   dataFrame['lri'] = lri_indicator.getTiData()[['lri'][0]]
@@ -193,6 +198,9 @@ async def exportTechnicalIndicators(address):
   dataFrame['adx'] = dmi_data['adx']
   dataFrame['adxr'] = dmi_data['adxr']
 
+  dataFrame = dataFrame.iloc[::-1]
+  dataFrame['prev_value'] = dataFrame['close'].shift(-1)
+
   date_range = [2,5,10]
 
 
@@ -201,14 +209,13 @@ async def exportTechnicalIndicators(address):
         dataFrame['id']
     ,0,1)
 
-    # Add target variable for price direction
-    dataFrame[f'Target_{date_range[date_num]}'] = np.where(dataFrame['close'].shift(date_range[date_num]) > dataFrame['close'], -1, 1)
-    dataFrame[f'Target_{date_range[date_num]}'] = dataFrame[f'Target_{date_range[date_num]}'].shift(-date_range[date_num])
+    dataFrame[f'Target_{date_range[date_num]}'] = np.where(dataFrame['close'].shift(1) > dataFrame['close'], -1, 1)
 
+  dataFrame = dataFrame.fillna(0)
+  print("Input Data Length:",len(dataFrame))
 
-  dataFrame = dataFrame.iloc[::-1]
-
-  dataFrame = dataFrame.dropna()
+  if not os.path.exists('src/engine/swing/price_data'):
+      os.makedirs('src/engine/swing/price_data')
 
   dataFrame.to_csv(f'src/engine/swing/price_data/price_data_{address}.csv', index=False)
 
@@ -240,14 +247,14 @@ async def exportTestValues(address):
 
   today = datetime.now()
   formatted_today = today.strftime("%Y-%m-%d %H:%M:%S")
-  two_months_before = today - relativedelta(months=2)
+  two_months_before = today - relativedelta(days=3)
   two_months_before = two_months_before.strftime("%Y-%m-%d %H:%M:%S")
   print("Today is:",formatted_today)
 
   timeFrom = int(time.mktime(time.strptime(two_months_before, '%Y-%m-%d %H:%M:%S')))
   timeTo = int(time.mktime(time.strptime(formatted_today, '%Y-%m-%d %H:%M:%S')))
 
-  url = f"https://public-api.birdeye.so/defi/history_price?address={address}&address_type={addressType}&type={'1D'}&time_from={timeFrom}&time_to={timeTo}"
+  url = f"https://public-api.birdeye.so/defi/history_price?address={address}&address_type={addressType}&type={'15m'}&time_from={timeFrom}&time_to={timeTo}"
   headers = {
       "x-chain": X_CHAIN,
       "X-API-KEY": API_KEY
@@ -272,10 +279,10 @@ async def exportTestValues(address):
       return
 
   dataFrame = pd.DataFrame.from_dict(inputData, orient='columns')
-  dataFrame.index = pd.DatetimeIndex(dataFrame['Date'])
+  dataFrame.index = pd.DatetimeIndex(dataFrame['id'])
 
   dataFrame = dataFrame.drop(columns=['unixTime'])
-  
+
   if 'address' in dataFrame.columns:
     dataFrame = dataFrame.drop(columns=['address'])
 

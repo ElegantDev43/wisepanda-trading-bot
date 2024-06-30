@@ -28,8 +28,8 @@ def getTokenImage(token):
   
   return image_path
 
-def addAutoToken(userid,token,amount,wallet):
-  
+def addAutoToken(userid,token,amount,wallet,slippage,market_cap,take_profit,stop_loss):
+
   user = user_model.get(userid)
   chain = user.chain
 
@@ -43,9 +43,9 @@ def getAutoTokens(userid):
 def remove_by_userid_and_token(userid,token):
   swing_model.remove_by_userid_and_token(userid,token)
 
-def SetFullyAutoTokens(type,userid,amount = 0,wallet = None):
-  
-  if type == 'Start':  
+def SetFullyAutoTokens(type,userid,amount = 0,wallet = None, slippage = 50, market_cap = 1000, take_profit = 5, stop_loss = 5):
+
+  if type == 'Start':
     user = user_model.get(userid)
     chain = user.chain
 
@@ -53,14 +53,14 @@ def SetFullyAutoTokens(type,userid,amount = 0,wallet = None):
 
     for token in tokenlist:
       swing_model.add_by_user_id(userid,chain_name[chain],wallet,
-                                50,amount / token_count ,token['address'])
+                                50,amount / token_count ,token['address'],slippage,market_cap,take_profit,stop_loss)
     return 'OK'
   elif type == 'Stop':
     for token in tokenlist:
       position = swing_model.get_by_user_id_and_token(userid,token['address'])
       if position.original_state == 'buy':
         print(f'Sell {token['address']}')
-        dex_engine.swap(0, 'sell', token['address'], 100 , 50, position.wallet )
+        dex_engine.swap(0, 'sell', token['address'], 100 , position.slip_page, position.wallet )
       swing_model.remove_by_swing_id(position.id)
     return 'OK'
   elif type == 'Market Status':

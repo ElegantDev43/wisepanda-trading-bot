@@ -21,11 +21,13 @@ def checkTrend(prices,predict_model):
   if len(prices) < 40:
       return 0
 
+  R_period = 2
+
   ind_swing = 0
   swing_indicator = SwingIndex(input_data=prices)
   ind_swing = swing_indicator.getTiValue()[0]
 
-  rsi_indicator = RelativeStrengthIndex(input_data=prices)
+  rsi_indicator = RelativeStrengthIndex(input_data=prices,period=R_period)
   ind_rsi = rsi_indicator.getTiValue()[0]
 
   sma_indicator = MovingAverage(input_data=prices,period=5)
@@ -59,11 +61,11 @@ def checkTrend(prices,predict_model):
   ind_macd = macd_indicator.getTiValue()[0]
   ind_signal = macd_indicator.getTiValue()[1]
 
-  bb_indicator = BollingerBands(input_data=prices)
+  bb_indicator = BollingerBands(input_data=prices,period=R_period)
   ind_bb_up = bb_indicator.getTiValue()[0]
   ind_bb_low = bb_indicator.getTiValue()[1]
 
-  william_indicator = WilliamsR(input_data=prices)
+  william_indicator = WilliamsR(input_data=prices, period=R_period)
   ind_william = william_indicator.getTiValue()[0]
 
   volume_indicator = VolumeOscillator(input_data=prices)
@@ -75,7 +77,7 @@ def checkTrend(prices,predict_model):
   cmo_indicator = ChandeMomentumOscillator(input_data=prices)
   ind_cmo = cmo_indicator.getTiValue()[0]
 
-  dpo_indicator = DetrendedPriceOscillator(input_data=prices)
+  dpo_indicator = DetrendedPriceOscillator(input_data=prices, period=R_period)
   ind_dpo = dpo_indicator.getTiValue()[0]
 
   dmi_indicator = DirectionalMovementIndex(input_data=prices)
@@ -186,8 +188,12 @@ def checkTrend(prices,predict_model):
       ind_ws = 0
 
   X_test = np.array([[
-                     ind_sma_5,ind_ema_5,ind_tma,
+                     prices[['close'][0]].iloc[38],
+                     ind_sma_5,ind_sma_10,
+                     ind_ema_5,ind_ema_10,
+                     ind_tma,prices[['close'][0]].iloc[39],
                      ind_swing,ind_rsi,ind_macd,ind_signal,
+                     ind_bb_up,ind_bb_low,
                      ind_william,ind_vol,ind_onvolume,
                      ind_cmo,ind_dpo,ind_dmi_plusdi,ind_dmi_minusdi,ind_dmi_dx,ind_dmi_adx,ind_dmi_adxr,
                      ind_lrs,ind_mom,ind_prc,ind_sd,ind_smi,
@@ -197,14 +203,13 @@ def checkTrend(prices,predict_model):
 
   X_test_scaled = X_test
 
-  print(X_test_scaled)
-
   y_result = predict_model.predict(X_test_scaled)
 
-  print(y_result)
   return y_result[0]
 
-async def OrderSystem(token,prices,amount,original_price,original_state,buy_count,sell_count,stop_count,total_count,period,original_trend):
+async def OrderSystem(token,prices,amount,original_price,original_state,
+                      buy_count,sell_count,stop_count,total_count,period,
+                      original_trend,take_profit, stop_loss):
   profit = 0
   loss = 0
   action = 'hold'
@@ -224,7 +229,7 @@ async def OrderSystem(token,prices,amount,original_price,original_state,buy_coun
   current_price = prices[['close'][0]].iloc[39]
   divergence = prices[['close'][0]].iloc[39] - prices[['close'][0]].iloc[38]
 
-  if original_trend == 1 and trend == -1 and original_state == 'buy' and current_price > original_price:
+  if ((original_trend == -1 and trend == 1 and current_price > original_price) or current_price >= (original_price * (100.0 + take_profit) /100)) and original_state == 'buy':
       original_state = 'sell'
       profit = amount * (current_price / original_price - 1)
       amount = amount * (current_price / original_price)
@@ -233,14 +238,14 @@ async def OrderSystem(token,prices,amount,original_price,original_state,buy_coun
       total_count = total_count + 1
       action = 'sell'
 
-  elif original_trend == -1 and trend == 1 and original_state == 'sell':
+  elif trend == -1 and original_state == 'sell':
       original_state = 'buy'
       original_price = current_price
       buy_count = buy_count + 1
       total_count = total_count + 1
       action = 'buy'
 
-  if original_state == 'buy' and current_price < (original_price * 98.0 / 100):
+  if original_state == 'buy' and current_price < (original_price * (100.0 - stop_loss) / 100):
       loss = amount * (current_price / original_price - 1)
       amount = amount *  (current_price / original_price)
       original_state = 'sell'

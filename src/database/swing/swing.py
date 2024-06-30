@@ -28,6 +28,10 @@ class Swing(Base):
     total_loss = Column(Float)
     original_amount = Column(Float)
     original_trend = Column(Integer)
+    slip_page = Column(Integer)
+    take_profit = Column(Integer)
+    stop_loss = Column(Integer)
+    market_cap = Column(BigInteger)
 
 def initialize():
     Base.metadata.create_all(engine)
@@ -57,7 +61,7 @@ def get_by_user_id_and_token(user_id , address):
     session.close()
     return positions
 
-def add_by_user_id(user_id, chain,wallet,durations,amount,token):
+def add_by_user_id(user_id, chain,wallet,durations,amount,token,slippage,market_cap,take_profit,stop_loss):
     session = Session()
     newposition = Swing(
       userid = user_id,
@@ -77,6 +81,10 @@ def add_by_user_id(user_id, chain,wallet,durations,amount,token):
       total_loss = 0,
       original_amount = amount,
       original_trend = -1,
+      slip_page = slippage,
+      take_profit = take_profit,
+      stop_loss = stop_loss,
+      market_cap = market_cap,
     )
     session.add(newposition)
     session.commit()

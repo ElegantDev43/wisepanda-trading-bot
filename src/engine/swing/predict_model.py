@@ -17,6 +17,7 @@ from sklearn.feature_selection import SelectKBest, f_classif
 from imblearn.over_sampling import SMOTE
 from statsmodels.tsa.arima.model import ARIMA
 from statsmodels.tsa.statespace.sarimax import SARIMAX
+#from xgboost import XGBClassifier
 
 import pickle
 
@@ -40,9 +41,12 @@ async def prepare_model(token):
   if dataFrame.empty:
     return
 
-  features = [
-            'sma_5','ema_5','tma',
+  features = ['prev_value',
+            'sma_5','sma_10',
+            'ema_5','ema_10',
+            'tma','close',
             'swing', 'rsi','macd', 'signal',
+            'bb_up','bb_low',
             'william','vol', 'onvolume','cmo','dpo','+di','-di','dx','adx','adxr',
             'lrs','mom','prc','sd','smi','tenkan_sen','kijun_sen','senkou_a','senkou_b','sar','cci','obv',
             'pvt','tsf'
@@ -51,6 +55,7 @@ async def prepare_model(token):
   X = dataFrame[features]
   Y = dataFrame['Target_2']
 
+#  scaler = MinMaxScaler(feature_range=(0,1))
   scaler = StandardScaler()
   X = scaler.fit_transform(X)
   # X_test_scaled = scaler.transform(X_test)
@@ -61,11 +66,21 @@ async def prepare_model(token):
   X_train_scaled = X_train
   X_test_scaled = X_test
 
-  smote = SMOTE(random_state=42)
-  X_train_scaled, y_train = smote.fit_resample(X_train_scaled, y_train)
+#  smote = SMOTE(random_state=42)
+#  X_train_scaled, y_train = smote.fit_resample(X_train_scaled, y_train)
 
-    # Train the model
-  model = GradientBoostingClassifier(n_estimators=100, random_state=42)
+
+  # # Create an ensemble of models
+  # model = VotingClassifier(estimators=[
+  #     ('rf', RandomForestClassifier(random_state=42)),
+  #     ('xgb', XGBClassifier()),
+  #     ('gb', GradientBoostingClassifier(random_state=42)),
+  # ], voting='soft')
+
+  # # Train the ensemble model
+  # model.fit(X_train_scaled, y_train)
+
+  model = RandomForestClassifier(n_estimators=300,max_depth=30, random_state=42)
   model.fit(X_train_scaled, y_train)
 
   with open(f'src/engine/swing/model/model_{token}.pkl', 'wb') as f:
