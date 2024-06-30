@@ -2,7 +2,7 @@ from telebot import types
 
 from src.engine import api as main_api
 from src.telegram import user_manage as feature_api
-
+from src.engine.swing import api as swing_api
 
 current_keyboard = {}
 
@@ -186,10 +186,14 @@ def handle_show_more_wallets(bot, message):
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
 
 def handle_trading_tatus(bot, message):
+    wallets = main_api.get_wallets(message.chat.id)
+    buy_wallet = wallets[current_keyboard['wallet']]['id']
     if main_api.get_auto_swing_status(message.chat.id) == 0:
       main_api.set_auto_swing_status(message.chat.id, 1)
+      swing_api.SetFullyAutoTokens('Start', message.chat.id, current_keyboard['amount'], buy_wallet, current_keyboard['slippage'],current_keyboard['market_capital'], current_keyboard['take-profit'], current_keyboard['stop-loss'])
     elif main_api.get_auto_swing_status(message.chat.id) == 1:
       main_api.set_auto_swing_status(message.chat.id, 0)
+      swing_api.SetFullyAutoTokens('Stop', message.chat.id)
     keyboard = get_keyboard(message.chat.id, current_keyboard)
     bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
