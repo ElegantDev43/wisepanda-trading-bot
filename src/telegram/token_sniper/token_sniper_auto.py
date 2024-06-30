@@ -42,7 +42,7 @@ def get_keyboard(chat_id, keyboard_data):
     elif keyboard_data['amount'] == 10**9:
       caption = 'X SOL ✏️'
     else:
-      caption = f'''🟢 {int(keyboard_data['amount'] / (10 ** 9))} SOL'''
+      caption = f'''🟢 {float(keyboard_data['amount'] / (10 ** 9))} SOL'''
     buy_amount_x = types.InlineKeyboardButton(
         text=caption, callback_data='token_sniper_auto amount x')
 
@@ -258,7 +258,7 @@ Enter the profit to get in sell:
         chat_id=message.chat.id, callback=lambda next_message: handle_auto_profit_inputs(bot, next_message, int(index)))
     
 def handle_auto_profit_inputs(bot, message, index):
-    current_keyboard['chain_auto_sell_params'][index]['profit'] = int(message.text)
+    current_keyboard['chain_auto_sell_params'][index]['profit'] = float(message.text)
     text = '''
  *🎯 Token Sniper* >> Auto Mode
 
@@ -280,7 +280,7 @@ def handle_sniper_status(bot, message):
                      text='Successfully stopped Sniper')
   elif auto_sniper['token']['active'] == False:
       buy_amount = int(current_keyboard['amount'])
-      auto_sniper = {
+      new_sniper = {
         'token': {
           'active': True,
           'amount': buy_amount,
@@ -298,7 +298,7 @@ def handle_sniper_status(bot, message):
           'wallet_id': 0
         }
       }
-      main_api.set_auto_sniper(message.chat.id, auto_sniper)
+      main_api.set_auto_sniper(message.chat.id, new_sniper)
       bot.send_message(chat_id=message.chat.id,
                      text='Successfully Started Sniper')
   keyboard = get_keyboard(message.chat.id, current_keyboard)

@@ -130,7 +130,7 @@ def handle_input_token(bot, message):
 ❌ Not a token address.
 '''
       keyboard = types.InlineKeyboardMarkup()
-      retry = types.InlineKeyboardButton('Retry', callback_data='token_sniper_manual')
+      retry = types.InlineKeyboardButton('Retry', callback_data='sniper select manual mode')
       back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
       keyboard.row(retry, back)
       bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
@@ -356,7 +356,7 @@ Enter the profit to get in sell:
         chat_id=message.chat.id, callback=lambda next_message: handle_auto_profit_inputs(bot, next_message, int(index)))
     
 def handle_auto_profit_inputs(bot, message, index):
-    current_keyboard['chain_auto_sell_params'][index]['profit'] = int(message.text)
+    current_keyboard['chain_auto_sell_params'][index]['profit'] = float(message.text)
     chain_index = main_api.get_chain(message.chat.id)
     chains = main_api.get_chains()
     current_chain = chains[chain_index]
