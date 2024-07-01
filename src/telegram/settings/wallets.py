@@ -33,7 +33,7 @@ Your currently added {wallet_count} wallets:
 '''
     for wallet in wallets:
         text += f'''* Address :* {wallet['address']
-                                  }, *Balance : *{wallet['balance']}\n'''
+                                  }, *Balance : *{float(wallet['balance'] / 10 ** 9)}SOL\n'''
     keyboard = types.InlineKeyboardMarkup()
     create_wallet = types.InlineKeyboardButton(
         text='Create Wallet', callback_data='create_wallet')
