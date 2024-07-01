@@ -87,9 +87,9 @@ def get_token_market_data(user_id, token):
   chain = get_chain(user_id)
   return token_engine.get_market_data(chain, token)
 
-def market_buy(user_id, token, amount, slippage, wallet_id):
+def market_buy(user_id, token, amount, slippage, wallet_id, stop_loss):
   chain = get_chain(user_id)
-  return swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id)
+  return swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id, stop_loss)
 
 def market_sell(user_id, position_id, amount, slippage):
   return swap_engine.sell(user_id, position_id, amount, slippage)
@@ -110,7 +110,7 @@ def get_token_snipers(user_id):
   chain = get_chain(user_id)
   return database.get_token_snipers(user_id, chain)
 
-def add_token_sniper(user_id, token, amount, slippage, wallet_id, auto_sell, stop_loss):
+def add_token_sniper(user_id, token, amount, slippage, wallet_id, auto_sell, stop_loss, is_auto=False):
   chain = get_chain(user_id)
   token_sniper = {
     'id': time.time(),
@@ -121,7 +121,8 @@ def add_token_sniper(user_id, token, amount, slippage, wallet_id, auto_sell, sto
     'slippage': slippage,
     'wallet_id': wallet_id,
     'auto_sell': auto_sell,
-    'stop_loss': stop_loss
+    'stop_loss': stop_loss,
+    'is_auto': is_auto
   }
   database.add_token_sniper(user_id, token_sniper)
   Thread(target=token_sniper_engine.start, args=(user_id, token_sniper['id'])).start()
@@ -160,7 +161,7 @@ def get_limit_orders(user_id):
   chain = get_chain(user_id)
   return database.get_limit_orders(user_id, chain)
 
-def add_limit_buy(user_id, token, amount, slippage, wallet_id, max_market_capital):
+def add_limit_buy(user_id, token, amount, slippage, wallet_id, max_market_capital, stop_loss):
   chain = get_chain(user_id)
   limit_order = {
     'id': time.time(),
@@ -170,7 +171,8 @@ def add_limit_buy(user_id, token, amount, slippage, wallet_id, max_market_capita
     'amount': amount,
     'slippage': slippage,
     'wallet_id': wallet_id,
-    'max_market_capital': max_market_capital
+    'max_market_capital': max_market_capital,
+    'stop-loss': stop_loss
   }
   database.add_limit_order(user_id, limit_order)
   Thread(target=limit_order_engine.start, args=(user_id, limit_order['id'])).start()
@@ -197,7 +199,7 @@ def get_dca_orders(user_id):
   chain = get_chain(user_id)
   return database.get_dca_orders(user_id, chain)
 
-def add_dca_buy(user_id, token, amount, slippage, wallet_id, interval, count):
+def add_dca_buy(user_id, token, amount, slippage, wallet_id, interval, count, stop_loss):
   chain = get_chain(user_id)
   dca_order = {
     'id': time.time(),
@@ -209,6 +211,7 @@ def add_dca_buy(user_id, token, amount, slippage, wallet_id, interval, count):
     'wallet_id': wallet_id,
     'interval': interval,
     'count': count,
+    'stop_loss':stop_loss
   }
   database.add_dca_order(user_id, dca_order)
   Thread(target=dca_order_engine.start, args=(user_id, dca_order['id'])).start()

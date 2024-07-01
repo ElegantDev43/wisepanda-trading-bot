@@ -226,30 +226,42 @@ def print_table(tokens: Tuple[Pubkey, Pubkey, Pubkey]) -> None:
     auto_sniper = user.auto_sniper[chain]
 
     token_sniper = auto_sniper['token']
-    active, amount, slippage, wallet_id, auto_sell, min_market_captial, max_market_captial = (
+    active, amount, slippage, wallet_id, auto_sell, min_market_captial, max_market_captial, stop_loss = (
       token_sniper['active'],
       token_sniper['amount'],
       token_sniper['slippage'],
       token_sniper['wallet_id'],
       token_sniper['auto_sell'],
       token_sniper['min_market_capital'],
-      token_sniper['max_market_capital']
+      token_sniper['max_market_capital'],
+      token_sniper['stop_loss']
     )
     if active:
       market_captial = token_engine.get_market_data(chain, token)['market_capital']
       if market_captial > min_market_captial and market_captial < max_market_captial:
           token_sniper_id = time.time()
-          database.add_token_sniper(user.id, {
-            'id': token_sniper_id,
-            'stage': 'buy',
-            'chain': chain,
-            'token': token,
-            'amount': amount,
-            'slippage': slippage,
-            'wallet_id': wallet_id,
-            'auto_sell': auto_sell
-          })
-          Thread(target=token_sniper_engine.start, args=(user.id, token_sniper_id)).start()
+          count = 0
+          token_snipers = database.get_token_snipers(user.id)
+          for sniper in token_snipers:
+            if sniper['is_auto'] == True:
+              count += 1
+          
+          if count == 0:
+            database.add_token_sniper(user.id, {
+              'id': token_sniper_id,
+              'stage': 'buy',
+              'chain': chain,
+              'token': token,
+              'amount': amount,
+              'slippage': slippage,
+              'wallet_id': wallet_id,
+              'auto_sell': auto_sell,
+              'stop_loss': stop_loss,
+              'is_auto': True
+            })
+            Thread(target=token_sniper_engine.start, args=(user.id, token_sniper_id)).start()
+          else:
+            continue
     
     lp_sniper = auto_sniper['lp']
     active, amount, slippage, wallet_id = (

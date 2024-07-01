@@ -270,7 +270,7 @@ def select_token_count(bot, message, index):
 def handle_select_auto_slippage(bot, message, index):
   text = '''
       *🎯 LP Sniper* >> Manual Mode
- Do you confirm 50% slippage as Auto Slippage?.
+ Do you confirm maximum of 50% slippage as Auto Slippage?.
 '''
   keyboard = types.InlineKeyboardMarkup()
   cancel = types.InlineKeyboardButton('Cancel', callback_data='lp manual select slippage x')

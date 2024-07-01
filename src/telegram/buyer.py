@@ -469,7 +469,7 @@ def select_duration(bot, message, index):
 def handle_select_auto_slippage(bot, message, index):
   text = '''
       *🛒 Token Buy*
- Do you confirm 50% slippage as Auto Slippage?.
+ Do you confirm maximum of 50% slippage as Auto Slippage?.
 '''
   keyboard = types.InlineKeyboardMarkup()
   cancel = types.InlineKeyboardButton('Cancel', callback_data='select slippage x')

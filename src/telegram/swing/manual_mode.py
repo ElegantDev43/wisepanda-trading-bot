@@ -261,7 +261,7 @@ def handle_make_order(bot, message):
     wallets = main_api.get_wallets(message.chat.id)
     buy_wallet = wallets[current_keyboard['wallet']]['id']
     buy_amount = int(current_keyboard['amount'])
-    position = main_api.market_buy(message.chat.id, current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet, False)
+    position = main_api.market_buy(message.chat.id, current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet, current_keyboard['stop-loss'])
     result_text = f'''Successfully confirmed Buy Transaction.
 Transaction ID: {position['transaction_id']}
 View on SolScan: (https://solscan.io/tx/{position['transaction_id']})'''

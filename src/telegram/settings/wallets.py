@@ -142,7 +142,7 @@ def handle_input_private_key(bot, message):
 ✅ A new wallet has been imported for you. Save the private key below❗:
 
 Address: {wallet['address']}
-Balance: {balance}
+Balance: {float(balance / (10 ** 9))} SOL
     '''
 
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown')

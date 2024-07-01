@@ -336,17 +336,17 @@ def handle_make_order(bot, message):
     buy_amount = int(current_keyboard['amount'])
     if current_keyboard['order_name'] == 0:
         print(current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet)
-        position = main_api.market_buy(message.chat.id, current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet)
+        position = main_api.market_buy(message.chat.id, current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet, current_keyboard['stop-loss'])
         result_text = f'''Successfully confirmed Buy Transaction.
 Transaction ID: {position['transaction_id']}
 View on SolScan: (https://solscan.io/tx/{position['transaction_id']})'''
         bot.send_message(chat_id=message.chat.id,
                      text=result_text)
     elif current_keyboard['order_name'] == 1:
-        main_api.add_limit_buy(message.chat.id, current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet, current_keyboard['max_market_capital'])
+        main_api.add_limit_buy(message.chat.id, current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet, current_keyboard['max_market_capital'],current_keyboard['stop-loss'])
         bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Order.')
     elif current_keyboard['order_name'] == 2:
-        main_api.add_dca_buy(message.chat.id, current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet,  current_keyboard['interval'], current_keyboard['count'])
+        main_api.add_dca_buy(message.chat.id, current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet,  current_keyboard['interval'], current_keyboard['count'],current_keyboard['stop-loss'])
         bot.send_message(chat_id=message.chat.id,
                      text='Successfully registered Order.')
