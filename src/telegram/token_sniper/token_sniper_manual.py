@@ -389,5 +389,9 @@ Buy your tokens here.
 def handle_make_order(bot, message):
   wallets = main_api.get_wallets(message.chat.id)
   buy_wallet = wallets[current_keyboard['wallet']]['id']
-  main_api.add_token_sniper(message.chat.id, current_keyboard['token'], current_keyboard['amount'],current_keyboard['slippage'], buy_wallet, current_keyboard['chain_auto_sell_params'], current_keyboard['stop-loss'])
-  bot.send_message(text = "successfully registered sniper")
+  if current_keyboard['amount'] == 0:
+        bot.send_message(chat_id=message.chat.id,
+                     text='Not enough balance in the wallet')
+  else:
+    main_api.add_token_sniper(message.chat.id, current_keyboard['token'], current_keyboard['amount'],current_keyboard['slippage'], buy_wallet, current_keyboard['chain_auto_sell_params'], current_keyboard['stop-loss'])
+    bot.send_message(text = "successfully registered sniper")

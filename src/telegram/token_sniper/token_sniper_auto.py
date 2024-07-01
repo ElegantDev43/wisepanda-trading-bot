@@ -273,34 +273,39 @@ Set your parameters for auto token snipping.
 def handle_sniper_status(bot, message):
   wallets = main_api.get_wallets(message.chat.id)
   buy_wallet = wallets[current_keyboard['wallet']]['id']
+
   auto_sniper = main_api.get_auto_sniper(message.chat.id)
   if auto_sniper['token']['active'] == True:
       auto_sniper['token']['active'] = False
       bot.send_message(chat_id=message.chat.id,
                      text='Successfully stopped Sniper')
-  if auto_sniper['token']['active'] == False:
+  elif auto_sniper['token']['active'] == False:
       buy_amount = int(current_keyboard['amount'])
-      new_sniper = {
-        'token': {
-          'active': True,
-          'amount': buy_amount,
-          'slippage': int(current_keyboard['slippage']),
-          'wallet_id':  buy_wallet,
-          'auto_sell': current_keyboard['chain_auto_sell_params'],
-          'min_market_capital': int(current_keyboard['min_market_cap']),
-          'max_market_capital': int(current_keyboard['max_market_cap']),
-          'stop_loss':int(current_keyboard['stop-loss'])
-        },
-        'lp': {
-          'active': False,
-          'amount': 1,
-          'slippage': 50,
-          'wallet_id': 0
+      if current_keyboard['amount'] == 0:
+        bot.send_message(chat_id=message.chat.id,
+                     text='Not enough balance in the wallet')
+      else: 
+        new_sniper = {
+          'token': {
+            'active': True,
+            'amount': buy_amount,
+            'slippage': int(current_keyboard['slippage']),
+            'wallet_id':  buy_wallet,
+            'auto_sell': current_keyboard['chain_auto_sell_params'],
+            'min_market_capital': int(current_keyboard['min_market_cap']),
+            'max_market_capital': int(current_keyboard['max_market_cap']),
+            'stop_loss':int(current_keyboard['stop-loss'])
+          },
+          'lp': {
+            'active': False,
+            'amount': 1,
+            'slippage': 50,
+            'wallet_id': 0
+          }
         }
-      }
-      main_api.set_auto_sniper(message.chat.id, new_sniper)
-      bot.send_message(chat_id=message.chat.id,
-                     text='Successfully Started Sniper')
+        main_api.set_auto_sniper(message.chat.id, new_sniper)
+        bot.send_message(chat_id=message.chat.id,
+                      text='Successfully Started Sniper')
   keyboard = get_keyboard(message.chat.id, current_keyboard)
   bot.edit_message_reply_markup(
         chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
