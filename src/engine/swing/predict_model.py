@@ -70,18 +70,18 @@ async def prepare_model(token):
 #  X_train_scaled, y_train = smote.fit_resample(X_train_scaled, y_train)
 
 
-  # # Create an ensemble of models
-  # model = VotingClassifier(estimators=[
-  #     ('rf', RandomForestClassifier(random_state=42)),
-  #     ('xgb', XGBClassifier()),
-  #     ('gb', GradientBoostingClassifier(random_state=42)),
-  # ], voting='soft')
+  # Create an ensemble of models
+  model = VotingClassifier(estimators=[
+      ('rf', RandomForestClassifier(random_state=42)),
+      #('xgb', XGBClassifier()),
+      ('gb', GradientBoostingClassifier(random_state=42)),
+  ], voting='soft')
 
-  # # Train the ensemble model
-  # model.fit(X_train_scaled, y_train)
-
-  model = RandomForestClassifier(n_estimators=300,max_depth=30, random_state=42)
+  # Train the ensemble model
   model.fit(X_train_scaled, y_train)
+
+  # model = RandomForestClassifier(n_estimators=300,max_depth=30, random_state=42)
+  # model.fit(X_train_scaled, y_train)
 
   with open(f'src/engine/swing/model/model_{token}.pkl', 'wb') as f:
       pickle.dump(model, f)

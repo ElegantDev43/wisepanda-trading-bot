@@ -13,7 +13,7 @@ class Swing(Base):
     id = Column(Integer, primary_key=True)
     userid = Column(BigInteger)
     chain = Column(String)
-    wallet = Column(JSON)
+    wallet = Column(Float)
     durations = Column(Integer)
     amount = Column(Float)
     date_current = Column(Integer)

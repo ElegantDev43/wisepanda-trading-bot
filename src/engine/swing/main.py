@@ -15,6 +15,7 @@ from src.database.swing import Htokens as HTokens_model
 from src.engine import swap as swap_engine
 from src.engine.chain import dex as dex_engine
 
+from src.database import api as database_api
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -64,11 +65,13 @@ async def Control():
     chain = current_position.chain
     token = current_position.token
     amount = current_position.amount
-    wallet = current_position.wallet
+    walletid = current_position.wallet
     slippage = current_position.slip_page
     stop_loss = current_position.stop_loss
     if action == 'sell':
       amount = 100
+
+    wallet = database_api.get_wallet(userid,0,walletid)
 
     dex_engine.swap(0, action, token, amount, slippage, wallet)
 
