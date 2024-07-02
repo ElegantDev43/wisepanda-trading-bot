@@ -8,7 +8,7 @@ def start(user_id, token_sniper_id):
   while True:
     token_sniper = database.get_token_sniper(user_id, token_sniper_id)
     if token_sniper:
-      stage, chain, token, amount, slippage, wallet_id, auto_sell = (
+      stage, chain, token, amount, slippage, wallet_id, auto_sell, stop_loss = (
         token_sniper['stage'],
         token_sniper['chain'],
         token_sniper['token'],
@@ -16,13 +16,15 @@ def start(user_id, token_sniper_id):
         token_sniper['slippage'],
         token_sniper['wallet_id'],
         token_sniper['auto_sell'],
+        token_sniper['stop_loss']
       )
       if stage == 'buy':
         if token_engine.check_liveness(chain, token):
-          position = swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id)
+          position = swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id, stop_loss)
           print('Token Sniper Buy', position['id'])
           if len(auto_sell) == 0:
             database.remove_token_sniper(user_id, token_sniper_id)
+            print('sniper sell done')
           else:
             token_sniper['stage'] = 'sell'
             token_sniper['position_id'] = position['id']
@@ -37,9 +39,10 @@ def start(user_id, token_sniper_id):
           print('Token Sniper Sell', position['id'])
           if len(auto_sell) == 0:
             database.remove_token_sniper(user_id, token_sniper_id)
+            print('sniper sell done')
           else:
             token_sniper['auto_sell'] = auto_sell
             database.set_token_sniper(user_id, token_sniper_id, token_sniper)
     else:
       break
-    time.sleep(10)
+    time.sleep(3)

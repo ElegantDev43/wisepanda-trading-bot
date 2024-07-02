@@ -241,11 +241,11 @@ def print_table(tokens: Tuple[Pubkey, Pubkey, Pubkey]) -> None:
       if market_captial > min_market_captial and market_captial < max_market_captial:
           token_sniper_id = time.time()
           count = 0
-          token_snipers = database.get_token_snipers(user.id)
+          token_snipers = database.get_token_snipers(user.id, chain)
           for sniper in token_snipers:
             if sniper['is_auto'] == True:
               count += 1
-          
+          print(f'auto count: {count}')
           if count == 0:
             database.add_token_sniper(user.id, {
               'id': token_sniper_id,

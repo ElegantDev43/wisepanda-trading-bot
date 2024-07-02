@@ -215,7 +215,7 @@ def handle_input_value(bot, message, item):
     elif item == 'slippage':
       current_keyboard[item] = int(message.text)
     elif item == 'stop-loss':
-      current_keyboard[item] = int(message.text)
+      current_keyboard[item] = float(message.text)
     #print(current_keyboard)
     else:
       current_keyboard[item] = int(message.text)
