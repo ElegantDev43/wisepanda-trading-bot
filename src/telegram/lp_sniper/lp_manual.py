@@ -293,12 +293,14 @@ def select_slip_page(bot, message, index):
     chains = main_api.get_chains()
     current_chain = chains[chain_index]
     token = result['token']
-    token_data = main_api.get_token_market_data(message.chat.id, token)
+    token_data = main_api.check_token_liveness(message.chat.id, token)
     meta_data = main_api.get_token_metadata(message.chat.id, token)
       
     token_price = format_number(token_data['price'])
     token_liquidity = format_number(token_data['liquidity'])
     token_market_cap = format_number(token_data['market_capital'])
+    token_volume = token_data['volume']
+    token_tx_counts = token_data['tx_count']
     text = f'''
       *🎯 LP Sniper* >> Manual Mode
 
@@ -395,12 +397,14 @@ def handle_input_value(bot, message, item):
     chains = main_api.get_chains()
     current_chain = chains[chain_index]
     token = result['token']
-    token_data = main_api.get_token_market_data(message.chat.id, token)
+    token_data = main_api.check_token_liveness(message.chat.id, token)
     meta_data = main_api.get_token_metadata(message.chat.id, token)
       
     token_price = format_number(token_data['price'])
     token_liquidity = format_number(token_data['liquidity'])
     token_market_cap = format_number(token_data['market_capital'])
+    token_volume = token_data['volume']
+    token_tx_counts = token_data['tx_count']
     text = f'''
       *🎯 LP Sniper* >> Manual Mode
     ❌ Snipe not set.

@@ -277,6 +277,7 @@ def handle_sniper_status(bot, message):
   auto_sniper = main_api.get_auto_sniper(message.chat.id)
   if auto_sniper['token']['active'] == True:
       auto_sniper['token']['active'] = False
+      main_api.set_auto_sniper(message.chat.id, auto_sniper)
       bot.send_message(chat_id=message.chat.id,
                      text='Successfully stopped Sniper')
   elif auto_sniper['token']['active'] == False:
@@ -284,7 +285,7 @@ def handle_sniper_status(bot, message):
       if current_keyboard['amount'] == 0:
         bot.send_message(chat_id=message.chat.id,
                      text='Not enough balance in the wallet')
-      else: 
+      else:
         new_sniper = {
           'token': {
             'active': True,

@@ -2,9 +2,9 @@ import os
 import telebot
 from telebot import types
 
-from src.telegram import start, buyer, token_snipers, manual_buyer, bots, hots,seller, limit_order, dca_order, lp_snipers
+from src.telegram import start, token_snipers, manual_buyer, bots, hots,seller, limit_order, dca_order, lp_snipers
 from src.telegram.settings import main as settings, chains, wallets, keyboards, auto_order
-from src.telegram.swing import swing as main_swing, fully_auto, token_mode, manual_mode
+from src.telegram.swing import swing as main_swing, fully_auto, manual_mode
 from src.telegram.lp_sniper import lp_sniper, lp_auto, lp_manual
 from src.telegram.token_sniper import token_sniper_auto, sniper, token_sniper_manual
 
@@ -73,10 +73,6 @@ def handle_callback_query(call):
         start.handle_start(bot, call.message)
     elif call.data == 'hots':
         hots.handle_hots(bot, call.message)
-    elif call.data.startswith('hot '):
-        token = call.data[4:]
-        call.message.text = token
-        buyer.handle_input_token(bot, call.message)
     elif call.data == 'sniper':
         sniper.handle_sniper(bot, call.message)
     elif call.data == 'lp sniper':

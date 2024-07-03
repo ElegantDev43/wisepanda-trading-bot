@@ -13,6 +13,8 @@ def format_number(num):
         formatted_num = f"{num / 1_000_000:.3f}M"
     elif num >= 1_000:
         formatted_num = f"{num / 1_000:.3f}K"
+    elif num >= 0:
+        formatted_num = f"{num:.3f}"
     else:
         formatted_num = f"{num:.18f}"
     return formatted_num
@@ -164,12 +166,14 @@ def handle_input_token(bot, message):
       bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
                      reply_markup=keyboard, disable_web_page_preview=True)
     else:
-        #if main_api.check_token_liveness(message.chat.id, token):
-          token_data = main_api.get_token_market_data(message.chat.id, token)
+        if main_api.check_token_liveness(message.chat.id, token):
+          token_data = main_api.check_token_liveness(message.chat.id, token)
           meta_data = main_api.get_token_metadata(message.chat.id, token)
           token_price = format_number(token_data['price'])
           token_liquidity = format_number(token_data['liquidity'])
           token_market_cap = format_number(token_data['market_capital'])
+          token_volume = token_data['volume']
+          token_tx_counts = token_data['tx_count']
           text = f'''
               *🛒 Token Buy*
 
@@ -178,11 +182,12 @@ Buy your tokens here.
 *{meta_data['name']}  (🔗{current_chain})  *
 {token}
 
-💲 *Price:* {token_price}$
-💧 *Liquidity:* {token_liquidity}$
-📊 *Market Cap:* {token_market_cap}$
-
-[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
+💲 *Price:* ${token_price}
+💧 *Liquidity:* ${token_liquidity}
+📊 *Market Cap:* ${token_market_cap}
+📏 *Volume*:  ${format_number(token_volume['h1'])}(*1h*) -> ${format_number(token_volume['h24'])}(*24h*)
+🧮 *Number of Transactions*:  {int(token_tx_counts['h1'])}(*1h*) -> {int(token_tx_counts['h24'])}(*24h*)
+[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de) | [Birdeye](https://birdeye.so/token/{token}?chain=solana)
 '''
 
           keyboard = get_keyboard(message.chat.id, current_keyboard)
@@ -225,11 +230,13 @@ def handle_input_value(bot, message, item):
     chains = main_api.get_chains()
     current_chain = chains[chain_index]
     token = current_keyboard['token']
-    token_data = main_api.get_token_market_data(message.chat.id, token)
+    token_data = main_api.check_token_liveness(message.chat.id, token)
     meta_data = main_api.get_token_metadata(message.chat.id, token)
     token_price = format_number(token_data['price'])
     token_liquidity = format_number(token_data['liquidity'])
     token_market_cap = format_number(token_data['market_capital'])
+    token_volume = token_data['volume']
+    token_tx_counts = token_data['tx_count']
     text = f'''
     *🛒 Token Buy*
 
@@ -238,9 +245,12 @@ Buy your tokens here.
 *{meta_data['name']}  (🔗{current_chain})  *
 {token}
 
-💲 *Price:* {token_price}$
-💧 *Liquidity:* {token_liquidity}$
-📊 *Market Cap:* {token_market_cap}$
+💲 *Price:* ${token_price}
+💧 *Liquidity:* ${token_liquidity}
+📊 *Market Cap:* ${token_market_cap}
+📏 *Volume*:  ${format_number(token_volume['h1'])}(*1h*) -> ${format_number(token_volume['h24'])}(*24h*)
+🧮 *Number of Transactions*:  {int(token_tx_counts['h1'])}(*1h*) -> {int(token_tx_counts['h24'])}(*24h*)
+
 
 [Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
 '''
@@ -269,11 +279,13 @@ def handle_default_slippage(bot, message):
     chains = main_api.get_chains()
     current_chain = chains[chain_index]
     token = current_keyboard['token']
-    token_data = main_api.get_token_market_data(message.chat.id, token)
+    token_data = main_api.check_token_liveness(message.chat.id, token)
     meta_data = main_api.get_token_metadata(message.chat.id, token)
     token_price = format_number(token_data['price'])
     token_liquidity = format_number(token_data['liquidity'])
     token_market_cap = format_number(token_data['market_capital'])
+    token_volume = token_data['volume']
+    token_tx_counts = token_data['tx_count']
     text = f'''
     *🛒 Token Buy*
 
@@ -282,9 +294,12 @@ Buy your tokens here.
 *{meta_data['name']}  (🔗{current_chain})  *
 {token}
 
-💲 *Price:* {token_price}$
-💧 *Liquidity:* {token_liquidity}$
-📊 *Market Cap:* {token_market_cap}$
+💲 *Price:* ${token_price}
+💧 *Liquidity:* ${token_liquidity}
+📊 *Market Cap:* ${token_market_cap}
+📏 *Volume*:  ${format_number(token_volume['h1'])}(*1h*) -> ${format_number(token_volume['h24'])}(*24h*)
+🧮 *Number of Transactions*:  {int(token_tx_counts['h1'])}(*1h*) -> {int(token_tx_counts['h24'])}(*24h*)
+
 
 [Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
 '''

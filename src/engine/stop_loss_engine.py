@@ -16,8 +16,13 @@ def start(user_id, position_id):
       if market_cap > current_market_cap['market_capital']:
         print(current_market_cap['market_capital'] / market_cap * 100)
         if (1 - (current_market_cap['market_capital'] / market_cap)) * 100 >= stop_loss:
-          swap_engine.sell(user_id, position_id, 100, 10)
+          swap_engine.sell(user_id, position_id, 100, 90)
           print(f"stop_loss sell: {position_id}")
+          token_snipers = database.get_token_snipers(user_id, chain)
+          for index in range(len(token_snipers)):
+            if token_snipers[index]['is_auto'] == True:
+              database.remove_token_sniper(user_id, token_snipers[index]['id'])
+              break
     else:
       break
     time.sleep(3)
