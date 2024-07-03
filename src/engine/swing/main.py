@@ -64,7 +64,7 @@ async def Control():
     dataFrame = dataFrame.iloc[::-1]
 
     first_data = dataFrame.iloc[-40:]
-    action,amount,original_price,original_state,buy_count,sell_count,stop_count,total_count ,trend, total_profit, total_loss = await OrderSystem(
+    action,suf_amount,original_price,original_state,buy_count,sell_count,stop_count,total_count ,trend, total_profit, total_loss = await OrderSystem(
                 current_position.token,
                 first_data,current_position.amount,current_position.original_price,
                 current_position.original_state,current_position.buy_count,current_position.sell_count,
@@ -90,7 +90,8 @@ async def Control():
         transaction_id, token_amount = dex_engine.swap(0, action, token, amount, slippage, wallet)
     elif action == 'sell':
         print(action, token, amount,token_amount)
-        transaction_id, amount = dex_engine.swap(0, action, token, token_amount, slippage, wallet)
+        transaction_id, token_amount = dex_engine.swap(0, action, token, token_amount, slippage, wallet)
+        amount = suf_amount
 
     swing_model.update_by_user_id(id = current_position.id,
                                   amount = convert_to_native_type(amount),

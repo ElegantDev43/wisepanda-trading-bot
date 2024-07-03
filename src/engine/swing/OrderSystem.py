@@ -246,7 +246,7 @@ async def OrderSystem(token,prices,amount,original_price,original_state,
       total_count = total_count + 1
       action = 'sell'
 
-  elif trend == -1 and original_state == 'sell':
+  elif original_trend == -1 and trend == 1 and original_state == 'sell':
       original_state = 'buy'
       original_price = current_price
       buy_count = buy_count + 1
