@@ -19,6 +19,16 @@ from src.database import api as database_api
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
+def convert_to_native_type(value):
+    if isinstance(value, np.integer):
+        return int(value)
+    elif isinstance(value, np.floating):
+        return float(value)
+    elif isinstance(value, np.ndarray):
+        return value.tolist()  # convert array to list if necessary
+    else:
+        return value
+
 async def Control():
 #   addresses = [
 #       "So11111111111111111111111111111111111111112",  #Sol
@@ -65,33 +75,40 @@ async def Control():
     chain = current_position.chain
     token = current_position.token
     amount = current_position.amount
+    token_amount = current_position.token_amount
     walletid = current_position.wallet
     slippage = current_position.slip_page
     stop_loss = current_position.stop_loss
-    if action == 'sell':
-      amount = 100
 
     wallet = database_api.get_wallet(userid,0,walletid)
 
-    dex_engine.swap(0, action, token, amount, slippage, wallet)
+    # if action == 'sell':
+    #   amount = 100
+
+    if action == 'buy':
+        print(action, token, amount,token_amount)
+        transaction_id, token_amount = dex_engine.swap(0, action, token, amount, slippage, wallet)
+    elif action == 'sell':
+        print(action, token, amount,token_amount)
+        transaction_id, amount = dex_engine.swap(0, action, token, token_amount, slippage, wallet)
 
     swing_model.update_by_user_id(id = current_position.id,
-                                  amount = amount,
-                                  original_price = original_price,
+                                  amount = convert_to_native_type(amount),
+                                  token_amount = convert_to_native_type(token_amount),
+                                  original_price = convert_to_native_type(original_price),
                                   original_state = original_state,
-                                  buy_count = buy_count,
-                                  sell_count = sell_count,
-                                  stop_count = stop_count,
-                                  total_count = total_count,
-                                  total_profit = total_profit,
-                                  total_loss = total_loss,
-                                  original_trend = trend)
-    
-
+                                  buy_count = convert_to_native_type(buy_count),
+                                  sell_count = convert_to_native_type(sell_count),
+                                  stop_count = convert_to_native_type(stop_count),
+                                  total_count = convert_to_native_type(total_count),
+                                  total_profit = convert_to_native_type(total_profit),
+                                  total_loss = convert_to_native_type(total_loss),
+                                  original_trend = convert_to_native_type(trend))
 
 async def updateData():
     while True:
         await Control()
+        await asyncio.sleep(900)
     # await Control()
 
 

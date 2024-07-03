@@ -18,7 +18,7 @@ tokenlist= [
   { 'name': 'JLP','address':'27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4'},
   { 'name': 'PONKE','address':'5z3EqYQo9HiCEs3R84RCDMu2n7anpDMxRhdK8PSWmrRC'},
   { 'name': 'WETH','address':'7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs'},
-  { 'name': 'bSOL','address':'bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1'},
+  #{ 'name': 'bSOL','address':'bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1'},
   #{ 'name': 'Trump','address':'Cmg4dyhnnUcWmakmyKQZ7MHEdcuCgoKa8iXKE8Nknjiv'},
 ]
 

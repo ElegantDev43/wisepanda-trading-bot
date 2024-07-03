@@ -40,7 +40,7 @@ async def exportTechnicalIndicators(address):
   addressType = "token"
 
   today = datetime.now()
-  two_months_before = today - relativedelta(days=3)
+  two_months_before = today - relativedelta(days=1)
   two_months_before = two_months_before.strftime("%Y-%m-%d %H:%M:%S")
 
   one_year_before = today - relativedelta(months=12)
@@ -200,6 +200,7 @@ async def exportTechnicalIndicators(address):
 
   dataFrame = dataFrame.iloc[::-1]
   dataFrame['prev_value'] = dataFrame['close'].shift(-1)
+  dataFrame['prev_value_2'] = dataFrame['close'].shift(-2)
 
   date_range = [2,5,10]
 

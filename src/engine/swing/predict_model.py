@@ -41,7 +41,7 @@ async def prepare_model(token):
   if dataFrame.empty:
     return
 
-  features = ['prev_value',
+  features = ['prev_value','prev_value_2',
             'sma_5','sma_10',
             'ema_5','ema_10',
             'tma','close',

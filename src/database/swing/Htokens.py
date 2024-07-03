@@ -20,7 +20,7 @@ tokenlist= [
   #sssss{ 'name': 'USDC','address':'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'},
   { 'name': 'PONKE','address':'5z3EqYQo9HiCEs3R84RCDMu2n7anpDMxRhdK8PSWmrRC'},
   { 'name': 'WETH','address':'7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs'},
-  { 'name': 'bSOL','address':'bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1'},
+  #{ 'name': 'bSOL','address':'bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1'},
   #{ 'name': 'Trump','address':'Cmg4dyhnnUcWmakmyKQZ7MHEdcuCgoKa8iXKE8Nknjiv'},
   #{ 'name': 'FTX','address':'5raTruYd7sCnoGvb8t8V8H6rWpT9eFVm9NhQoqu3nb6E'},
   #{ 'name': 'ADOGE','address':'6SEJ69LQNmE7ZErThw2dSh1mUvAdwMrb6BzEQSCb5NTt'},

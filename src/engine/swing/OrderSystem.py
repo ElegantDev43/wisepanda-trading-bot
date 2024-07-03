@@ -188,7 +188,7 @@ def checkTrend(prices,predict_model):
       ind_ws = 0
 
   X_test = np.array([[
-                     prices[['close'][0]].iloc[38],
+                     prices[['close'][0]].iloc[38],prices[['close'][0]].iloc[37],
                      ind_sma_5,ind_sma_10,
                      ind_ema_5,ind_ema_10,
                      ind_tma,prices[['close'][0]].iloc[39],
@@ -216,10 +216,13 @@ async def OrderSystem(token,prices,amount,original_price,original_state,
 
   if os.path.exists(f'src/engine/swing/model/model_{token}.pkl') != True:
     if os.path.exists(f'src/engine/swing/model/model.pkl') != True:
-      return    
+      return
     predict_model = pickle.load(open(f'src/engine/swing/model/model.pkl', 'rb'))
   else:
-    predict_model = pickle.load(open(f'src/engine/swing/model/model_{token}.pkl', 'rb'))
+    if token == '27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4' or token == '5z3EqYQo9HiCEs3R84RCDMu2n7anpDMxRhdK8PSWmrRC':
+        predict_model = pickle.load(open(f'src/engine/swing/model/model_J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn.pkl', 'rb'))
+    else:
+        predict_model = pickle.load(open(f'src/engine/swing/model/model_{token}.pkl', 'rb'))
 
   if len(prices) < 40:
       return amount,original_price,original_state,buy_count,sell_count,stop_count,total_count,original_trend,profit,loss
@@ -229,7 +232,12 @@ async def OrderSystem(token,prices,amount,original_price,original_state,
   current_price = prices[['close'][0]].iloc[39]
   divergence = prices[['close'][0]].iloc[39] - prices[['close'][0]].iloc[38]
 
-  if ((original_trend == -1 and trend == 1 and current_price > original_price) or current_price >= (original_price * (100.0 + take_profit) /100)) and original_state == 'buy':
+  if divergence > 0:
+      original_trend = 1
+  elif divergence < 0:
+      original_trend = -1
+
+  if current_price >= (original_price * (100.0 + take_profit) / 100) and original_state == 'buy':
       original_state = 'sell'
       profit = amount * (current_price / original_price - 1)
       amount = amount * (current_price / original_price)
