@@ -35,7 +35,8 @@ def swap(type, token, amount, slippage, wallet):
     0.00005,
     True
   )
-
+  if 'message' in swap_response:
+    raise Exception("Getting instruction failed")
   txid = solana_tracker.perform_swap(swap_response)
 
   if not txid:

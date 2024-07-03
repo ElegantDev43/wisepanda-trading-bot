@@ -191,7 +191,10 @@ def get_from_gmgn(token):
         }
         price = token_info['price']
         liquidity = token_info['liquidity']
-        market_cap = token_info['market_cap']
+        if 'market_cap' in token_info:
+          market_cap = token_info['market_cap']
+        else:
+          market_cap = 0
         return {'tx_count':Transaction, 'volume':Volume, 'price': price, 'liquidity':liquidity, 'market_capital':market_cap}
     except requests.RequestException as e:
         return None

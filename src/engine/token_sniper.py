@@ -19,7 +19,7 @@ def start(user_id, token_sniper_id):
         token_sniper['stop_loss']
       )
       if stage == 'buy':
-        if token_engine.check_liveness(chain, token):
+        if token_engine.get_market_data(chain, token):
           position = swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id, stop_loss)
           print('Token Sniper Buy', position['id'])
           if len(auto_sell) == 0:

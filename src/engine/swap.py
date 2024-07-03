@@ -11,8 +11,9 @@ def buy(user_id, chain, token, amount, slippage, wallet_id, stop_loss):
   print(wallet)
   transaction_id, amount = dex_engine.swap(chain, 'buy', token, amount, slippage, wallet)
   market_capital = token_engine.get_market_data(chain, token)['market_capital']
+  position_id = time.time()
   position = {
-    'id': time.time(),
+    'id': position_id,
     'chain': chain,
     'token': token,
     'wallet_id': wallet_id,
@@ -22,7 +23,7 @@ def buy(user_id, chain, token, amount, slippage, wallet_id, stop_loss):
     'stop_loss':stop_loss
   }
   database.add_position(user_id, position)
-  Thread(target=stop_loss_engine.start, args=(user_id, position['id'])).start()
+  Thread(target=stop_loss_engine.start, args=(user_id, position_id)).start()
   return position
 
 def sell(user_id, position_id, amount, slippage):

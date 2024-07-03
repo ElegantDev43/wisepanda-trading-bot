@@ -55,78 +55,79 @@ async def auto_token_sniper():
 
         token = result_text[(token_start_index+27): end_index]
         print(token)
-        print(token_engine.get_metadata(0,token))
-        print(token_engine.check_liveness(0, token))
-        users = database.get_users()
-        for user in users:
-          chain = 0
-          auto_sniper = user.auto_sniper[chain]
 
-          token_sniper = auto_sniper['token']
-          active, amount, slippage, wallet_id, auto_sell, min_market_captial, max_market_captial, stop_loss = (
-            token_sniper['active'],
-            token_sniper['amount'],
-            token_sniper['slippage'],
-            token_sniper['wallet_id'],
-            token_sniper['auto_sell'],
-            token_sniper['min_market_capital'],
-            token_sniper['max_market_capital'],
-            token_sniper['stop_loss']
-          )
-          if active:
-            market_captial = token_engine.get_market_data(chain, token)['market_capital']
-            if market_captial > min_market_captial and market_captial < max_market_captial and rug_status == True and renounce_status == True:
-                token_sniper_id = time.time()
-                count = 0
-                token_snipers = database.get_token_snipers(user.id, chain)
-                for sniper in token_snipers:
-                  if sniper['is_auto'] == True:
-                    count += 1
-                print(f'auto count: {count}')
-                if count == 0:
-                  database.add_token_sniper(user.id, {
-                    'id': token_sniper_id,
-                    'stage': 'buy',
-                    'chain': chain,
-                    'token': token,
-                    'amount': amount,
-                    'slippage': slippage,
-                    'wallet_id': wallet_id,
-                    'auto_sell': auto_sell,
-                    'stop_loss': stop_loss,
-                    'is_auto': True
-                  })
-                  Thread(target=token_sniper_engine.start, args=(user.id, token_sniper_id)).start()
-                else:
-                  continue
-       
-          lp_sniper = auto_sniper['lp']
-          active, amount, slippage, wallet_id = (
-            lp_sniper['active'],
-            lp_sniper['amount'],
-            lp_sniper['slippage'],
-            lp_sniper['wallet_id']
-          )
-          if active:
-            lp_sniper_id = time.time()
-            database.add_lp_sniper(user.id, {
-              'id': lp_sniper_id,
-              'stage': 'buy',
-              'chain': chain,
-              'token': token,
-              'amount': amount,
-              'slippage': slippage,
-              'wallet_id': wallet_id
-            })
-            Thread(target=lp_sniper_engine.start, args=(user.id, lp_sniper_id)).start()
+        if token_engine.check_liveness(0, token):
+          users = database.get_users()
+          for user in users:
+            chain = 0
+            auto_sniper = user.auto_sniper[chain]
+
+            token_sniper = auto_sniper['token']
+            active, amount, slippage, wallet_id, auto_sell, min_market_captial, max_market_captial, stop_loss = (
+              token_sniper['active'],
+              token_sniper['amount'],
+              token_sniper['slippage'],
+              token_sniper['wallet_id'],
+              token_sniper['auto_sell'],
+              token_sniper['min_market_capital'],
+              token_sniper['max_market_capital'],
+              token_sniper['stop_loss']
+            )
+            if active:
+              market_captial = token_engine.get_market_data(chain, token)['market_capital']
+              if market_captial > min_market_captial and market_captial < max_market_captial and rug_status == True and renounce_status == True:
+                  token_sniper_id = time.time()
+                  count = 0
+                  token_snipers = database.get_token_snipers(user.id, chain)
+                  for sniper in token_snipers:
+                    if sniper['is_auto'] == True:
+                      count += 1
+                  print(f'auto count: {count}')
+                  if count == 0:
+                    database.add_token_sniper(user.id, {
+                      'id': token_sniper_id,
+                      'stage': 'buy',
+                      'chain': chain,
+                      'token': token,
+                      'amount': amount,
+                      'slippage': slippage,
+                      'wallet_id': wallet_id,
+                      'auto_sell': auto_sell,
+                      'stop_loss': stop_loss,
+                      'is_auto': True
+                    })
+                    Thread(target=token_sniper_engine.start, args=(user.id, token_sniper_id)).start()
+                  else:
+                    continue
+        
+            lp_sniper = auto_sniper['lp']
+            active, amount, slippage, wallet_id = (
+              lp_sniper['active'],
+              lp_sniper['amount'],
+              lp_sniper['slippage'],
+              lp_sniper['wallet_id']
+            )
+            if active:
+              lp_sniper_id = time.time()
+              database.add_lp_sniper(user.id, {
+                'id': lp_sniper_id,
+                'stage': 'buy',
+                'chain': chain,
+                'token': token,
+                'amount': amount,
+                'slippage': slippage,
+                'wallet_id': wallet_id
+              })
+              Thread(target=lp_sniper_engine.start, args=(user.id, lp_sniper_id)).start()
     # Run the client until disconnected
     await client.run_until_disconnected()
 
-def run_auto_token_sniper():
-    loop = asyncio.new_event_loop()
+def run_auto_token_sniper(loop):
     asyncio.set_event_loop(loop)
-    loop.run_until_complete(auto_token_sniper())
-    loop.close()
+    loop.run_forever()
+
 
 def initialize():
-    Thread(target=run_auto_token_sniper()).start()
+    loop = asyncio.new_event_loop()
+    Thread(target=run_auto_token_sniper, args=(loop,), daemon=True).start()
+    asyncio.run_coroutine_threadsafe(auto_token_sniper(), loop)
