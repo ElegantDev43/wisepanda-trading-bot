@@ -7,5 +7,5 @@ from src.engine.swing import main as swing
 
 def initialize():
   print('Initialize Engine')
-  swing.initialize()
+ # swing.initialize()
   raydium.initialize()

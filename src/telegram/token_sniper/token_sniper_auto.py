@@ -6,10 +6,18 @@ from src.engine import api as main_api
 current_keyboard = {}
 auto_sell_status = {'status':0}
 def handle_start(bot, message):
-    text = '''
- *🎯 Token Sniper* >> Auto Mode
+    wallets = main_api.get_wallets(message.chat.id)
+    wallet_info = ''
+    for index in range(len(wallets)):
+      balance = main_api.get_wallet_balance(message.chat.id, wallets[index]['id'])
+      wallet_info += f'''W{index + 1}: {(balance / (10 ** 9)):.5f}SOL''' + '\n'
+    text = f'''
+*🎯 Token Sniper* >> Auto Mode
 
-Set your parameters for auto token snipping.
+Automatically perform auto snipping.
+
+*Wallet Balance*
+{wallet_info}
     '''
     feature_api.initialize_values(message.chat.id, 'token_sniper_auto')
     keyboard_data = feature_api.get_user_feature_values(message.chat.id, 'token_sniper_auto')
@@ -154,10 +162,18 @@ def handle_input_value(bot, message, item):
     #print(current_keyboard)
     else:
       current_keyboard[item] = int(message.text)
-    text = '''
- *🎯 Token Sniper* >> Auto Mode
+    wallets = main_api.get_wallets(message.chat.id)
+    wallet_info = ''
+    for index in range(len(wallets)):
+      balance = main_api.get_wallet_balance(message.chat.id, wallets[index]['id'])
+      wallet_info += f'''W{index + 1}: {(balance / (10 ** 9)):.5f}SOL''' + '\n'
+    text = f'''
+*🎯 Token Sniper* >> Auto Mode
 
-Set your parameters for auto token snipping.
+Automatically perform auto snipping.
+
+*Wallet Balance*
+{wallet_info}
     '''
     feature_api.update_user_feature_values(message.chat.id, 'token_sniper_auto', current_keyboard)
     keyboard = get_keyboard(message.chat.id, current_keyboard)
@@ -178,10 +194,18 @@ def handle_confirm_auto_slippage(bot, message):
   
 def handle_default_slippage(bot, message):
     current_keyboard['slippage'] = 50
-    text = '''
- *🎯 Token Sniper* >> Auto Mode
+    wallets = main_api.get_wallets(message.chat.id)
+    wallet_info = ''
+    for index in range(len(wallets)):
+      balance = main_api.get_wallet_balance(message.chat.id, wallets[index]['id'])
+      wallet_info += f'''W{index + 1}: {(balance / (10 ** 9)):.5f}SOL''' + '\n'
+    text = f'''
+*🎯 Token Sniper* >> Auto Mode
 
-Set your parameters for auto token snipping.
+Automatically perform auto snipping.
+
+*Wallet Balance*
+{wallet_info}
     '''
     feature_api.update_user_feature_values(message.chat.id, 'token_sniper_auto', current_keyboard)
     keyboard = get_keyboard(message.chat.id, current_keyboard)
@@ -238,10 +262,18 @@ Enter the amount to sell:
     
 def handle_auto_sell_inputs(bot, message, index):
     current_keyboard['chain_auto_sell_params'][index]['amount'] = int(message.text)
-    text = '''
- *🎯 Token Sniper* >> Auto Mode
+    wallets = main_api.get_wallets(message.chat.id)
+    wallet_info = ''
+    for index in range(len(wallets)):
+      balance = main_api.get_wallet_balance(message.chat.id, wallets[index]['id'])
+      wallet_info += f'''W{index + 1}: {(balance / (10 ** 9)):.5f}SOL''' + '\n'
+    text = f'''
+*🎯 Token Sniper* >> Auto Mode
 
-Set your parameters for auto token snipping.
+Automatically perform auto snipping.
+
+*Wallet Balance*
+{wallet_info}
     '''
     feature_api.update_user_feature_values(message.chat.id, 'token_sniper_auto', current_keyboard)
     keyboard = get_keyboard(message.chat.id, current_keyboard)
@@ -259,10 +291,18 @@ Enter the profit to get in sell:
     
 def handle_auto_profit_inputs(bot, message, index):
     current_keyboard['chain_auto_sell_params'][index]['profit'] = float(message.text)
-    text = '''
- *🎯 Token Sniper* >> Auto Mode
+    wallets = main_api.get_wallets(message.chat.id)
+    wallet_info = ''
+    for index in range(len(wallets)):
+      balance = main_api.get_wallet_balance(message.chat.id, wallets[index]['id'])
+      wallet_info += f'''W{index + 1}: {(balance / (10 ** 9)):.5f}SOL''' + '\n'
+    text = f'''
+*🎯 Token Sniper* >> Auto Mode
 
-Set your parameters for auto token snipping.
+Automatically perform auto snipping.
+
+*Wallet Balance*
+{wallet_info}
     '''
     feature_api.update_user_feature_values(message.chat.id, 'token_sniper_auto', current_keyboard)
     keyboard = get_keyboard(message.chat.id, current_keyboard)
@@ -274,39 +314,45 @@ def handle_sniper_status(bot, message):
   wallets = main_api.get_wallets(message.chat.id)
   buy_wallet = wallets[current_keyboard['wallet']]['id']
 
+  buy_amount = current_keyboard['amount']
   auto_sniper = main_api.get_auto_sniper(message.chat.id)
-  if auto_sniper['token']['active'] == True:
-      auto_sniper['token']['active'] = False
-      main_api.set_auto_sniper(message.chat.id, auto_sniper)
-      bot.send_message(chat_id=message.chat.id,
-                     text='Successfully stopped Sniper')
-  elif auto_sniper['token']['active'] == False:
-      buy_amount = int(current_keyboard['amount'])
-      if current_keyboard['amount'] == 0:
+  wallet_balance = main_api.get_wallet_balance(message.chat.id, wallets[current_keyboard['wallet']]['id'])
+  if wallet_balance < (buy_amount + 5000000) and auto_sniper['token']['active'] == False:
         bot.send_message(chat_id=message.chat.id,
-                     text='Not enough balance in the wallet')
-      else:
-        new_sniper = {
-          'token': {
-            'active': True,
-            'amount': buy_amount,
-            'slippage': int(current_keyboard['slippage']),
-            'wallet_id':  buy_wallet,
-            'auto_sell': current_keyboard['chain_auto_sell_params'],
-            'min_market_capital': int(current_keyboard['min_market_cap']),
-            'max_market_capital': int(current_keyboard['max_market_cap']),
-            'stop_loss':int(current_keyboard['stop-loss'])
-          },
-          'lp': {
-            'active': False,
-            'amount': 1,
-            'slippage': 50,
-            'wallet_id': 0
+                     text='Insufficient balance in the selected wallet.')
+  else:
+    if auto_sniper['token']['active'] == True:
+        auto_sniper['token']['active'] = False
+        main_api.set_auto_sniper(message.chat.id, auto_sniper)
+        bot.send_message(chat_id=message.chat.id,
+                      text='Successfully stopped Sniper')
+    elif auto_sniper['token']['active'] == False:
+        buy_amount = int(current_keyboard['amount'])
+        if current_keyboard['amount'] == 0:
+          bot.send_message(chat_id=message.chat.id,
+                      text='Not enough balance in the wallet')
+        else:
+          new_sniper = {
+            'token': {
+              'active': True,
+              'amount': buy_amount,
+              'slippage': int(current_keyboard['slippage']),
+              'wallet_id':  buy_wallet,
+              'auto_sell': current_keyboard['chain_auto_sell_params'],
+              'min_market_capital': int(current_keyboard['min_market_cap']),
+              'max_market_capital': int(current_keyboard['max_market_cap']),
+              'stop_loss':int(current_keyboard['stop-loss'])
+            },
+            'lp': {
+              'active': False,
+              'amount': 1,
+              'slippage': 50,
+              'wallet_id': 0
+            }
           }
-        }
-        main_api.set_auto_sniper(message.chat.id, new_sniper)
-        bot.send_message(chat_id=message.chat.id,
-                      text='Successfully Started Sniper')
-  keyboard = get_keyboard(message.chat.id, current_keyboard)
-  bot.edit_message_reply_markup(
-        chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)
+          main_api.set_auto_sniper(message.chat.id, new_sniper)
+          bot.send_message(chat_id=message.chat.id,
+                        text='Successfully Started Sniper')
+    keyboard = get_keyboard(message.chat.id, current_keyboard)
+    bot.edit_message_reply_markup(
+          chat_id=message.chat.id, message_id=message.message_id, reply_markup=keyboard)

@@ -9,10 +9,18 @@ current_keyboard = {}
 
 def handle_start(bot, message):
    # user_model.create_user_by_telegram(message.chat.id)
-    text = '''
+    wallets = main_api.get_wallets(message.chat.id)
+    wallet_info = ''
+    for index in range(len(wallets)):
+      balance = main_api.get_wallet_balance(message.chat.id, wallets[index]['id'])
+      wallet_info += f'''W{index + 1}: {(balance / (10 ** 9)):.5f}SOL''' + '\n'
+    text = f'''
 *🪁 Swing Trading* >> Auto Mode
 
 Automatically perform swing trading.
+
+*Wallet Balance*
+{wallet_info}
     '''
     feature_api.initialize_values(message.chat.id, 'swing_auto')
     keyboard_data = feature_api.get_user_feature_values(message.chat.id, 'swing_auto')
@@ -137,10 +145,18 @@ def handle_input_value(bot, message, item):
     else:
       current_keyboard[item] = int(message.text)
 
-    text = '''
+    wallets = main_api.get_wallets(message.chat.id)
+    wallet_info = ''
+    for index in range(len(wallets)):
+      balance = main_api.get_wallet_balance(message.chat.id, wallets[index]['id'])
+      wallet_info += f'''W{index + 1}: {(balance / (10 ** 9)):.5f}SOL''' + '\n'
+    text = f'''
 *🪁 Swing Trading* >> Auto Mode
 
 Automatically perform swing trading.
+
+*Wallet Balance*
+{wallet_info}
     '''
     feature_api.update_user_feature_values(message.chat.id, 'swing_auto', current_keyboard)
     keyboard = get_keyboard(message.chat.id, current_keyboard)
@@ -162,10 +178,18 @@ def handle_confirm_auto_slippage(bot, message):
 def handle_default_slippage(bot, message):
     current_keyboard['slippage'] = 50
     keyboard = get_keyboard(message.chat.id, current_keyboard)
-    text = '''
+    wallets = main_api.get_wallets(message.chat.id)
+    wallet_info = ''
+    for index in range(len(wallets)):
+      balance = main_api.get_wallet_balance(message.chat.id, wallets[index]['id'])
+      wallet_info += f'''W{index + 1}: {(balance / (10 ** 9)):.5f}SOL''' + '\n'
+    text = f'''
 *🪁 Swing Trading* >> Auto Mode
 
 Automatically perform swing trading.
+
+*Wallet Balance*
+{wallet_info}
     '''
     feature_api.update_user_feature_values(message.chat.id, 'swing_auto', current_keyboard)
     bot.send_message(chat_id=message.chat.id, text=text, parse_mode='Markdown',
@@ -188,9 +212,11 @@ def handle_show_more_wallets(bot, message):
 def handle_trading_tatus(bot, message):
     wallets = main_api.get_wallets(message.chat.id)
     buy_wallet = wallets[current_keyboard['wallet']]['id']
-    if current_keyboard['amount'] == 0:
+    wallet_balance = main_api.get_wallet_balance(message.chat.id, wallets[current_keyboard['wallet']]['id'])
+    buy_amount = current_keyboard['amount']
+    if wallet_balance < (buy_amount + 5000000) and main_api.get_auto_swing_status(message.chat.id) == 1:
         bot.send_message(chat_id=message.chat.id,
-                     text='Not enough balance in the wallet')
+                     text='Insufficient balance in the selected wallet.')
     else:
       if main_api.get_auto_swing_status(message.chat.id) == 0:
         main_api.set_auto_swing_status(message.chat.id, 1)

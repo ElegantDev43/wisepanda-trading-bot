@@ -130,11 +130,14 @@ def handle_input_token(bot, message):
           token_market_cap = format_number(token_data['market_capital'])
           token_volume = token_data['volume']
           token_tx_counts = token_data['tx_count']
+          wallets = main_api.get_wallets(message.chat.id)
+          wallet_info = ''
+          for index in range(len(wallets)):
+            balance = main_api.get_wallet_balance(message.chat.id, wallets[index]['id'])
+            wallet_info += f'''W{index + 1}: {(balance / (10 ** 9)):.5f}SOL''' + '\n'
           text = f'''
-             *🪁 Swing Trading* >> Manual Mode
-
-Buy your tokens here.
-
+                    *🛒 *🪁 Swing Trading* >> Manual Mode*
+                    
 *{meta_data['name']}  (🔗{current_chain})  *
 {token}
 
@@ -144,8 +147,9 @@ Buy your tokens here.
 📏 *Volume*:  ${format_number(token_volume['h1'])}(*1h*) -> ${format_number(token_volume['h24'])}(*24h*)
 🧮 *Number of Transactions*:  {int(token_tx_counts['h1'])}(*1h*) -> {int(token_tx_counts['h24'])}(*24h*)
 
-
-[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
+*Wallet Balance*
+{wallet_info}
+[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de) | [Birdeye](https://birdeye.so/token/{token}?chain=solana)
 '''
 
           keyboard = get_keyboard(message.chat.id, current_keyboard)
@@ -195,10 +199,13 @@ def handle_input_value(bot, message, item):
     token_market_cap = format_number(token_data['market_capital'])
     token_volume = token_data['volume']
     token_tx_counts = token_data['tx_count']
+    wallets = main_api.get_wallets(message.chat.id)
+    wallet_info = ''
+    for index in range(len(wallets)):
+      balance = main_api.get_wallet_balance(message.chat.id, wallets[index]['id'])
+      wallet_info += f'''W{index + 1}: {(balance / (10 ** 9)):.5f}SOL''' + '\n'
     text = f'''
-    *🪁 Swing Trading* >> Manual Mode
-
-Buy your tokens here.
+              *🛒 *🪁 Swing Trading* >> Manual Mode*
 
 *{meta_data['name']}  (🔗{current_chain})  *
 {token}
@@ -209,8 +216,9 @@ Buy your tokens here.
 📏 *Volume*:  ${format_number(token_volume['h1'])}(*1h*) -> ${format_number(token_volume['h24'])}(*24h*)
 🧮 *Number of Transactions*:  {int(token_tx_counts['h1'])}(*1h*) -> {int(token_tx_counts['h24'])}(*24h*)
 
-
-[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
+*Wallet Balance*
+{wallet_info}
+[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de) | [Birdeye](https://birdeye.so/token/{token}?chain=solana)
 '''
 
     keyboard = get_keyboard(message.chat.id, current_keyboard)
@@ -244,10 +252,13 @@ def handle_default_slippage(bot, message):
     token_market_cap = format_number(token_data['market_capital'])
     token_volume = token_data['volume']
     token_tx_counts = token_data['tx_count']
+    wallets = main_api.get_wallets(message.chat.id)
+    wallet_info = ''
+    for index in range(len(wallets)):
+      balance = main_api.get_wallet_balance(message.chat.id, wallets[index]['id'])
+      wallet_info += f'''W{index + 1}: {(balance / (10 ** 9)):.5f}SOL''' + '\n'
     text = f'''
-    *🪁 Swing Trading* >> Manual Mode
-
-Buy your tokens here.
+              *🛒 *🪁 Swing Trading* >> Manual Mode*
 
 *{meta_data['name']}  (🔗{current_chain})  *
 {token}
@@ -258,8 +269,9 @@ Buy your tokens here.
 📏 *Volume*:  ${format_number(token_volume['h1'])}(*1h*) -> ${format_number(token_volume['h24'])}(*24h*)
 🧮 *Number of Transactions*:  {int(token_tx_counts['h1'])}(*1h*) -> {int(token_tx_counts['h24'])}(*24h*)
 
-
-[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de)
+*Wallet Balance*
+{wallet_info}
+[Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de) | [Birdeye](https://birdeye.so/token/{token}?chain=solana)
 '''
 
     keyboard = get_keyboard(message.chat.id, current_keyboard)
@@ -278,9 +290,10 @@ def handle_make_order(bot, message):
     wallets = main_api.get_wallets(message.chat.id)
     buy_wallet = wallets[current_keyboard['wallet']]['id']
     buy_amount = int(current_keyboard['amount'])
-    if current_keyboard['amount'] == 0:
+    wallet_balance = main_api.get_wallet_balance(message.chat.id, wallets[current_keyboard['wallet']]['id'])
+    if wallet_balance < (buy_amount + 5000000):
         bot.send_message(chat_id=message.chat.id,
-                     text='Not enough balance in the wallet')
+                     text='Insufficient balance in the selected wallet.')
     else:
       position = main_api.market_buy(message.chat.id, current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet, current_keyboard['stop-loss'])
       result_text = f'''Successfully confirmed Buy Transaction.
