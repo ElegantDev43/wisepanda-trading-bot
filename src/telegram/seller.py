@@ -115,7 +115,7 @@ def get_keyboard(chat_id, keyboard_data):
           text=caption, callback_data='seller count')
 
     create_order = types.InlineKeyboardButton(
-        '✔️ Buy', callback_data='seller make order')
+        '✔️ Sell', callback_data='seller make order')
     back = types.InlineKeyboardButton('🔙 Back', callback_data='start')
     close = types.InlineKeyboardButton('❌ Close', callback_data='close')
 
