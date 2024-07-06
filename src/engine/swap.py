@@ -10,6 +10,8 @@ def buy(user_id, chain, token, amount, slippage, wallet_id, stop_loss):
   wallet = database.get_wallet(user_id, chain, wallet_id)
   print(wallet)
   transaction_id, amount = dex_engine.swap(chain, 'buy', token, amount, slippage, wallet)
+  if transaction_id == None and amount == None:
+    return None
   market_capital = token_engine.get_market_data(chain, token)['market_capital']
   position_id = time.time()
   position = {
@@ -28,10 +30,13 @@ def buy(user_id, chain, token, amount, slippage, wallet_id, stop_loss):
 
 def sell(user_id, position_id, amount, slippage):
   position = database.get_position(user_id, position_id)
+  print(position)
   wallet = database.get_wallet(user_id, position['chain'], position['wallet_id'])
   amount = int(position['amount'] * amount / 100)
   position['amount'] -= amount
   transaction_id, amount = dex_engine.swap(position['chain'], 'sell', position['token'], amount, slippage, wallet)
+  if transaction_id == None and amount == None:
+    return None, None
   if position['amount'] != 0:
     database.set_position(user_id, position_id, position)
   else:

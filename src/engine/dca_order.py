@@ -8,16 +8,17 @@ def start(user_id, dca_order_id):
     dca_order = database.get_dca_order(user_id, dca_order_id)
     if dca_order:
       if dca_order['type'] == 'buy':
-        chain, token, amount, slippage, wallet_id, interval, count = (
+        chain, token, amount, slippage, wallet_id, interval, count, stop_loss = (
           dca_order['chain'],
           dca_order['token'],
           dca_order['amount'],
           dca_order['slippage'],
           dca_order['wallet_id'],
           dca_order['interval'],
-          dca_order['count']
+          dca_order['count'],
+          dca_order['stop_loss']
         )
-        position = swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id)
+        position = swap_engine.buy(user_id, chain, token, amount, slippage, wallet_id, stop_loss)
         print('DCA Buy', position['id'])
         count -= 1
         if count != 0:

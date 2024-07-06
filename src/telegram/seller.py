@@ -138,6 +138,7 @@ def handle_select_position(bot, message, index):
     chain_positions = main_api.get_positions(message.chat.id)
     current_keyboard['wallet'] = chain_positions[int(index)]['id']
     current_keyboard['token'] = chain_positions[int(index)]['token']
+    current_keyboard['wallet_index'] = chain_positions[int(index)]['wallet_id']
     feature_api.update_user_feature_values(message.chat.id, 'seller', current_keyboard)
     chain_index = main_api.get_chain(message.chat.id)
     chains = main_api.get_chains()
@@ -231,8 +232,6 @@ def handle_input_value(bot, message, item):
 📏 *Volume*:  ${format_number(token_volume['h1'])}(*1h*) -> ${format_number(token_volume['h24'])}(*24h*)
 🧮 *Number of Transactions*:  {int(token_tx_counts['h1'])}(*1h*) -> {int(token_tx_counts['h24'])}(*24h*)
 
-*Wallet Balance*
-{wallet_info}
 [Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de) | [Birdeye](https://birdeye.so/token/{token}?chain=solana)
 '''
 
@@ -284,8 +283,6 @@ def handle_default_slippage(bot, message):
 📏 *Volume*:  ${format_number(token_volume['h1'])}(*1h*) -> ${format_number(token_volume['h24'])}(*24h*)
 🧮 *Number of Transactions*:  {int(token_tx_counts['h1'])}(*1h*) -> {int(token_tx_counts['h24'])}(*24h*)
 
-*Wallet Balance*
-{wallet_info}
 [Scan](https://solscan.io/account/{token}) | [Dexscreener](https://dexscreener.com/solana/{token}) | [Defined](https://www.defined.fi/sol/{token}?quoteToken=token1&cache=3e1de) | [Birdeye](https://birdeye.so/token/{token}?chain=solana)
 '''
 
@@ -333,14 +330,19 @@ def handle_make_order(bot, message):
   
     wallets = main_api.get_wallets(message.chat.id)
     buy_amount = int(current_keyboard['amount'])
-    wallet_balance = main_api.get_wallet_balance(message.chat.id, wallets[current_keyboard['wallet']]['id'])
+        
+    wallet_balance = main_api.get_wallet_balance(message.chat.id, current_keyboard['wallet_index'])
     if wallet_balance < (buy_amount + 5000000):
         bot.send_message(chat_id=message.chat.id,
                      text='Insufficient balance in the selected wallet.')
     else:
       if current_keyboard['order_name'] == 0:
+          print(current_keyboard['wallet'])
           tx_id, amount = main_api.market_sell(message.chat.id, current_keyboard['wallet'], buy_amount, current_keyboard['slippage'])
-          result_text = f'''Successfully confirmed Buy Transaction.
+          if tx_id == None and amount == None:
+            result_text = f'''Swap failed due to low slippage'''
+          else:
+            result_text = f'''Successfully confirmed Buy Transaction.
   Transaction ID: {tx_id}
   View on SolScan: (https://solscan.io/tx/{tx_id})'''
           bot.send_message(chat_id=message.chat.id,

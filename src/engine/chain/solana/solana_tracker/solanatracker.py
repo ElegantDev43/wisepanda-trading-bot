@@ -67,18 +67,22 @@ class SolanaTracker:
       response = self.connection.send_raw_transaction(bytes(txn))
       return self.confirm_transaction(str(response.value))
     except Exception as e:
-      return False
+      return 99999
 
-  def confirm_transaction(self, txid: str, max_retries: int = 60, retry_interval: float = 1.0) -> str:
+  def confirm_transaction(self, txid: str, max_retries: int = 30, retry_interval: float = 1.0) -> str:
     retries = 0
     while retries < max_retries:
       try:
         resp = self.connection.get_signature_statuses([Signature.from_string(txid)], True)
         if resp.value is not None and len(resp.value) > 0:
-          if self.debug and resp.value[0] is not None and resp.value[0].confirmations:
-            print(f"Confirmations: {resp.value[0].confirmations}")
-          if resp.value[0] is not None and resp.value[0].confirmation_status is not None and str(resp.value[0].confirmation_status) == "TransactionConfirmationStatus.Finalized":
-            break
+          if resp.value[0].err is not None:
+            print('swap_error:Low Slippage')
+            return 99999
+          else:
+            if self.debug and resp.value[0] is not None and resp.value[0].confirmations:
+              print(f"Confirmations: {resp.value[0].confirmations}")
+            if resp.value[0] is not None and resp.value[0].confirmation_status is not None and str(resp.value[0].confirmation_status) == "TransactionConfirmationStatus.Finalized":
+              break
       except Exception as e:
         print(f"Error checking transaction status: {e}")
       retries += 1

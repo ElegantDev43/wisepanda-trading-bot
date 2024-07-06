@@ -25,7 +25,7 @@ def swap(type, token, amount, slippage, wallet):
   keypair = Keypair.from_base58_string(wallet['private_key'])
 
   solana_tracker = SolanaTracker(keypair, "https://rpc.solanatracker.io/public?advancedTx=true")
-
+  print(amount)
   swap_response = solana_tracker.get_swap_instructions(
     inputMint,
     outputMint,
@@ -39,8 +39,8 @@ def swap(type, token, amount, slippage, wallet):
     raise Exception("Getting instruction failed")
   txid = solana_tracker.perform_swap(swap_response)
 
-  if not txid:
-    raise Exception("Swap failed")
+  if txid == 99999:
+    return None, None
 
   print("Transaction ID:", txid)
   print("Transaction URL:", f"https://explorer.solana.com/tx/{txid}")

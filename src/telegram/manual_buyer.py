@@ -370,7 +370,11 @@ def handle_make_order(bot, message):
       if current_keyboard['order_name'] == 0:
           print(current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet)
           position = main_api.market_buy(message.chat.id, current_keyboard['token'], buy_amount, current_keyboard['slippage'], buy_wallet, current_keyboard['stop-loss'])
-          result_text = f'''Successfully confirmed Buy Transaction.
+          
+          if position == None:
+            result_text = "Swap failed due to low slippage"
+          else:
+            result_text = f'''Successfully confirmed Sell Transaction.
   Transaction ID: {position['transaction_id']}
   View on SolScan: (https://solscan.io/tx/{position['transaction_id']})'''
           bot.send_message(chat_id=message.chat.id,
