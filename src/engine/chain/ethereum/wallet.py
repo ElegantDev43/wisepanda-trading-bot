@@ -1,3 +1,4 @@
+import os
 from eth_account import Account
 from eth_keys import keys
 from web3 import Web3
@@ -16,13 +17,13 @@ def import_wallet(private_key):
     return address
 
 def get_balance(address):
-    web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
+    web3 = Web3(Web3.HTTPProvider(os.getenv('ETHEREUM_RPC_URL')))
     balance_wei = web3.eth.get_balance(address)
     balance = web3.from_wei(balance_wei, 'ether')
     return balance
 
 def get_token_balance(address, token):
-    web3 = Web3(Web3.HTTPProvider(config.ETHEREUM_RPC_URL))
+    web3 = Web3(Web3.HTTPProvider(os.getenv('ETHEREUM_RPC_URL')))
     token_abi = [
         {
             "constant": True,

@@ -1,5 +1,4 @@
-from src.database import user, sniper
+from src.database import user as user_model
 
 def initialize():
-    user.initialize()
-    sniper.initialize()
+    user_model.initialize()
